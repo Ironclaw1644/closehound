@@ -7,8 +7,11 @@ SUPABASE_TEMP_DIR="$ROOT_DIR/supabase/.temp"
 SUPABASE_CONFIG_FILE="$ROOT_DIR/supabase/config.toml"
 ENV_FILE="$ROOT_DIR/.env.local"
 VERCEL_DIR="$ROOT_DIR/.vercel"
-# CloseHound is internal-only. Customer-facing branding and outbound email must use WalkPerro.
-APP_BRAND="WalkPerro"
+
+APP_NAME="CloseHound"
+APP_BRAND="CloseHound"
+FULFILLMENT_BRAND_NAME="WalkPerro"
+OUTBOUND_SENDER_NAME="WalkPerro"
 
 require_command() {
   local command_name="$1"
@@ -261,7 +264,10 @@ fi
 
 upsert_env_file_var "$ENV_FILE" "NEXT_PUBLIC_SUPABASE_URL" "$SUPABASE_URL"
 upsert_env_file_var "$ENV_FILE" "NEXT_PUBLIC_SUPABASE_ANON_KEY" "$SUPABASE_BROWSER_KEY"
+upsert_env_file_var "$ENV_FILE" "NEXT_PUBLIC_APP_NAME" "$APP_NAME"
 upsert_env_file_var "$ENV_FILE" "NEXT_PUBLIC_APP_BRAND" "$APP_BRAND"
+upsert_env_file_var "$ENV_FILE" "FULFILLMENT_BRAND_NAME" "$FULFILLMENT_BRAND_NAME"
+upsert_env_file_var "$ENV_FILE" "OUTBOUND_SENDER_NAME" "$OUTBOUND_SENDER_NAME"
 ensure_env_file_var "$ENV_FILE" "RESEND_API_KEY" ""
 ensure_env_file_var "$ENV_FILE" "RESEND_FROM" ""
 ensure_env_file_var "$ENV_FILE" "NOTIFY_SIGNUPS_TO" ""
@@ -270,10 +276,13 @@ echo "Wrote local env:"
 echo "  .env.local"
 echo "  NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}"
 echo "  NEXT_PUBLIC_SUPABASE_ANON_KEY=$(mask_value "$SUPABASE_BROWSER_KEY")"
+echo "  NEXT_PUBLIC_APP_NAME=${APP_NAME}"
 echo "  NEXT_PUBLIC_APP_BRAND=${APP_BRAND}"
+echo "  FULFILLMENT_BRAND_NAME=${FULFILLMENT_BRAND_NAME}"
+echo "  OUTBOUND_SENDER_NAME=${OUTBOUND_SENDER_NAME}"
 echo "  Added blank placeholders if missing: RESEND_API_KEY, RESEND_FROM, NOTIFY_SIGNUPS_TO"
 echo "  Key source=${KEY_KIND} via ${KEY_SOURCE}"
-echo "  Branding rule: CloseHound is internal-only. Customer-facing branding and outbound email must use WalkPerro."
+echo "  Branding rule: CloseHound is the internal app. Customer-facing fulfillment and outbound email use WalkPerro."
 
 VERCEL_CMD="$(get_vercel_cmd)"
 
@@ -284,9 +293,10 @@ if [[ ! -d "$VERCEL_DIR" || ! -f "$VERCEL_DIR/project.json" ]]; then
 fi
 
 for env_name in development preview production; do
+  upsert_vercel_env "$VERCEL_CMD" "NEXT_PUBLIC_APP_NAME" "$APP_NAME" "$env_name"
+  upsert_vercel_env "$VERCEL_CMD" "NEXT_PUBLIC_APP_BRAND" "$APP_BRAND" "$env_name"
   upsert_vercel_env "$VERCEL_CMD" "NEXT_PUBLIC_SUPABASE_URL" "$SUPABASE_URL" "$env_name"
   upsert_vercel_env "$VERCEL_CMD" "NEXT_PUBLIC_SUPABASE_ANON_KEY" "$SUPABASE_BROWSER_KEY" "$env_name"
-  upsert_vercel_env "$VERCEL_CMD" "NEXT_PUBLIC_APP_BRAND" "$APP_BRAND" "$env_name"
 done
 
 echo "Completed env sync for project ref ${PROJECT_REF}."
