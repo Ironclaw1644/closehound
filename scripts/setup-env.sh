@@ -10,6 +10,7 @@ VERCEL_DIR="$ROOT_DIR/.vercel"
 
 APP_NAME="CloseHound"
 APP_BRAND="CloseHound"
+NEXT_PUBLIC_SITE="https://closehound.com"
 FULFILLMENT_BRAND_NAME="WalkPerro"
 OUTBOUND_SENDER_NAME="WalkPerro"
 
@@ -29,6 +30,24 @@ require_file() {
     echo "Required file not found: $file_path" >&2
     exit 1
   fi
+}
+
+get_env_file_var() {
+  local file_path="$1"
+  local key="$2"
+  local line=""
+
+  if [[ ! -f "$file_path" ]]; then
+    return 1
+  fi
+
+  line="$(grep -E "^${key}=" "$file_path" | head -n 1 || true)"
+
+  if [[ -z "$line" ]]; then
+    return 1
+  fi
+
+  printf '%s' "${line#*=}"
 }
 
 mask_value() {
@@ -266,11 +285,15 @@ upsert_env_file_var "$ENV_FILE" "NEXT_PUBLIC_SUPABASE_URL" "$SUPABASE_URL"
 upsert_env_file_var "$ENV_FILE" "NEXT_PUBLIC_SUPABASE_ANON_KEY" "$SUPABASE_BROWSER_KEY"
 upsert_env_file_var "$ENV_FILE" "NEXT_PUBLIC_APP_NAME" "$APP_NAME"
 upsert_env_file_var "$ENV_FILE" "NEXT_PUBLIC_APP_BRAND" "$APP_BRAND"
+upsert_env_file_var "$ENV_FILE" "NEXT_PUBLIC_SITE" "$NEXT_PUBLIC_SITE"
 upsert_env_file_var "$ENV_FILE" "FULFILLMENT_BRAND_NAME" "$FULFILLMENT_BRAND_NAME"
 upsert_env_file_var "$ENV_FILE" "OUTBOUND_SENDER_NAME" "$OUTBOUND_SENDER_NAME"
+
+# CloseHound stays internal-only. All customer-facing email must use WalkPerro branding.
 ensure_env_file_var "$ENV_FILE" "RESEND_API_KEY" ""
-ensure_env_file_var "$ENV_FILE" "RESEND_FROM" ""
-ensure_env_file_var "$ENV_FILE" "NOTIFY_SIGNUPS_TO" ""
+ensure_env_file_var "$ENV_FILE" "RESEND_FROM" "hello@walkperro.com"
+ensure_env_file_var "$ENV_FILE" "OUTBOUND_TEST_RECIPIENT" "jamitest96@gmail.com"
+ensure_env_file_var "$ENV_FILE" "NOTIFY_SIGNUPS_TO" "walkperro@proton.me"
 
 echo "Wrote local env:"
 echo "  .env.local"
@@ -278,9 +301,11 @@ echo "  NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}"
 echo "  NEXT_PUBLIC_SUPABASE_ANON_KEY=$(mask_value "$SUPABASE_BROWSER_KEY")"
 echo "  NEXT_PUBLIC_APP_NAME=${APP_NAME}"
 echo "  NEXT_PUBLIC_APP_BRAND=${APP_BRAND}"
+echo "  NEXT_PUBLIC_SITE=${NEXT_PUBLIC_SITE}"
 echo "  FULFILLMENT_BRAND_NAME=${FULFILLMENT_BRAND_NAME}"
 echo "  OUTBOUND_SENDER_NAME=${OUTBOUND_SENDER_NAME}"
-echo "  Added blank placeholders if missing: RESEND_API_KEY, RESEND_FROM, NOTIFY_SIGNUPS_TO"
+echo "  CloseHound remains internal-only. WalkPerro branding is used for outbound email."
+echo "  Added if missing: RESEND_API_KEY=<manual>, RESEND_FROM=hello@walkperro.com, OUTBOUND_TEST_RECIPIENT=jamitest96@gmail.com, NOTIFY_SIGNUPS_TO=walkperro@proton.me"
 echo "  Key source=${KEY_KIND} via ${KEY_SOURCE}"
 echo "  Branding rule: CloseHound is the internal app. Customer-facing fulfillment and outbound email use WalkPerro."
 
@@ -297,6 +322,22 @@ for env_name in development preview production; do
   upsert_vercel_env "$VERCEL_CMD" "NEXT_PUBLIC_APP_BRAND" "$APP_BRAND" "$env_name"
   upsert_vercel_env "$VERCEL_CMD" "NEXT_PUBLIC_SUPABASE_URL" "$SUPABASE_URL" "$env_name"
   upsert_vercel_env "$VERCEL_CMD" "NEXT_PUBLIC_SUPABASE_ANON_KEY" "$SUPABASE_BROWSER_KEY" "$env_name"
+  upsert_vercel_env "$VERCEL_CMD" "NEXT_PUBLIC_SITE" "$NEXT_PUBLIC_SITE" "$env_name"
+  upsert_vercel_env "$VERCEL_CMD" "FULFILLMENT_BRAND_NAME" "$FULFILLMENT_BRAND_NAME" "$env_name"
+  upsert_vercel_env "$VERCEL_CMD" "OUTBOUND_SENDER_NAME" "$OUTBOUND_SENDER_NAME" "$env_name"
+done
+
+for resend_key in RESEND_API_KEY RESEND_FROM OUTBOUND_TEST_RECIPIENT NOTIFY_SIGNUPS_TO; do
+  resend_value="$(get_env_file_var "$ENV_FILE" "$resend_key" || true)"
+
+  if [[ -z "$resend_value" ]]; then
+    echo "Skipping Vercel sync for ${resend_key}: local value is empty."
+    continue
+  fi
+
+  for env_name in development preview production; do
+    upsert_vercel_env "$VERCEL_CMD" "$resend_key" "$resend_value" "$env_name"
+  done
 done
 
 echo "Completed env sync for project ref ${PROJECT_REF}."

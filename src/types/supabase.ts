@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           city: string | null
           company_name: string
+          contact_email: string | null
           created_at: string
           has_website: boolean
           id: string
@@ -30,6 +31,7 @@ export type Database = {
         Insert: {
           city?: string | null
           company_name: string
+          contact_email?: string | null
           created_at?: string
           has_website?: boolean
           id?: string
@@ -42,6 +44,7 @@ export type Database = {
         Update: {
           city?: string | null
           company_name?: string
+          contact_email?: string | null
           created_at?: string
           has_website?: boolean
           id?: string
@@ -59,31 +62,6 @@ export type Database = {
     }
     Functions: {
       [_ in never]: never
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
     }
     Enums: {
       [_ in never]: never
@@ -336,7 +314,7 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
+  closehound: {
     Enums: {},
   },
   public: {

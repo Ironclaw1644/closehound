@@ -7,6 +7,7 @@ type LeadRow = Tables<{ schema: "closehound" }, "leads">;
 export type Lead = Omit<LeadRow, "status"> & {
   id: LeadRow["id"];
   company_name: LeadRow["company_name"];
+  contact_email: LeadRow["contact_email"];
   phone: LeadRow["phone"];
   city: LeadRow["city"];
   industry: LeadRow["industry"];

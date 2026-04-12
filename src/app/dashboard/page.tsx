@@ -2,6 +2,8 @@ import LeadsTable from "@/components/leads-table";
 import { getSupabaseClient, hasSupabaseEnv } from "@/lib/supabase";
 import type { Lead } from "@/types/lead";
 
+export const dynamic = "force-dynamic";
+
 async function getLeads(): Promise<Lead[]> {
   if (!hasSupabaseEnv()) {
     return [];
@@ -12,7 +14,7 @@ async function getLeads(): Promise<Lead[]> {
     .schema("closehound")
     .from("leads")
     .select(
-      "id, company_name, phone, city, industry, rating, has_website, status, preview_url, created_at"
+      "id, company_name, contact_email, phone, city, industry, rating, has_website, status, preview_url, created_at"
     )
     .order("created_at", { ascending: false });
 
@@ -41,7 +43,8 @@ export default async function DashboardPage() {
               </h1>
               <p className="mt-4 max-w-xl text-sm leading-6 text-zinc-400 sm:text-base">
                 Pulling directly from the <span className="text-zinc-200">closehound.leads</span>{" "}
-                schema with a minimal table built for the first working sales workflow.
+                schema with a minimal table built for preview generation and the first working
+                outbound email flow.
               </p>
             </div>
 
