@@ -4,29 +4,66 @@ import type { Lead } from "@/types/lead";
 
 export const dynamic = "force-dynamic";
 
-async function getLeads(): Promise<Lead[]> {
+type DashboardLeadsResult = {
+  leads: Lead[];
+  errorMessage: string | null;
+};
+
+async function getLeads(): Promise<DashboardLeadsResult> {
   if (!hasSupabaseEnv()) {
-    return [];
+    return {
+      leads: [],
+      errorMessage: null,
+    };
   }
 
-  const supabase = getSupabaseClient();
-  const { data, error } = await supabase
-    .schema("closehound")
-    .from("leads")
-    .select(
-      "id, company_name, contact_email, phone, city, industry, rating, has_website, status, preview_url, created_at"
-    )
-    .order("created_at", { ascending: false });
+  try {
+    const supabase = getSupabaseClient();
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() ?? null;
 
-  if (error) {
-    throw new Error(`Failed to load closehound.leads: ${error.message}`);
+    console.info("Dashboard Supabase URL", { supabaseUrl });
+
+    const diagnosticResult = await supabase.schema("closehound").from("leads").select("*");
+
+    console.info("Dashboard closehound.leads select(*) result", diagnosticResult);
+
+    if (diagnosticResult.error) {
+      console.error("Dashboard closehound.leads select(*) full error", diagnosticResult.error);
+    }
+
+    const { data, error } = await supabase
+      .schema("closehound")
+      .from("leads")
+      .select(
+        "id, company_name, contact_email, phone, city, industry, rating, has_website, status, preview_url, created_at"
+      )
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Failed to load closehound.leads for /dashboard", error);
+
+      return {
+        leads: [],
+        errorMessage: "Unable to load leads right now.",
+      };
+    }
+
+    return {
+      leads: (data ?? []) as Lead[],
+      errorMessage: null,
+    };
+  } catch (error) {
+    console.error("Unexpected dashboard Supabase failure", error);
+
+    return {
+      leads: [],
+      errorMessage: "Unable to load leads right now.",
+    };
   }
-
-  return (data ?? []) as Lead[];
 }
 
 export default async function DashboardPage() {
-  const leads = await getLeads();
+  const { leads, errorMessage } = await getLeads();
   const isSupabaseConfigured = hasSupabaseEnv();
 
   return (
@@ -43,8 +80,8 @@ export default async function DashboardPage() {
               </h1>
               <p className="mt-4 max-w-xl text-sm leading-6 text-zinc-400 sm:text-base">
                 Pulling directly from the <span className="text-zinc-200">closehound.leads</span>{" "}
-                schema with a minimal table built for preview generation and the first working
-                outbound email flow.
+                schema with a deterministic preview generator and the first working outbound email
+                flow.
               </p>
             </div>
 
@@ -81,6 +118,12 @@ export default async function DashboardPage() {
             Add <code>NEXT_PUBLIC_SUPABASE_URL</code> and{" "}
             <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code> to <code>.env.local</code> to load data
             from <code>closehound.leads</code>.
+          </section>
+        ) : null}
+
+        {isSupabaseConfigured && errorMessage ? (
+          <section className="rounded-[26px] border border-rose-300/15 bg-rose-300/8 px-6 py-4 text-sm text-rose-100">
+            {errorMessage}
           </section>
         ) : null}
 
