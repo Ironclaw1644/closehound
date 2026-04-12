@@ -1,0 +1,1 @@
+Hey, this is {{senderName}}. I put together a quick website preview idea for {{companyName}} and wanted to send it over. I think it could help make a stronger first impression online. You can text or call me back at {{senderPhone}}.
