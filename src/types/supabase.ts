@@ -12,6 +12,61 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
+  closehound: {
+    Tables: {
+      leads: {
+        Row: {
+          city: string | null
+          company_name: string
+          created_at: string
+          has_website: boolean
+          id: string
+          industry: string | null
+          phone: string | null
+          preview_url: string | null
+          rating: number | null
+          status: string
+        }
+        Insert: {
+          city?: string | null
+          company_name: string
+          created_at?: string
+          has_website?: boolean
+          id?: string
+          industry?: string | null
+          phone?: string | null
+          preview_url?: string | null
+          rating?: number | null
+          status?: string
+        }
+        Update: {
+          city?: string | null
+          company_name?: string
+          created_at?: string
+          has_website?: boolean
+          id?: string
+          industry?: string | null
+          phone?: string | null
+          preview_url?: string | null
+          rating?: number | null
+          status?: string
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   graphql_public: {
     Tables: {
       [_ in never]: never

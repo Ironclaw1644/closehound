@@ -1,14 +1,18 @@
+import type { Tables } from "@/types/supabase";
+
 export type LeadStatus = "new" | "generated" | "emailed" | "called" | "closed";
 
-export type Lead = {
-  id: string;
-  company_name: string;
-  phone: string;
-  city: string;
-  industry: string;
-  rating: number | null;
-  has_website: boolean;
+type LeadRow = Tables<{ schema: "closehound" }, "leads">;
+
+export type Lead = Omit<LeadRow, "status"> & {
+  id: LeadRow["id"];
+  company_name: LeadRow["company_name"];
+  phone: LeadRow["phone"];
+  city: LeadRow["city"];
+  industry: LeadRow["industry"];
+  rating: LeadRow["rating"];
+  has_website: LeadRow["has_website"];
   status: LeadStatus;
-  preview_url: string | null;
-  created_at: string;
+  preview_url: LeadRow["preview_url"];
+  created_at: LeadRow["created_at"];
 };

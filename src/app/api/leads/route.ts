@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
-import { getSupabase } from "@/lib/supabase";
+import { getSupabaseClient } from "@/lib/supabase";
 import type { Lead, LeadStatus } from "@/types/lead";
 
 const updatableStatuses: LeadStatus[] = ["new", "generated", "emailed", "called", "closed"];
 
 export async function GET() {
-  const supabase = getSupabase();
+  const supabase = getSupabaseClient();
   const { data, error } = await supabase
+    .schema("closehound")
     .from("leads")
     .select("*")
     .order("created_at", { ascending: false });
@@ -19,7 +20,7 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
-  const supabase = getSupabase();
+  const supabase = getSupabaseClient();
   const body = (await request.json()) as {
     lead_id?: string;
     status?: LeadStatus;
@@ -30,6 +31,7 @@ export async function PATCH(request: Request) {
   }
 
   const { data, error } = await supabase
+    .schema("closehound")
     .from("leads")
     .update({ status: body.status })
     .eq("id", body.lead_id)

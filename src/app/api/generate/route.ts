@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSupabase } from "@/lib/supabase";
+import { getSupabaseClient } from "@/lib/supabase";
 import type { Lead } from "@/types/lead";
 
 function toPreviewSlug(companyName: string) {
@@ -11,7 +11,7 @@ function toPreviewSlug(companyName: string) {
 }
 
 export async function POST(request: Request) {
-  const supabase = getSupabase();
+  const supabase = getSupabaseClient();
   const body = (await request.json()) as { lead_id?: string };
 
   if (!body.lead_id) {
@@ -19,6 +19,7 @@ export async function POST(request: Request) {
   }
 
   const { data: lead, error: fetchError } = await supabase
+    .schema("closehound")
     .from("leads")
     .select("*")
     .eq("id", body.lead_id)
@@ -34,6 +35,7 @@ export async function POST(request: Request) {
   const previewUrl = `https://preview-${toPreviewSlug(lead.company_name)}.vercel.app`;
 
   const { data: updatedLead, error: updateError } = await supabase
+    .schema("closehound")
     .from("leads")
     .update({
       status: "generated",
