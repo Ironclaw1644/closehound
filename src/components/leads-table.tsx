@@ -2,11 +2,19 @@
 
 import { useState } from "react";
 import type { ReactNode } from "react";
+import { INDUSTRY_OPTIONS, type IndustryValue } from "@/lib/industries";
 import type { Lead, LeadStatus } from "@/types/lead";
 
 type LeadsTableProps = {
   leads: Lead[];
 };
+
+const RADIUS_OPTIONS = [
+  { label: "5 miles", value: "5" },
+  { label: "10 miles", value: "10" },
+  { label: "25 miles", value: "25" },
+  { label: "50 miles", value: "50" },
+] as const;
 
 const statusStyles: Record<LeadStatus, string> = {
   new: "border-white/10 bg-white/[0.04] text-zinc-300",
@@ -71,8 +79,48 @@ function ActionButton({
 
 export default function LeadsTable({ leads }: LeadsTableProps) {
   const [rows, setRows] = useState(leads);
+  const [generatingLeadId, setGeneratingLeadId] = useState<string | null>(null);
   const [sendingLeadId, setSendingLeadId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [zipInput, setZipInput] = useState("");
+  const [radius, setRadius] = useState<(typeof RADIUS_OPTIONS)[number]["value"]>("25");
+  const [industryDraft, setIndustryDraft] = useState<IndustryValue>("all");
+  const [appliedIndustry, setAppliedIndustry] = useState<IndustryValue>("all");
+
+  const filteredRows =
+    appliedIndustry === "all"
+      ? rows
+      : rows.filter((lead) => (lead.industry ?? "").toLowerCase() === appliedIndustry.toLowerCase());
+
+  async function handleGeneratePreview(leadId: string) {
+    setActionError(null);
+    setGeneratingLeadId(leadId);
+
+    try {
+      const response = await fetch("/api/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ leadId }),
+      });
+
+      const payload = (await response.json()) as { error?: string; lead?: Lead };
+
+      if (!response.ok || !payload.lead) {
+        throw new Error(payload.error ?? "Failed to generate preview.");
+      }
+
+      setRows((currentRows) =>
+        currentRows.map((lead) => (lead.id === leadId ? payload.lead ?? lead : lead))
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to generate preview.";
+      setActionError(message);
+    } finally {
+      setGeneratingLeadId(null);
+    }
+  }
 
   async function handleEmailLead(leadId: string) {
     setActionError(null);
@@ -111,13 +159,101 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
     }
   }
 
+  function handleSearch() {
+    setAppliedIndustry(industryDraft);
+  }
+
   return (
     <div className="overflow-hidden rounded-[26px] border border-white/8 bg-zinc-950">
-      <div className="flex items-center justify-between border-b border-white/8 px-6 py-5">
-        <div>
+      <div className="border-b border-white/8 px-6 py-5">
+        <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
           <h2 className="text-lg font-semibold text-white">Lead pipeline</h2>
-          <p className="mt-1 text-sm text-zinc-500">
+          <p className="mt-1 text-sm text-zinc-500 xl:mt-0">
             Live rows from <span className="text-zinc-300">closehound.leads</span>
+          </p>
+        </div>
+
+        <div className="mt-5 grid gap-3 lg:grid-cols-[minmax(0,1.15fr)_180px_220px_auto]">
+          <label className="flex flex-col gap-2">
+            <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-zinc-500">
+              ZIP code
+            </span>
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="Enter ZIP"
+              maxLength={5}
+              value={zipInput}
+              onChange={(event) => {
+                setZipInput(event.target.value.replace(/\D/g, "").slice(0, 5));
+              }}
+              className="h-11 rounded-2xl border border-white/10 bg-white/[0.03] px-4 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-orange-300/40 focus:bg-white/[0.05]"
+            />
+          </label>
+
+          <label className="flex flex-col gap-2">
+            <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-zinc-500">
+              Radius
+            </span>
+            <select
+              value={radius}
+              onChange={(event) =>
+                setRadius(event.target.value as (typeof RADIUS_OPTIONS)[number]["value"])
+              }
+              className="h-11 rounded-2xl border border-white/10 bg-white/[0.03] px-4 text-sm text-white outline-none transition focus:border-orange-300/40 focus:bg-white/[0.05]"
+            >
+              {RADIUS_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value} className="bg-zinc-950 text-white">
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="flex flex-col gap-2">
+            <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-zinc-500">
+              Industry
+            </span>
+            <select
+              value={industryDraft}
+              onChange={(event) => setIndustryDraft(event.target.value as IndustryValue)}
+              className="h-11 rounded-2xl border border-white/10 bg-white/[0.03] px-4 text-sm text-white outline-none transition focus:border-orange-300/40 focus:bg-white/[0.05]"
+            >
+              {INDUSTRY_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value} className="bg-zinc-950 text-white">
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <div className="flex flex-col justify-end">
+            <button
+              type="button"
+              onClick={handleSearch}
+              className="h-11 rounded-2xl border border-orange-300/20 bg-orange-300/10 px-5 text-sm font-medium text-orange-50 transition hover:border-orange-300/35 hover:bg-orange-300/16"
+            >
+              Search
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-col gap-2 text-xs text-zinc-500 sm:flex-row sm:items-center sm:justify-between">
+          <p>
+            {filteredRows.length} of {rows.length} leads shown
+            {appliedIndustry !== "all" ? (
+              <>
+                {" "}
+                for <span className="text-zinc-300">{appliedIndustry}</span>
+              </>
+            ) : null}
+          </p>
+          <p>
+            ZIP <span className="text-zinc-300">{zipInput || "not set"}</span> and radius{" "}
+            <span className="text-zinc-300">
+              {RADIUS_OPTIONS.find((option) => option.value === radius)?.label ?? "25 miles"}
+            </span>{" "}
+            are staged for the live search workflow.
           </p>
         </div>
       </div>
@@ -143,19 +279,30 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
             </tr>
           </thead>
           <tbody>
-            {rows.length === 0 ? (
+            {filteredRows.length === 0 ? (
               <tr className="border-t border-white/6">
                 <td colSpan={8} className="px-6 py-16 text-center">
                   <p className="text-base font-medium text-white">No leads found</p>
                   <p className="mt-2 text-sm text-zinc-500">
-                    Seed or insert rows into <span className="text-zinc-300">closehound.leads</span>{" "}
-                    and they will appear here.
+                    {rows.length === 0 ? (
+                      <>
+                        Seed or insert rows into{" "}
+                        <span className="text-zinc-300">closehound.leads</span> and they will appear
+                        here.
+                      </>
+                    ) : (
+                      <>
+                        No rows match the current industry filter. Choose{" "}
+                        <span className="text-zinc-300">All</span> to show every loaded lead.
+                      </>
+                    )}
                   </p>
                 </td>
               </tr>
             ) : null}
 
-            {rows.map((lead) => {
+            {filteredRows.map((lead) => {
+              const isGenerating = generatingLeadId === lead.id;
               const isSending = sendingLeadId === lead.id;
               const canEmail = Boolean(lead.preview_url) && !isSending;
 
@@ -168,14 +315,24 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
                     <div className="flex flex-col gap-1">
                       <span className="font-medium text-white">{lead.company_name}</span>
                       {lead.preview_url ? (
-                        <a
-                          href={lead.preview_url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-xs text-zinc-500 transition hover:text-orange-200"
-                        >
-                          {lead.preview_url}
-                        </a>
+                        <div className="flex flex-wrap items-center gap-2 text-xs">
+                          <a
+                            href={lead.preview_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-zinc-500 transition hover:text-orange-200"
+                          >
+                            {lead.preview_url}
+                          </a>
+                          <a
+                            href={lead.preview_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="rounded-full border border-orange-300/15 bg-orange-300/8 px-2.5 py-1 uppercase tracking-[0.18em] text-[10px] text-orange-100 transition hover:border-orange-300/30 hover:bg-orange-300/12"
+                          >
+                            Open Preview
+                          </a>
+                        </div>
                       ) : (
                         <span className="text-xs text-zinc-600">{lead.phone ?? "No phone"}</span>
                       )}
@@ -201,7 +358,14 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
                   </td>
                   <td className="px-6 py-5">
                     <div className="flex justify-end gap-2">
-                      <ActionButton>Generate Preview</ActionButton>
+                      <ActionButton
+                        disabled={isGenerating}
+                        onClick={() => {
+                          void handleGeneratePreview(lead.id);
+                        }}
+                      >
+                        {isGenerating ? "Generating..." : "Generate Preview"}
+                      </ActionButton>
                       <ActionButton
                         disabled={!canEmail}
                         onClick={() => {

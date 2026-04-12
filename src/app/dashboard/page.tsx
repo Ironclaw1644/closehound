@@ -76,12 +76,12 @@ export default async function DashboardPage() {
                 CloseHound Dashboard
               </p>
               <h1 className="mt-3 text-4xl font-semibold tracking-tight text-white sm:text-5xl">
-                Premium lead review, stripped to essentials.
+                Search, sort, and work leads from one surface.
               </h1>
               <p className="mt-4 max-w-xl text-sm leading-6 text-zinc-400 sm:text-base">
                 Pulling directly from the <span className="text-zinc-200">closehound.leads</span>{" "}
-                schema with a deterministic preview generator and the first working outbound email
-                flow.
+                schema with the first real CloseHound search controls, deterministic preview
+                generation, and the working outbound email flow.
               </p>
             </div>
 
