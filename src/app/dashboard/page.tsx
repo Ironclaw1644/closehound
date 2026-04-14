@@ -1,11 +1,22 @@
 import LeadsTable from "@/components/leads-table";
-import { getSupabaseClient, hasSupabaseEnv } from "@/lib/supabase";
+import {
+  getSupabaseAdminClient,
+  getSupabaseClient,
+  hasSupabaseAdminEnv,
+  hasSupabaseEnv,
+} from "@/lib/supabase";
 import type { Lead } from "@/types/lead";
+import type { Job } from "@/types/operator";
 
 export const dynamic = "force-dynamic";
 
 type DashboardLeadsResult = {
   leads: Lead[];
+  errorMessage: string | null;
+};
+
+type DashboardJobsResult = {
+  jobs: Job[];
   errorMessage: string | null;
 };
 
@@ -62,9 +73,50 @@ async function getLeads(): Promise<DashboardLeadsResult> {
   }
 }
 
+async function getJobs(): Promise<DashboardJobsResult> {
+  if (!hasSupabaseAdminEnv()) {
+    return {
+      jobs: [],
+      errorMessage: null,
+    };
+  }
+
+  try {
+    const { data, error } = await getSupabaseAdminClient()
+      .schema("closehound")
+      .from("jobs")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(12);
+
+    if (error) {
+      console.error("Failed to load closehound.jobs for /dashboard", error);
+
+      return {
+        jobs: [],
+        errorMessage: "Unable to load operator jobs right now.",
+      };
+    }
+
+    return {
+      jobs: (data ?? []) as Job[],
+      errorMessage: null,
+    };
+  } catch (error) {
+    console.error("Unexpected dashboard jobs failure", error);
+
+    return {
+      jobs: [],
+      errorMessage: "Unable to load operator jobs right now.",
+    };
+  }
+}
+
 export default async function DashboardPage() {
   const { leads, errorMessage } = await getLeads();
+  const { jobs, errorMessage: jobsErrorMessage } = await getJobs();
   const isSupabaseConfigured = hasSupabaseEnv();
+  const isOperatorConfigured = hasSupabaseAdminEnv();
 
   return (
     <main className="min-h-screen px-6 py-10 sm:px-10">
@@ -80,8 +132,8 @@ export default async function DashboardPage() {
               </h1>
               <p className="mt-4 max-w-xl text-sm leading-6 text-zinc-400 sm:text-base">
                 Pulling directly from the <span className="text-zinc-200">closehound.leads</span>{" "}
-                schema with the first real CloseHound search controls, deterministic preview
-                generation, and the working outbound email flow.
+                schema with operator jobs queued in Supabase, deterministic preview generation on
+                the Mac mini worker, and the working outbound email flow.
               </p>
             </div>
 
@@ -127,8 +179,21 @@ export default async function DashboardPage() {
           </section>
         ) : null}
 
+        {!isOperatorConfigured ? (
+          <section className="rounded-[26px] border border-amber-300/15 bg-amber-300/8 px-6 py-4 text-sm text-amber-100">
+            Add <code>SUPABASE_SERVICE_ROLE_KEY</code> to the hosted dashboard and local worker
+            environment to enable operator job queueing.
+          </section>
+        ) : null}
+
+        {isOperatorConfigured && jobsErrorMessage ? (
+          <section className="rounded-[26px] border border-rose-300/15 bg-rose-300/8 px-6 py-4 text-sm text-rose-100">
+            {jobsErrorMessage}
+          </section>
+        ) : null}
+
         <section className="rounded-[30px] border border-white/10 bg-zinc-950/80 p-3 shadow-[0_20px_100px_rgba(0,0,0,0.35)] backdrop-blur-sm">
-          <LeadsTable leads={leads} />
+          <LeadsTable leads={leads} initialJobs={jobs} />
         </section>
       </div>
     </main>

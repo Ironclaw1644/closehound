@@ -11,6 +11,8 @@ VERCEL_DIR="$ROOT_DIR/.vercel"
 APP_NAME="CloseHound"
 APP_BRAND="CloseHound"
 NEXT_PUBLIC_SITE="https://closehound.com"
+PREVIEW_SITE_LOCAL_DEFAULT="http://localhost:3000"
+PREVIEW_SITE_VERCEL="https://preview.walkperro.com"
 FULFILLMENT_BRAND_NAME="WalkPerro"
 OUTBOUND_SENDER_NAME="WalkPerro"
 
@@ -286,6 +288,7 @@ upsert_env_file_var "$ENV_FILE" "NEXT_PUBLIC_SUPABASE_ANON_KEY" "$SUPABASE_BROWS
 upsert_env_file_var "$ENV_FILE" "NEXT_PUBLIC_APP_NAME" "$APP_NAME"
 upsert_env_file_var "$ENV_FILE" "NEXT_PUBLIC_APP_BRAND" "$APP_BRAND"
 upsert_env_file_var "$ENV_FILE" "NEXT_PUBLIC_SITE" "$NEXT_PUBLIC_SITE"
+ensure_env_file_var "$ENV_FILE" "PREVIEW_SITE" "$PREVIEW_SITE_LOCAL_DEFAULT"
 upsert_env_file_var "$ENV_FILE" "FULFILLMENT_BRAND_NAME" "$FULFILLMENT_BRAND_NAME"
 upsert_env_file_var "$ENV_FILE" "OUTBOUND_SENDER_NAME" "$OUTBOUND_SENDER_NAME"
 
@@ -302,6 +305,7 @@ echo "  NEXT_PUBLIC_SUPABASE_ANON_KEY=$(mask_value "$SUPABASE_BROWSER_KEY")"
 echo "  NEXT_PUBLIC_APP_NAME=${APP_NAME}"
 echo "  NEXT_PUBLIC_APP_BRAND=${APP_BRAND}"
 echo "  NEXT_PUBLIC_SITE=${NEXT_PUBLIC_SITE}"
+echo "  PREVIEW_SITE=$(get_env_file_var "$ENV_FILE" "PREVIEW_SITE" || true)"
 echo "  FULFILLMENT_BRAND_NAME=${FULFILLMENT_BRAND_NAME}"
 echo "  OUTBOUND_SENDER_NAME=${OUTBOUND_SENDER_NAME}"
 echo "  CloseHound remains internal-only. WalkPerro branding is used for outbound email."
@@ -323,6 +327,11 @@ for env_name in development preview production; do
   upsert_vercel_env "$VERCEL_CMD" "NEXT_PUBLIC_SUPABASE_URL" "$SUPABASE_URL" "$env_name"
   upsert_vercel_env "$VERCEL_CMD" "NEXT_PUBLIC_SUPABASE_ANON_KEY" "$SUPABASE_BROWSER_KEY" "$env_name"
   upsert_vercel_env "$VERCEL_CMD" "NEXT_PUBLIC_SITE" "$NEXT_PUBLIC_SITE" "$env_name"
+  if [[ -n "$PREVIEW_SITE_VERCEL" ]]; then
+    upsert_vercel_env "$VERCEL_CMD" "PREVIEW_SITE" "$PREVIEW_SITE_VERCEL" "$env_name"
+  else
+    echo "Skipping Vercel sync for PREVIEW_SITE: configured value is empty."
+  fi
   upsert_vercel_env "$VERCEL_CMD" "FULFILLMENT_BRAND_NAME" "$FULFILLMENT_BRAND_NAME" "$env_name"
   upsert_vercel_env "$VERCEL_CMD" "OUTBOUND_SENDER_NAME" "$OUTBOUND_SENDER_NAME" "$env_name"
 done

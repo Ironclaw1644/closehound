@@ -6,6 +6,15 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
+export type ClosehoundLeadIndustry =
+  | "handyman"
+  | "pressure washing"
+  | "roofing"
+  | "HVAC"
+  | "plumbing"
+  | "junk removal"
+  | "mobile detailing"
+
 export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
@@ -14,6 +23,97 @@ export type Database = {
   }
   closehound: {
     Tables: {
+      job_runs: {
+        Row: {
+          completed_at: string | null
+          id: string
+          job_id: string
+          log: Json
+          run_status: string | null
+          started_at: string
+          worker_name: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          id?: string
+          job_id: string
+          log?: Json
+          run_status?: string | null
+          started_at?: string
+          worker_name?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          id?: string
+          job_id?: string
+          log?: Json
+          run_status?: string | null
+          started_at?: string
+          worker_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_runs_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          job_type: string
+          lead_id: string | null
+          payload: Json
+          requested_by: string | null
+          result: Json | null
+          started_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          job_type: string
+          lead_id?: string | null
+          payload?: Json
+          requested_by?: string | null
+          result?: Json | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          job_type?: string
+          lead_id?: string | null
+          payload?: Json
+          requested_by?: string | null
+          result?: Json | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jobs_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           city: string | null
@@ -22,7 +122,7 @@ export type Database = {
           created_at: string
           has_website: boolean
           id: string
-          industry: string | null
+          industry: ClosehoundLeadIndustry | null
           phone: string | null
           preview_url: string | null
           rating: number | null
@@ -35,7 +135,7 @@ export type Database = {
           created_at?: string
           has_website?: boolean
           id?: string
-          industry?: string | null
+          industry?: ClosehoundLeadIndustry | null
           phone?: string | null
           preview_url?: string | null
           rating?: number | null
@@ -48,13 +148,72 @@ export type Database = {
           created_at?: string
           has_website?: boolean
           id?: string
-          industry?: string | null
+          industry?: ClosehoundLeadIndustry | null
           phone?: string | null
           preview_url?: string | null
           rating?: number | null
           status?: string
         }
         Relationships: []
+      }
+      operator_locks: {
+        Row: {
+          expires_at: string | null
+          lock_key: string
+          locked_at: string
+          locked_by: string | null
+        }
+        Insert: {
+          expires_at?: string | null
+          lock_key: string
+          locked_at?: string
+          locked_by?: string | null
+        }
+        Update: {
+          expires_at?: string | null
+          lock_key?: string
+          locked_at?: string
+          locked_by?: string | null
+        }
+        Relationships: []
+      }
+      preview_sites: {
+        Row: {
+          created_at: string
+          id: string
+          lead_id: string
+          preview_payload: Json
+          preview_url: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lead_id: string
+          preview_payload: Json
+          preview_url: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lead_id?: string
+          preview_payload?: Json
+          preview_url?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "preview_sites_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

@@ -46,6 +46,8 @@ Notes:
   - `NEXT_PUBLIC_APP_BRAND=CloseHound`
   - `NEXT_PUBLIC_SUPABASE_URL`
   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+  - `NEXT_PUBLIC_SITE=https://closehound.com`
+  - `PREVIEW_SITE=http://localhost:3000` if missing locally
   - `FULFILLMENT_BRAND_NAME=WalkPerro`
   - `OUTBOUND_SENDER_NAME=WalkPerro`
 - Blank placeholders are added locally if missing, without overwriting existing filled values, for:
@@ -53,6 +55,8 @@ Notes:
   - `RESEND_FROM`
   - `NOTIFY_SIGNUPS_TO`
 - Only these public vars are synced to Vercel:
+  - `NEXT_PUBLIC_SITE=https://closehound.com`
+  - `PREVIEW_SITE=https://preview.walkperro.com`
   - `NEXT_PUBLIC_APP_NAME`
   - `NEXT_PUBLIC_APP_BRAND`
   - `NEXT_PUBLIC_SUPABASE_URL`

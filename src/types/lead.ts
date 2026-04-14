@@ -1,4 +1,5 @@
 import type { Tables } from "@/types/supabase";
+import type { LeadIndustry } from "@/lib/industries";
 
 export type LeadStatus = "new" | "generated" | "emailed" | "called" | "closed";
 
@@ -10,7 +11,7 @@ export type Lead = Omit<LeadRow, "status"> & {
   contact_email: LeadRow["contact_email"];
   phone: LeadRow["phone"];
   city: LeadRow["city"];
-  industry: LeadRow["industry"];
+  industry: LeadIndustry | null;
   rating: LeadRow["rating"];
   has_website: LeadRow["has_website"];
   status: LeadStatus;

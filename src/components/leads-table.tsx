@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { INDUSTRY_OPTIONS, type IndustryValue } from "@/lib/industries";
+import { buildPreviewPath } from "@/lib/preview";
 import type { Lead, LeadStatus } from "@/types/lead";
+import type { Job, JobStatus, PreviewGenerateJobResult } from "@/types/operator";
 
 type LeadsTableProps = {
   leads: Lead[];
+  initialJobs: Job[];
 };
 
 const RADIUS_OPTIONS = [
@@ -16,6 +19,8 @@ const RADIUS_OPTIONS = [
   { label: "50 miles", value: "50" },
 ] as const;
 
+const ACTIVE_JOB_STATUSES: JobStatus[] = ["pending", "running"];
+
 const statusStyles: Record<LeadStatus, string> = {
   new: "border-white/10 bg-white/[0.04] text-zinc-300",
   generated: "border-orange-400/20 bg-orange-400/10 text-orange-200",
@@ -24,12 +29,78 @@ const statusStyles: Record<LeadStatus, string> = {
   closed: "border-violet-400/20 bg-violet-400/10 text-violet-200",
 };
 
+const jobStatusStyles: Record<JobStatus, string> = {
+  pending: "border-amber-400/20 bg-amber-400/10 text-amber-200",
+  running: "border-sky-400/20 bg-sky-400/10 text-sky-200",
+  completed: "border-emerald-400/20 bg-emerald-400/10 text-emerald-200",
+  failed: "border-rose-400/20 bg-rose-400/10 text-rose-200",
+  cancelled: "border-zinc-400/20 bg-zinc-400/10 text-zinc-300",
+};
+
 function formatRating(rating: Lead["rating"]) {
   return typeof rating === "number" ? rating.toFixed(1) : "—";
 }
 
 function formatContactEmail(contactEmail: Lead["contact_email"]) {
   return contactEmail?.trim() || "Test fallback";
+}
+
+function formatJobLabel(status: JobStatus) {
+  return status.replace("_", " ");
+}
+
+function getPreviewHref(previewUrl: string | null) {
+  if (!previewUrl) {
+    return null;
+  }
+
+  if (previewUrl.startsWith("/preview/")) {
+    return previewUrl;
+  }
+
+  try {
+    const parsed = new URL(previewUrl);
+    const slug = parsed.pathname.split("/").filter(Boolean).at(-1);
+
+    if (slug) {
+      return buildPreviewPath(slug);
+    }
+  } catch {
+    const parts = previewUrl.split("/").filter(Boolean);
+    const slug = parts.at(-1);
+
+    if (slug) {
+      return buildPreviewPath(slug);
+    }
+  }
+
+  return previewUrl;
+}
+
+function applyCompletedPreviewJobs(leads: Lead[], jobs: Job[]) {
+  return leads.map((lead) => {
+    const previewJob = jobs.find(
+      (job) =>
+        job.job_type === "preview_generate" &&
+        job.lead_id === lead.id &&
+        job.status === "completed" &&
+        job.result &&
+        typeof job.result === "object" &&
+        !Array.isArray(job.result)
+    );
+
+    if (!previewJob) {
+      return lead;
+    }
+
+    const result = previewJob.result as PreviewGenerateJobResult;
+
+    return {
+      ...lead,
+      preview_url: result.previewUrl ?? lead.preview_url,
+      status: (result.leadStatus as LeadStatus) ?? lead.status,
+    };
+  });
 }
 
 function WebsiteChip({ hasWebsite }: { hasWebsite: Lead["has_website"] }) {
@@ -56,6 +127,16 @@ function StatusChip({ status }: { status: LeadStatus }) {
   );
 }
 
+function JobStatusChip({ status }: { status: JobStatus }) {
+  return (
+    <span
+      className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.18em] ${jobStatusStyles[status]}`}
+    >
+      {formatJobLabel(status)}
+    </span>
+  );
+}
+
 function ActionButton({
   children,
   disabled = false,
@@ -77,9 +158,10 @@ function ActionButton({
   );
 }
 
-export default function LeadsTable({ leads }: LeadsTableProps) {
-  const [rows, setRows] = useState(leads);
-  const [generatingLeadId, setGeneratingLeadId] = useState<string | null>(null);
+export default function LeadsTable({ leads, initialJobs }: LeadsTableProps) {
+  const [rows, setRows] = useState(() => applyCompletedPreviewJobs(leads, initialJobs));
+  const [jobs, setJobs] = useState(initialJobs);
+  const [queueingLeadId, setQueueingLeadId] = useState<string | null>(null);
   const [sendingLeadId, setSendingLeadId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [zipInput, setZipInput] = useState("");
@@ -87,14 +169,63 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
   const [industryDraft, setIndustryDraft] = useState<IndustryValue>("all");
   const [appliedIndustry, setAppliedIndustry] = useState<IndustryValue>("all");
 
+  useEffect(() => {
+    setRows(applyCompletedPreviewJobs(leads, jobs));
+  }, [jobs, leads]);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function refreshJobs() {
+      try {
+        const response = await fetch("/api/jobs", {
+          method: "GET",
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          return;
+        }
+
+        const payload = (await response.json()) as { jobs?: Job[] };
+
+        if (!isCancelled && payload.jobs) {
+          setJobs(payload.jobs);
+        }
+      } catch {
+        // Keep the polling loop quiet. The dashboard should still be usable offline.
+      }
+    }
+
+    void refreshJobs();
+
+    const intervalId = window.setInterval(() => {
+      void refreshJobs();
+    }, 5000);
+
+    return () => {
+      isCancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, []);
+
   const filteredRows =
     appliedIndustry === "all"
       ? rows
       : rows.filter((lead) => (lead.industry ?? "").toLowerCase() === appliedIndustry.toLowerCase());
 
+  const activePreviewJob = jobs.find(
+    (job) => job.job_type === "preview_generate" && ACTIVE_JOB_STATUSES.includes(job.status as JobStatus)
+  );
+
+  const leadNamesById = useMemo(
+    () => new Map(rows.map((lead) => [lead.id, lead.company_name])),
+    [rows]
+  );
+
   async function handleGeneratePreview(leadId: string) {
     setActionError(null);
-    setGeneratingLeadId(leadId);
+    setQueueingLeadId(leadId);
 
     try {
       const response = await fetch("/api/generate", {
@@ -105,20 +236,18 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
         body: JSON.stringify({ leadId }),
       });
 
-      const payload = (await response.json()) as { error?: string; lead?: Lead };
+      const payload = (await response.json()) as { error?: string; job?: Job };
 
-      if (!response.ok || !payload.lead) {
-        throw new Error(payload.error ?? "Failed to generate preview.");
+      if (!response.ok || !payload.job) {
+        throw new Error(payload.error ?? "Failed to queue preview job.");
       }
 
-      setRows((currentRows) =>
-        currentRows.map((lead) => (lead.id === leadId ? payload.lead ?? lead : lead))
-      );
+      setJobs((currentJobs) => [payload.job!, ...currentJobs].slice(0, 12));
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to generate preview.";
+      const message = error instanceof Error ? error.message : "Failed to queue preview job.";
       setActionError(message);
     } finally {
-      setGeneratingLeadId(null);
+      setQueueingLeadId(null);
     }
   }
 
@@ -169,7 +298,8 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
         <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
           <h2 className="text-lg font-semibold text-white">Lead pipeline</h2>
           <p className="mt-1 text-sm text-zinc-500 xl:mt-0">
-            Live rows from <span className="text-zinc-300">closehound.leads</span>
+            Live rows from <span className="text-zinc-300">closehound.leads</span> with queued
+            operator jobs
           </p>
         </div>
 
@@ -256,6 +386,13 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
             are staged for the live search workflow.
           </p>
         </div>
+
+        {activePreviewJob ? (
+          <div className="mt-4 rounded-2xl border border-sky-400/15 bg-sky-400/8 px-4 py-3 text-sm text-sky-100">
+            Preview queue busy: one <code>preview_generate</code> job is currently{" "}
+            <span className="font-medium">{activePreviewJob.status}</span>.
+          </div>
+        ) : null}
       </div>
 
       {actionError ? (
@@ -263,6 +400,46 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
           {actionError}
         </div>
       ) : null}
+
+      <div className="border-b border-white/8 px-6 py-5">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-medium uppercase tracking-[0.22em] text-zinc-400">
+            Recent jobs
+          </h3>
+          <span className="text-xs text-zinc-500">Supabase is the control plane</span>
+        </div>
+
+        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {jobs.length === 0 ? (
+            <div className="rounded-2xl border border-white/8 bg-white/[0.02] px-4 py-4 text-sm text-zinc-500">
+              No operator jobs yet.
+            </div>
+          ) : null}
+
+          {jobs.map((job) => (
+            <div
+              key={job.id}
+              className="rounded-2xl border border-white/8 bg-white/[0.02] px-4 py-4"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium text-white">{job.job_type}</p>
+                  <p className="mt-1 text-xs text-zinc-500">
+                    {leadNamesById.get(job.lead_id ?? "") ?? "No lead attached"}
+                  </p>
+                </div>
+                <JobStatusChip status={job.status as JobStatus} />
+              </div>
+
+              <p className="mt-3 text-xs text-zinc-500">{new Date(job.created_at).toLocaleString()}</p>
+
+              {job.error_message ? (
+                <p className="mt-3 text-sm text-rose-200">{job.error_message}</p>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      </div>
 
       <div className="overflow-x-auto">
         <table className="min-w-full text-left">
@@ -275,13 +452,14 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
               <th className="px-6 py-4 font-medium">Rating</th>
               <th className="px-6 py-4 font-medium">Has Website</th>
               <th className="px-6 py-4 font-medium">Status</th>
+              <th className="px-6 py-4 font-medium">Job</th>
               <th className="px-6 py-4 text-right font-medium">Actions</th>
             </tr>
           </thead>
           <tbody>
             {filteredRows.length === 0 ? (
               <tr className="border-t border-white/6">
-                <td colSpan={8} className="px-6 py-16 text-center">
+                <td colSpan={9} className="px-6 py-16 text-center">
                   <p className="text-base font-medium text-white">No leads found</p>
                   <p className="mt-2 text-sm text-zinc-500">
                     {rows.length === 0 ? (
@@ -302,9 +480,17 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
             ) : null}
 
             {filteredRows.map((lead) => {
-              const isGenerating = generatingLeadId === lead.id;
+              const isQueueing = queueingLeadId === lead.id;
               const isSending = sendingLeadId === lead.id;
               const canEmail = Boolean(lead.preview_url) && !isSending;
+              const previewHref = getPreviewHref(lead.preview_url);
+              const leadJob = jobs.find(
+                (job) =>
+                  job.lead_id === lead.id &&
+                  job.job_type === "preview_generate" &&
+                  ACTIVE_JOB_STATUSES.includes(job.status as JobStatus)
+              );
+              const generateDisabled = isQueueing || Boolean(activePreviewJob);
 
               return (
                 <tr
@@ -317,15 +503,15 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
                       {lead.preview_url ? (
                         <div className="flex flex-wrap items-center gap-2 text-xs">
                           <a
-                            href={lead.preview_url}
+                            href={previewHref ?? lead.preview_url}
                             target="_blank"
                             rel="noreferrer"
                             className="text-zinc-500 transition hover:text-orange-200"
                           >
-                            {lead.preview_url}
+                            {previewHref ?? lead.preview_url}
                           </a>
                           <a
-                            href={lead.preview_url}
+                            href={previewHref ?? lead.preview_url}
                             target="_blank"
                             rel="noreferrer"
                             className="rounded-full border border-orange-300/15 bg-orange-300/8 px-2.5 py-1 uppercase tracking-[0.18em] text-[10px] text-orange-100 transition hover:border-orange-300/30 hover:bg-orange-300/12"
@@ -357,14 +543,29 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
                     <StatusChip status={lead.status} />
                   </td>
                   <td className="px-6 py-5">
+                    {leadJob ? (
+                      <JobStatusChip status={leadJob.status as JobStatus} />
+                    ) : (
+                      <span className="text-xs text-zinc-600">—</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-5">
                     <div className="flex justify-end gap-2">
                       <ActionButton
-                        disabled={isGenerating}
+                        disabled={generateDisabled}
                         onClick={() => {
                           void handleGeneratePreview(lead.id);
                         }}
                       >
-                        {isGenerating ? "Generating..." : "Generate Preview"}
+                        {isQueueing
+                          ? "Queueing..."
+                          : leadJob?.status === "pending"
+                            ? "Queued"
+                            : leadJob?.status === "running"
+                              ? "Running..."
+                              : activePreviewJob
+                                ? "Worker Busy"
+                                : "Generate Preview"}
                       </ActionButton>
                       <ActionButton
                         disabled={!canEmail}
