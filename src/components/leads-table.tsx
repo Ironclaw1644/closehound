@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { INDUSTRY_OPTIONS, type IndustryValue } from "@/lib/industries";
-import { buildPreviewPath } from "@/lib/preview";
 import type { Lead, LeadStatus } from "@/types/lead";
 import type { Job, JobStatus, PreviewGenerateJobResult } from "@/types/operator";
 
@@ -50,31 +49,20 @@ function formatJobLabel(status: JobStatus) {
 }
 
 function getPreviewHref(previewUrl: string | null) {
-  if (!previewUrl) {
+  return previewUrl;
+}
+
+function getPreviewJobResult(job: Job) {
+  if (
+    job.job_type !== "preview_generate" ||
+    !job.result ||
+    typeof job.result !== "object" ||
+    Array.isArray(job.result)
+  ) {
     return null;
   }
 
-  if (previewUrl.startsWith("/preview/")) {
-    return previewUrl;
-  }
-
-  try {
-    const parsed = new URL(previewUrl);
-    const slug = parsed.pathname.split("/").filter(Boolean).at(-1);
-
-    if (slug) {
-      return buildPreviewPath(slug);
-    }
-  } catch {
-    const parts = previewUrl.split("/").filter(Boolean);
-    const slug = parts.at(-1);
-
-    if (slug) {
-      return buildPreviewPath(slug);
-    }
-  }
-
-  return previewUrl;
+  return job.result as PreviewGenerateJobResult;
 }
 
 function applyCompletedPreviewJobs(leads: Lead[], jobs: Job[]) {
@@ -417,26 +405,54 @@ export default function LeadsTable({ leads, initialJobs }: LeadsTableProps) {
           ) : null}
 
           {jobs.map((job) => (
-            <div
-              key={job.id}
-              className="rounded-2xl border border-white/8 bg-white/[0.02] px-4 py-4"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-sm font-medium text-white">{job.job_type}</p>
-                  <p className="mt-1 text-xs text-zinc-500">
-                    {leadNamesById.get(job.lead_id ?? "") ?? "No lead attached"}
+            (() => {
+              const previewResult = getPreviewJobResult(job);
+
+              return (
+                <div
+                  key={job.id}
+                  className="rounded-2xl border border-white/8 bg-white/[0.02] px-4 py-4"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-medium text-white">{job.job_type}</p>
+                      <p className="mt-1 text-xs text-zinc-500">
+                        {leadNamesById.get(job.lead_id ?? "") ?? "No lead attached"}
+                      </p>
+                    </div>
+                    <JobStatusChip status={job.status as JobStatus} />
+                  </div>
+
+                  <p className="mt-3 text-xs text-zinc-500">
+                    {new Date(job.created_at).toLocaleString()}
                   </p>
+
+                  {previewResult?.metadata ? (
+                    <div className="mt-3 space-y-1 text-xs text-zinc-400">
+                      <p>
+                        Preset:{" "}
+                        <span className="font-medium text-zinc-200">
+                          {previewResult.metadata.presetDetected}
+                        </span>
+                      </p>
+                      <p>
+                        Detection:{" "}
+                        <span className="text-zinc-300">
+                          {previewResult.metadata.detectionMode}
+                          {previewResult.metadata.matchedKeyword
+                            ? ` (${previewResult.metadata.matchedKeyword})`
+                            : ""}
+                        </span>
+                      </p>
+                    </div>
+                  ) : null}
+
+                  {job.error_message ? (
+                    <p className="mt-3 text-sm text-rose-200">{job.error_message}</p>
+                  ) : null}
                 </div>
-                <JobStatusChip status={job.status as JobStatus} />
-              </div>
-
-              <p className="mt-3 text-xs text-zinc-500">{new Date(job.created_at).toLocaleString()}</p>
-
-              {job.error_message ? (
-                <p className="mt-3 text-sm text-rose-200">{job.error_message}</p>
-              ) : null}
-            </div>
+              );
+            })()
           ))}
         </div>
       </div>

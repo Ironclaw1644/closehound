@@ -20,6 +20,7 @@
 }
 
 html {
+  scroll-behavior: smooth;
   background:
     radial-gradient(circle at top, rgba(244, 162, 97, 0.14), transparent 28%),
     linear-gradient(180deg, #121215 0%, #09090b 50%, #050507 100%);

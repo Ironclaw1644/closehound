@@ -21,7 +21,7 @@ export async function POST(request: Request) {
   const closehound = getSupabaseAdminClient().schema("closehound");
   const { data: lead, error: leadError } = await closehound
     .from("leads")
-    .select("id, industry")
+    .select("id")
     .eq("id", body.leadId)
     .single();
 
@@ -29,13 +29,6 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: leadError?.message ?? "Lead not found." },
       { status: 404 }
-    );
-  }
-
-  if (!lead.industry) {
-    return NextResponse.json(
-      { error: "Lead industry is required to queue a preview job." },
-      { status: 400 }
     );
   }
 

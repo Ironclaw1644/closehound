@@ -1,4 +1,5 @@
 import LeadsTable from "@/components/leads-table";
+import { normalizePreviewUrl } from "@/lib/preview";
 import {
   getSupabaseAdminClient,
   getSupabaseClient,
@@ -6,7 +7,7 @@ import {
   hasSupabaseEnv,
 } from "@/lib/supabase";
 import type { Lead } from "@/types/lead";
-import type { Job } from "@/types/operator";
+import type { Job, PreviewGenerateJobResult } from "@/types/operator";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,40 @@ type DashboardJobsResult = {
   jobs: Job[];
   errorMessage: string | null;
 };
+
+function normalizeLeadPreviewUrl(lead: Lead) {
+  if (!lead.preview_url) {
+    return lead;
+  }
+
+  return {
+    ...lead,
+    preview_url: normalizePreviewUrl(lead.preview_url),
+  };
+}
+
+function normalizeJobPreviewResult(job: Job) {
+  if (
+    job.job_type !== "preview_generate" ||
+    job.status !== "completed" ||
+    !job.result ||
+    typeof job.result !== "object" ||
+    Array.isArray(job.result) ||
+    typeof job.result.previewUrl !== "string"
+  ) {
+    return job;
+  }
+
+  const result = job.result as PreviewGenerateJobResult;
+
+  return {
+    ...job,
+    result: {
+      ...result,
+      previewUrl: normalizePreviewUrl(result.previewUrl),
+    },
+  };
+}
 
 async function getLeads(): Promise<DashboardLeadsResult> {
   if (!hasSupabaseEnv()) {
@@ -60,7 +95,7 @@ async function getLeads(): Promise<DashboardLeadsResult> {
     }
 
     return {
-      leads: (data ?? []) as Lead[],
+      leads: ((data ?? []) as Lead[]).map(normalizeLeadPreviewUrl),
       errorMessage: null,
     };
   } catch (error) {
@@ -99,7 +134,7 @@ async function getJobs(): Promise<DashboardJobsResult> {
     }
 
     return {
-      jobs: (data ?? []) as Job[],
+      jobs: ((data ?? []) as Job[]).map(normalizeJobPreviewResult),
       errorMessage: null,
     };
   } catch (error) {

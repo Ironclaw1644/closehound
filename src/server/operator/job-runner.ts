@@ -1,5 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { generatePreviewSite } from "@/lib/site-generator";
+import { buildPreviewUrl } from "@/lib/preview";
+import {
+  generateContractorSiteDataFromLead,
+  getPreviewGenerationMetadataFromLead,
+} from "@/lib/site-templates/contractor/lead";
 import type { Lead } from "@/types/lead";
 import type { Database, Json } from "@/types/supabase";
 import type {
@@ -72,7 +76,7 @@ async function storePreviewPayloadIfAvailable(
   slug: string,
   leadId: string,
   previewUrl: string,
-  previewSite: ReturnType<typeof generatePreviewSite>,
+  previewPayload: Json,
   logger: JobLogger
 ) {
   try {
@@ -82,7 +86,7 @@ async function storePreviewPayloadIfAvailable(
         slug,
         lead_id: leadId,
         preview_url: previewUrl,
-        preview_payload: previewSite,
+        preview_payload: previewPayload,
         updated_at: new Date().toISOString(),
       }, {
         onConflict: "slug",
@@ -129,18 +133,16 @@ async function runPreviewGenerateJob(
     throw new Error(leadError?.message ?? `Lead ${leadId} was not found.`);
   }
 
-  if (!lead.industry) {
-    throw new Error(`Lead ${leadId} is missing industry and cannot generate a preview.`);
-  }
-
   logger.info(`Generating deterministic preview for ${lead.company_name}.`);
 
-  const previewSite = generatePreviewSite(lead as Lead);
+  const contractorSiteData = generateContractorSiteDataFromLead(lead as Lead);
+  const metadata = getPreviewGenerationMetadataFromLead(lead as Lead);
+  const previewUrl = buildPreviewUrl(leadId);
 
   const { error: updateLeadError } = await closehound
     .from("leads")
     .update({
-      preview_url: previewSite.previewUrl,
+      preview_url: previewUrl,
       status: "generated",
     })
     .eq("id", leadId);
@@ -149,22 +151,26 @@ async function runPreviewGenerateJob(
     throw new Error(updateLeadError.message);
   }
 
-  logger.info(`Updated lead ${leadId} with preview URL ${previewSite.previewUrl}.`);
+  logger.info(`Updated lead ${leadId} with preview URL ${previewUrl}.`);
 
   const storageMode = await storePreviewPayloadIfAvailable(
     supabase,
-    previewSite.slug,
     leadId,
-    previewSite.previewUrl,
-    previewSite,
+    leadId,
+    previewUrl,
+    {
+      metadata,
+      siteData: contractorSiteData,
+    } as unknown as Json,
     logger
   );
 
   const result: PreviewGenerateJobResult = {
     leadId,
-    previewUrl: previewSite.previewUrl,
+    previewUrl,
     leadStatus: "generated",
-    previewSite: previewSite as unknown as Json,
+    metadata,
+    previewSite: contractorSiteData as unknown as Json,
     storageMode,
   };
 

@@ -14,6 +14,13 @@ export type PreviewGenerateJobPayload = {
   leadId: string;
 };
 
+export type PreviewGenerationMetadata = {
+  presetDetected: string;
+  detectionMode: "explicit" | "keyword" | "fallback";
+  matchedKeyword: string | null;
+  previewRoute: string;
+};
+
 export type JobLogEntry = {
   at: string;
   level: "info" | "error";
@@ -24,6 +31,7 @@ export type PreviewGenerateJobResult = {
   leadId: string;
   previewUrl: string;
   leadStatus: string;
+  metadata: PreviewGenerationMetadata;
   previewSite?: Json;
   storageMode: "preview_url_only" | "preview_sites_table";
 };

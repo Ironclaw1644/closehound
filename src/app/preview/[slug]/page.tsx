@@ -1,7 +1,9 @@
 import type { CSSProperties } from "react";
 import { notFound } from "next/navigation";
+import { ContractorSiteTemplate } from "@/components/site-templates/contractor-site";
 import { PALETTE_PRESETS } from "@/lib/palettes";
-import { requirePreviewSiteBySlug } from "@/lib/preview-sites";
+import { getLeadById, requirePreviewSiteBySlug } from "@/lib/preview-sites";
+import { generateContractorSiteDataFromLead } from "@/lib/site-templates/contractor/lead";
 import { TYPOGRAPHY_PAIRINGS } from "@/lib/site-generator/typography";
 import type { PreviewSite, PreviewSiteSectionContent } from "@/lib/site-generator";
 
@@ -93,6 +95,19 @@ export default async function PreviewPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  const lead = await getLeadById(slug);
+
+  if (lead) {
+    const contractorSiteData = generateContractorSiteDataFromLead(lead);
+
+    return (
+      <ContractorSiteTemplate
+        data={contractorSiteData}
+        previewLabel={`Lead preview - ${lead.company_name}`}
+      />
+    );
+  }
+
   const previewSite = await requirePreviewSiteBySlug(slug);
 
   if (!previewSite) {

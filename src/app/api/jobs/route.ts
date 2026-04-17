@@ -1,6 +1,30 @@
 import { NextResponse } from "next/server";
+import { normalizePreviewUrl } from "@/lib/preview";
 import { getSupabaseAdminClient, hasSupabaseAdminEnv } from "@/lib/supabase";
-import type { Job } from "@/types/operator";
+import type { Job, PreviewGenerateJobResult } from "@/types/operator";
+
+function normalizeJobPreviewResult(job: Job) {
+  if (
+    job.job_type !== "preview_generate" ||
+    job.status !== "completed" ||
+    !job.result ||
+    typeof job.result !== "object" ||
+    Array.isArray(job.result) ||
+    typeof job.result.previewUrl !== "string"
+  ) {
+    return job;
+  }
+
+  const result = job.result as PreviewGenerateJobResult;
+
+  return {
+    ...job,
+    result: {
+      ...result,
+      previewUrl: normalizePreviewUrl(result.previewUrl),
+    },
+  };
+}
 
 export async function GET() {
   if (!hasSupabaseAdminEnv()) {
@@ -22,6 +46,6 @@ export async function GET() {
   }
 
   return NextResponse.json({
-    jobs: (data ?? []) as Job[],
+    jobs: ((data ?? []) as Job[]).map(normalizeJobPreviewResult),
   });
 }
