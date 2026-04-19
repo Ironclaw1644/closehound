@@ -191,14 +191,14 @@ test("strict resolver keeps suppression and fallback audits tied to actual decis
     sampleMode: "preview-safe",
   });
 
-  assert.equal(approvedRender.resolvedSections.testimonials.visible, true);
-  assert.equal(approvedRender.status.hasSuppressedClaims, false);
-  assert.equal(approvedRender.overrideAudit.suppressed.length, 0);
+  assert.equal(approvedRender.resolvedSections.testimonials.visible, false);
+  assert.equal(approvedRender.status.hasSuppressedClaims, true);
+  assert.equal(approvedRender.overrideAudit.suppressed.length, 1);
   assert.deepEqual(approvedRender.overrideAudit.fallbacks, []);
   assert.equal(approvedRender.status.hasFallbackSections, true);
   assert.deepEqual(
     approvedRender.sectionAudit.decisions.map((entry) => entry.section),
-    ["gallery"]
+    ["testimonials", "gallery"]
   );
 });
 
@@ -216,6 +216,28 @@ test("resolver uses suppression reasons that match the current mode", () => {
     render.overrideAudit.suppressed[0]?.reason.includes("strict mode"),
     false
   );
+});
+
+test("testimonials section resolution notes use the computed suppression note", () => {
+  const render = resolveTemplateRender({
+    family: BLUE_COLLAR_SERVICE_FAMILY,
+    template: ROOFING_NICHE_TEMPLATE,
+    seed: {
+      ...ROOFING_SEED_BUSINESS,
+      conditionalProof: {
+        ...ROOFING_SEED_BUSINESS.conditionalProof,
+        sampleTestimonials: {
+          ...ROOFING_SEED_BUSINESS.conditionalProof.sampleTestimonials,
+          approvalStatus: "approved",
+        },
+      },
+    },
+    sampleMode: "preview-safe",
+  });
+
+  assert.deepEqual(render.resolvedSections.testimonials.resolutionNotes, [
+    "Sample testimonial proof is not approved for this render path.",
+  ]);
 });
 
 test("strict resolver allows approved non-sample testimonials", () => {

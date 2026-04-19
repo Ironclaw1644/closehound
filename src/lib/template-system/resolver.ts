@@ -116,8 +116,7 @@ export function resolveTemplateRender({
   const testimonialsProof = seed.conditionalProof.sampleTestimonials;
   const testimonialsApproved = testimonialsProof?.approvalStatus === "approved";
   const testimonialsAreSample = testimonialsProof?.sample === true;
-  const testimonialsVisible =
-    testimonialsApproved && (!testimonialsAreSample || sampleMode !== "strict");
+  const testimonialsVisible = testimonialsApproved && !testimonialsAreSample;
 
   let testimonialSuppressionReason =
     "Testimonial proof is not approved for rendering in this mode.";
@@ -134,6 +133,11 @@ export function resolveTemplateRender({
       "Approved sample testimonial proof is not allowed in strict mode.";
     testimonialSuppressionNote =
       "Sample testimonial proof suppressed in strict mode.";
+  } else if (testimonialsApproved && testimonialsAreSample) {
+    testimonialSuppressionReason =
+      "Approved sample testimonial proof requires explicit labeling support before rendering.";
+    testimonialSuppressionNote =
+      "Sample testimonial proof is not approved for this render path.";
   }
 
   const resolvedSections = {
@@ -196,9 +200,7 @@ export function resolveTemplateRender({
       key: "testimonials",
       variantKey: "default",
       visible: testimonialsVisible,
-      resolutionNotes: testimonialsVisible
-        ? []
-        : ["Suppressed pending testimonial proof"],
+      resolutionNotes: testimonialsVisible ? [] : [testimonialSuppressionNote],
     }),
     faq: buildSection({
       key: "faq",
