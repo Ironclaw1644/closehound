@@ -288,7 +288,7 @@ export function resolveTemplateRender({
 
       sectionAuditDecisions.push({
         section: affectedSection,
-        action: "hidden",
+        action: affectedSection === "hero" ? "downgraded" : "hidden",
         reasonCode: slot.reasonCode ?? REASON_CODES.MISSING_APPROVED_ASSET,
         note: "No approved roofing assets available yet.",
       });

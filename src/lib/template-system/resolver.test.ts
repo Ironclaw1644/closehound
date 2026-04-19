@@ -196,10 +196,20 @@ test("strict resolver keeps suppression and fallback audits tied to actual decis
   assert.equal(approvedRender.overrideAudit.suppressed.length, 1);
   assert.deepEqual(approvedRender.overrideAudit.fallbacks, []);
   assert.equal(approvedRender.status.hasFallbackSections, true);
-  assert.deepEqual(
-    approvedRender.sectionAudit.decisions.map((entry) => entry.section),
-    ["testimonials", "hero"]
-  );
+  assert.deepEqual(approvedRender.sectionAudit.decisions, [
+    {
+      section: "testimonials",
+      action: "hidden",
+      reasonCode: REASON_CODES.MISSING_EVIDENCE,
+      note: "Sample testimonial proof is not approved for this render path.",
+    },
+    {
+      section: "hero",
+      action: "downgraded",
+      reasonCode: REASON_CODES.MISSING_APPROVED_ASSET,
+      note: "No approved roofing assets available yet.",
+    },
+  ]);
 });
 
 test("resolver uses suppression reasons that match the current mode", () => {
@@ -352,7 +362,7 @@ test("resolver attributes omitted visual audit to the hero section", () => {
 
   assert.deepEqual(heroAudit, {
     section: "hero",
-    action: "hidden",
+    action: "downgraded",
     reasonCode: REASON_CODES.MISSING_APPROVED_ASSET,
     note: "No approved roofing assets available yet.",
   });
