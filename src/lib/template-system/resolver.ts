@@ -49,6 +49,30 @@ function toServiceItems(services: string[], fallbackItems: ResolvedSection["item
   }));
 }
 
+function assertResolverCompatibility({
+  family,
+  template,
+  seed,
+}: Pick<ResolveTemplateRenderInput, "family" | "template" | "seed">) {
+  if (template.familyKey !== family.key) {
+    throw new Error(
+      `Template family mismatch: template family "${template.familyKey}" does not match family "${family.key}".`
+    );
+  }
+
+  if (template.expectedSchemaVersion !== family.schemaVersion) {
+    throw new Error(
+      `Template schema version mismatch: template expects "${template.expectedSchemaVersion}" but family provides "${family.schemaVersion}".`
+    );
+  }
+
+  if (seed.nicheTemplateKey !== template.key) {
+    throw new Error(
+      `Seed niche template mismatch: seed template "${seed.nicheTemplateKey}" does not match template "${template.key}".`
+    );
+  }
+}
+
 export function resolveTemplateRender({
   family,
   template,
@@ -56,6 +80,8 @@ export function resolveTemplateRender({
   lead,
   sampleMode,
 }: ResolveTemplateRenderInput): RenderPackage {
+  assertResolverCompatibility({ family, template, seed });
+
   const businessName = String(readBusinessField(seed, lead, "businessName") ?? "");
   const serviceAreaLabel = String(
     readBusinessField(seed, lead, "serviceAreaLabel") ?? ""
@@ -88,18 +114,27 @@ export function resolveTemplateRender({
   });
 
   const testimonialsProof = seed.conditionalProof.sampleTestimonials;
+  const testimonialsApproved = testimonialsProof?.approvalStatus === "approved";
+  const testimonialsAreSample = testimonialsProof?.sample === true;
   const testimonialsVisible =
-    sampleMode !== "strict" &&
-    testimonialsProof?.approvalStatus === "approved" &&
-    testimonialsProof.sample === true;
-  const testimonialSuppressionReason =
-    sampleMode === "strict"
-      ? "Pending seed testimonial proof is not allowed in strict mode."
-      : "Testimonial proof is not approved for rendering in this mode.";
-  const testimonialSuppressionNote =
-    sampleMode === "strict"
-      ? "Pending testimonial proof suppressed in strict mode."
-      : "Testimonial proof is not approved for this render path.";
+    testimonialsApproved && (!testimonialsAreSample || sampleMode !== "strict");
+
+  let testimonialSuppressionReason =
+    "Testimonial proof is not approved for rendering in this mode.";
+  let testimonialSuppressionNote =
+    "Testimonial proof is not approved for this render path.";
+
+  if (!testimonialsApproved && sampleMode === "strict") {
+    testimonialSuppressionReason =
+      "Pending seed testimonial proof is not allowed in strict mode.";
+    testimonialSuppressionNote =
+      "Pending testimonial proof suppressed in strict mode.";
+  } else if (testimonialsApproved && testimonialsAreSample && sampleMode === "strict") {
+    testimonialSuppressionReason =
+      "Approved sample testimonial proof is not allowed in strict mode.";
+    testimonialSuppressionNote =
+      "Sample testimonial proof suppressed in strict mode.";
+  }
 
   const resolvedSections = {
     header: buildSection({

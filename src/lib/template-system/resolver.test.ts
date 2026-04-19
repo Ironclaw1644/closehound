@@ -217,3 +217,77 @@ test("resolver uses suppression reasons that match the current mode", () => {
     false
   );
 });
+
+test("strict resolver allows approved non-sample testimonials", () => {
+  const render = resolveTemplateRender({
+    family: BLUE_COLLAR_SERVICE_FAMILY,
+    template: ROOFING_NICHE_TEMPLATE,
+    seed: {
+      ...ROOFING_SEED_BUSINESS,
+      conditionalProof: {
+        ...ROOFING_SEED_BUSINESS.conditionalProof,
+        sampleTestimonials: {
+          ...ROOFING_SEED_BUSINESS.conditionalProof.sampleTestimonials,
+          approvalStatus: "approved",
+          sample: false,
+        },
+      },
+    },
+    sampleMode: "strict",
+  });
+
+  assert.equal(render.resolvedSections.testimonials.visible, true);
+  assert.equal(render.status.hasSuppressedClaims, false);
+  assert.equal(
+    render.sectionAudit.decisions.some((entry) => entry.section === "testimonials"),
+    false
+  );
+});
+
+test("resolver fails fast when template family is incompatible", () => {
+  assert.throws(
+    () =>
+      resolveTemplateRender({
+        family: BLUE_COLLAR_SERVICE_FAMILY,
+        template: {
+          ...ROOFING_NICHE_TEMPLATE,
+          familyKey: "other-family",
+        },
+        seed: ROOFING_SEED_BUSINESS,
+        sampleMode: "strict",
+      }),
+    /template family/i
+  );
+});
+
+test("resolver fails fast when schema version is incompatible", () => {
+  assert.throws(
+    () =>
+      resolveTemplateRender({
+        family: BLUE_COLLAR_SERVICE_FAMILY,
+        template: {
+          ...ROOFING_NICHE_TEMPLATE,
+          expectedSchemaVersion: "9.9.9",
+        },
+        seed: ROOFING_SEED_BUSINESS,
+        sampleMode: "strict",
+      }),
+    /schema version/i
+  );
+});
+
+test("resolver fails fast when seed niche template is incompatible", () => {
+  assert.throws(
+    () =>
+      resolveTemplateRender({
+        family: BLUE_COLLAR_SERVICE_FAMILY,
+        template: ROOFING_NICHE_TEMPLATE,
+        seed: {
+          ...ROOFING_SEED_BUSINESS,
+          nicheTemplateKey: "other-template",
+        },
+        sampleMode: "strict",
+      }),
+    /seed niche template/i
+  );
+});
