@@ -22,7 +22,7 @@ export const BLUE_COLLAR_SERVICE_FAMILY: TemplateFamily = {
     optionalSections: ["about", "why-choose-us", "process", "gallery", "testimonials", "faq", "service-area"],
     sectionPolicies: {
       header: { key: "header", canHide: false, requiredFields: ["businessName", "primaryPhone"], optionalFields: [], fallbackBehavior: "use-template-copy" },
-      hero: { key: "hero", canHide: false, requiredFields: ["businessName", "serviceAreaLabel", "primaryCtaLabel"], optionalFields: ["primaryPhone"], fallbackBehavior: "downgrade-to-safe-copy" },
+      hero: { key: "hero", canHide: false, requiredFields: ["businessName", "serviceAreaLabel", "primaryCtaLabel", "primaryCtaHref"], optionalFields: ["primaryPhone"], fallbackBehavior: "downgrade-to-safe-copy" },
       about: { key: "about", canHide: true, requiredFields: [], optionalFields: ["aboutBody"], fallbackBehavior: "omit" },
       services: { key: "services", canHide: false, requiredFields: ["services"], optionalFields: [], fallbackBehavior: "use-template-copy" },
       "why-choose-us": { key: "why-choose-us", canHide: true, requiredFields: [], optionalFields: ["licensedAndInsured", "warrantyCopy"], fallbackBehavior: "switch-variant", fallbackVariantKey: "process-heavy" },
@@ -31,7 +31,7 @@ export const BLUE_COLLAR_SERVICE_FAMILY: TemplateFamily = {
       testimonials: { key: "testimonials", canHide: true, requiredFields: ["approvedTestimonials"], optionalFields: [], fallbackBehavior: "omit" },
       faq: { key: "faq", canHide: true, requiredFields: [], optionalFields: [], fallbackBehavior: "use-template-copy" },
       "service-area": { key: "service-area", canHide: true, requiredFields: ["serviceAreaLabel"], optionalFields: ["serviceAreaCities"], fallbackBehavior: "switch-variant", fallbackVariantKey: "regional-coverage" },
-      contact: { key: "contact", canHide: false, requiredFields: ["businessName", "primaryPhone", "primaryCtaLabel"], optionalFields: ["contactEmail"], fallbackBehavior: "use-template-copy" },
+      contact: { key: "contact", canHide: false, requiredFields: ["businessName", "primaryPhone", "primaryCtaLabel", "primaryCtaHref"], optionalFields: ["contactEmail"], fallbackBehavior: "use-template-copy" },
       footer: { key: "footer", canHide: false, requiredFields: ["businessName"], optionalFields: ["primaryPhone", "contactEmail"], fallbackBehavior: "use-template-copy" },
     },
   },
