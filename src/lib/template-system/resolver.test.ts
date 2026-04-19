@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { BLUE_COLLAR_SERVICE_FAMILY } from "@/lib/template-system/families/blue-collar-service";
 import { REASON_CODES } from "@/lib/template-system/reason-codes";
 import { ROOFING_NICHE_TEMPLATE } from "@/lib/template-system/niches/roofing";
+import { buildRoofingPreviewModel } from "@/lib/template-system/roofing-preview";
 import { resolveTemplateRender } from "@/lib/template-system/resolver";
 import { ROOFING_SEED_BUSINESS } from "@/lib/template-system/seeds/roofing-seed";
 import type { RenderPackage, SampleMode, SectionKey } from "@/lib/template-system/types";
@@ -152,6 +153,23 @@ test("strict resolver includes contact fields in resolvedFields", () => {
     render.resolvedFields.contactEmail,
     ROOFING_SEED_BUSINESS.businessProfile.contactEmail
   );
+});
+
+test("roofing preview model exposes hero and contact content from render package", () => {
+  const render = resolveTemplateRender({
+    family: BLUE_COLLAR_SERVICE_FAMILY,
+    template: ROOFING_NICHE_TEMPLATE,
+    seed: ROOFING_SEED_BUSINESS,
+    sampleMode: "strict",
+  });
+
+  const model = buildRoofingPreviewModel(render);
+
+  assert.equal(
+    model.hero.heading,
+    "Roofing work that protects the home and the timeline"
+  );
+  assert.equal(model.contact.ctaLabel, "Request a Roofing Quote");
 });
 
 test("strict resolver builds service items from resolved services values", () => {
