@@ -135,3 +135,85 @@ test("strict resolver omits visual slots without approved assets", () => {
     "MISSING_APPROVED_ASSET"
   );
 });
+
+test("strict resolver includes contact fields in resolvedFields", () => {
+  const render = resolveTemplateRender({
+    family: BLUE_COLLAR_SERVICE_FAMILY,
+    template: ROOFING_NICHE_TEMPLATE,
+    seed: ROOFING_SEED_BUSINESS,
+    sampleMode: "strict",
+  });
+
+  assert.equal(
+    render.resolvedFields.primaryPhone,
+    ROOFING_SEED_BUSINESS.businessProfile.primaryPhone
+  );
+  assert.equal(
+    render.resolvedFields.contactEmail,
+    ROOFING_SEED_BUSINESS.businessProfile.contactEmail
+  );
+});
+
+test("strict resolver builds service items from resolved services values", () => {
+  const render = resolveTemplateRender({
+    family: BLUE_COLLAR_SERVICE_FAMILY,
+    template: ROOFING_NICHE_TEMPLATE,
+    seed: ROOFING_SEED_BUSINESS,
+    lead: {
+      source: "crm",
+      normalizedFields: {
+        services: ["Emergency Tarping", "Leak Repair"],
+      },
+    },
+    sampleMode: "strict",
+  });
+
+  assert.deepEqual(
+    render.resolvedSections.services.items?.map((item) => item.title),
+    ["Emergency Tarping", "Leak Repair"]
+  );
+});
+
+test("strict resolver keeps suppression and fallback audits tied to actual decisions", () => {
+  const approvedRender = resolveTemplateRender({
+    family: BLUE_COLLAR_SERVICE_FAMILY,
+    template: ROOFING_NICHE_TEMPLATE,
+    seed: {
+      ...ROOFING_SEED_BUSINESS,
+      conditionalProof: {
+        ...ROOFING_SEED_BUSINESS.conditionalProof,
+        sampleTestimonials: {
+          ...ROOFING_SEED_BUSINESS.conditionalProof.sampleTestimonials,
+          approvalStatus: "approved",
+        },
+      },
+    },
+    sampleMode: "preview-safe",
+  });
+
+  assert.equal(approvedRender.resolvedSections.testimonials.visible, true);
+  assert.equal(approvedRender.status.hasSuppressedClaims, false);
+  assert.equal(approvedRender.overrideAudit.suppressed.length, 0);
+  assert.deepEqual(approvedRender.overrideAudit.fallbacks, []);
+  assert.equal(approvedRender.status.hasFallbackSections, true);
+  assert.deepEqual(
+    approvedRender.sectionAudit.decisions.map((entry) => entry.section),
+    ["gallery"]
+  );
+});
+
+test("resolver uses suppression reasons that match the current mode", () => {
+  const render = resolveTemplateRender({
+    family: BLUE_COLLAR_SERVICE_FAMILY,
+    template: ROOFING_NICHE_TEMPLATE,
+    seed: ROOFING_SEED_BUSINESS,
+    sampleMode: "preview-safe",
+  });
+
+  assert.equal(render.resolvedSections.testimonials.visible, false);
+  assert.equal(render.overrideAudit.suppressed.length, 1);
+  assert.equal(
+    render.overrideAudit.suppressed[0]?.reason.includes("strict mode"),
+    false
+  );
+});

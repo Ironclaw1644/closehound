@@ -36,6 +36,19 @@ function buildSection(section: ResolvedSection): ResolvedSection {
   return section;
 }
 
+function toServiceItems(services: string[], fallbackItems: ResolvedSection["items"]) {
+  if (services.length === 0) {
+    return fallbackItems;
+  }
+
+  return services.map((service, index) => ({
+    title: service,
+    body:
+      fallbackItems?.[index]?.body ??
+      `Details for ${service} should be supplied by the resolved business data.`,
+  }));
+}
+
 export function resolveTemplateRender({
   family,
   template,
@@ -51,6 +64,8 @@ export function resolveTemplateRender({
     readBusinessField(seed, lead, "primaryCtaLabel") ?? ""
   );
   const primaryCtaHref = String(readBusinessField(seed, lead, "primaryCtaHref") ?? "");
+  const primaryPhone = String(readBusinessField(seed, lead, "primaryPhone") ?? "");
+  const contactEmail = String(readBusinessField(seed, lead, "contactEmail") ?? "");
   const services = Array.isArray(readBusinessField(seed, lead, "services"))
     ? (readBusinessField(seed, lead, "services") as string[])
     : [];
@@ -77,6 +92,14 @@ export function resolveTemplateRender({
     sampleMode !== "strict" &&
     testimonialsProof?.approvalStatus === "approved" &&
     testimonialsProof.sample === true;
+  const testimonialSuppressionReason =
+    sampleMode === "strict"
+      ? "Pending seed testimonial proof is not allowed in strict mode."
+      : "Testimonial proof is not approved for rendering in this mode.";
+  const testimonialSuppressionNote =
+    sampleMode === "strict"
+      ? "Pending testimonial proof suppressed in strict mode."
+      : "Testimonial proof is not approved for this render path.";
 
   const resolvedSections = {
     header: buildSection({
@@ -112,7 +135,7 @@ export function resolveTemplateRender({
       variantKey: "default",
       visible: true,
       heading: template.sections.copy.services?.heading,
-      items: template.sections.copy.services?.items,
+      items: toServiceItems(services, template.sections.copy.services?.items),
     }),
     "why-choose-us": buildSection({
       key: "why-choose-us",
@@ -190,6 +213,40 @@ export function resolveTemplateRender({
     },
   ];
 
+  const suppressedAudit = !testimonialsVisible
+    ? [
+        {
+          field: "sampleTestimonials",
+          reasonCode: REASON_CODES.MISSING_EVIDENCE,
+          reason: testimonialSuppressionReason,
+        },
+      ]
+    : [];
+
+  const sectionAuditDecisions: RenderPackage["sectionAudit"]["decisions"] = [];
+
+  if (!testimonialsVisible) {
+    sectionAuditDecisions.push({
+      section: "testimonials",
+      action: "hidden",
+      reasonCode: REASON_CODES.MISSING_EVIDENCE,
+      note: testimonialSuppressionNote,
+    });
+  }
+
+  if (visualSlots.some((slot) => slot.status === "omitted")) {
+    sectionAuditDecisions.push({
+      section: "gallery",
+      action: "hidden",
+      reasonCode: REASON_CODES.MISSING_APPROVED_ASSET,
+      note: "No approved roofing assets available yet.",
+    });
+  }
+
+  const hasFallbackSections = sectionAuditDecisions.some((decision) =>
+    ["hidden", "switched-variant", "downgraded"].includes(decision.action)
+  );
+
   return {
     schemaVersion: family.schemaVersion,
     templateKey: template.key,
@@ -200,6 +257,8 @@ export function resolveTemplateRender({
       serviceAreaLabel,
       primaryCtaLabel,
       primaryCtaHref,
+      primaryPhone,
+      contactEmail,
       services,
     },
     resolvedSections,
@@ -232,8 +291,8 @@ export function resolveTemplateRender({
     },
     status: {
       isPreviewSafe: missingCriticalFields.length === 0,
-      hasSuppressedClaims: !testimonialsVisible,
-      hasFallbackSections: true,
+      hasSuppressedClaims: suppressedAudit.length > 0,
+      hasFallbackSections,
       missingCriticalFields,
     },
     overrideAudit: {
@@ -244,32 +303,10 @@ export function resolveTemplateRender({
         strategy: "missing-critical-field",
         reasonCode: REASON_CODES.MISSING_CRITICAL_FIELD,
       })),
-      suppressed: testimonialsVisible
-        ? []
-        : [
-            {
-              field: "sampleTestimonials",
-              reasonCode: REASON_CODES.MISSING_EVIDENCE,
-              reason:
-                "Pending seed testimonial proof is not allowed in strict mode.",
-            },
-          ],
+      suppressed: suppressedAudit,
     },
     sectionAudit: {
-      decisions: [
-        {
-          section: "testimonials",
-          action: "hidden",
-          reasonCode: REASON_CODES.MISSING_EVIDENCE,
-          note: "Pending testimonial proof suppressed in strict mode.",
-        },
-        {
-          section: "gallery",
-          action: "hidden",
-          reasonCode: REASON_CODES.MISSING_APPROVED_ASSET,
-          note: "No approved roofing assets available yet.",
-        },
-      ],
+      decisions: sectionAuditDecisions,
     },
   };
 }
