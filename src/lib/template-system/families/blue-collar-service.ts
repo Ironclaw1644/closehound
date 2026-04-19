@@ -1,0 +1,56 @@
+import type { TemplateFamily } from "@/lib/template-system/types";
+
+export const BLUE_COLLAR_SERVICE_FAMILY: TemplateFamily = {
+  key: "blue-collar-service",
+  name: "Blue Collar Service",
+  version: "1.0.0",
+  schemaVersion: "1.0.0",
+  structure: {
+    defaultSectionOrder: [
+      "header",
+      "hero",
+      "services",
+      "why-choose-us",
+      "process",
+      "gallery",
+      "faq",
+      "service-area",
+      "contact",
+      "footer",
+    ],
+    requiredSections: ["header", "hero", "services", "contact", "footer"],
+    optionalSections: ["about", "why-choose-us", "process", "gallery", "testimonials", "faq", "service-area"],
+    sectionPolicies: {
+      header: { key: "header", canHide: false, requiredFields: ["businessName", "primaryPhone"], optionalFields: [], fallbackBehavior: "use-template-copy" },
+      hero: { key: "hero", canHide: false, requiredFields: ["businessName", "serviceAreaLabel", "primaryCtaLabel"], optionalFields: ["primaryPhone"], fallbackBehavior: "downgrade-to-safe-copy" },
+      about: { key: "about", canHide: true, requiredFields: [], optionalFields: ["aboutBody"], fallbackBehavior: "omit" },
+      services: { key: "services", canHide: false, requiredFields: ["services"], optionalFields: [], fallbackBehavior: "use-template-copy" },
+      "why-choose-us": { key: "why-choose-us", canHide: true, requiredFields: [], optionalFields: ["licensedAndInsured", "warrantyCopy"], fallbackBehavior: "switch-variant", fallbackVariantKey: "process-heavy" },
+      process: { key: "process", canHide: true, requiredFields: [], optionalFields: [], fallbackBehavior: "use-template-copy" },
+      gallery: { key: "gallery", canHide: true, requiredFields: [], optionalFields: ["heroImage"], fallbackBehavior: "omit" },
+      testimonials: { key: "testimonials", canHide: true, requiredFields: ["approvedTestimonials"], optionalFields: [], fallbackBehavior: "omit" },
+      faq: { key: "faq", canHide: true, requiredFields: [], optionalFields: [], fallbackBehavior: "use-template-copy" },
+      "service-area": { key: "service-area", canHide: true, requiredFields: ["serviceAreaLabel"], optionalFields: ["serviceAreaCities"], fallbackBehavior: "switch-variant", fallbackVariantKey: "regional-coverage" },
+      contact: { key: "contact", canHide: false, requiredFields: ["businessName", "primaryPhone", "primaryCtaLabel"], optionalFields: ["contactEmail"], fallbackBehavior: "use-template-copy" },
+      footer: { key: "footer", canHide: false, requiredFields: ["businessName"], optionalFields: ["primaryPhone", "contactEmail"], fallbackBehavior: "use-template-copy" },
+    },
+  },
+  resolverPolicy: {
+    criticalFields: ["businessName", "primaryCtaLabel", "primaryCtaHref", "serviceAreaLabel", "services"],
+    nonCriticalFields: ["contactEmail", "galleryAssets", "faqItems", "secondaryCtaLabel"],
+  },
+  conversionModel: {
+    ctaStyle: "call-or-quote",
+    proofStyle: "credibility-without-fabrication",
+    contactPriority: ["nav", "hero", "contact", "footer"],
+    primaryGoal: "quote",
+  },
+  guardrails: {
+    bannedPhrases: ["tailored solutions", "cutting-edge", "industry-leading", "welcome to"],
+    bannedClaimTypes: ["fake-review-count", "fake-award", "fake-years-in-business"],
+    visualGuardrails: ["no fake logos", "no surreal lighting", "no embedded text"],
+    vocabularyRules: ["use grounded trade language", "describe actual work performed"],
+  },
+  fieldPolicies: {},
+  claimPolicies: {},
+};
