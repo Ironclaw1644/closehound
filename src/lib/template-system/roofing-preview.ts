@@ -7,10 +7,22 @@ export type RoofingPreviewModel = {
     body: string;
     ctaLabel: string;
   };
-  services: Array<{ title?: string; body: string }>;
-  whyChooseUs: Array<{ title?: string; body: string }>;
-  process: Array<{ title?: string; body: string }>;
-  faq: Array<{ question: string; answer: string }>;
+  services: {
+    heading: string;
+    items: Array<{ title?: string; body: string }>;
+  };
+  whyChooseUs: {
+    heading: string;
+    items: Array<{ title?: string; body: string }>;
+  };
+  process: {
+    heading: string;
+    items: Array<{ title?: string; body: string }>;
+  };
+  faq: {
+    heading: string;
+    items: Array<{ question: string; answer: string }>;
+  };
   contact: {
     heading: string;
     body: string;
@@ -31,10 +43,22 @@ export function buildRoofingPreviewModel(
       body: render.resolvedSections.hero.body ?? "",
       ctaLabel: render.resolvedSections.hero.cta?.label ?? "Request a Roofing Quote",
     },
-    services: render.resolvedSections.services.items ?? [],
-    whyChooseUs: render.resolvedSections["why-choose-us"].items ?? [],
-    process: render.resolvedSections.process.items ?? [],
-    faq: render.resolvedSections.faq.faqItems ?? [],
+    services: {
+      heading: render.resolvedSections.services.heading ?? "",
+      items: render.resolvedSections.services.items ?? [],
+    },
+    whyChooseUs: {
+      heading: render.resolvedSections["why-choose-us"].heading ?? "",
+      items: render.resolvedSections["why-choose-us"].items ?? [],
+    },
+    process: {
+      heading: render.resolvedSections.process.heading ?? "",
+      items: render.resolvedSections.process.items ?? [],
+    },
+    faq: {
+      heading: render.resolvedSections.faq.heading ?? "",
+      items: render.resolvedSections.faq.faqItems ?? [],
+    },
     contact: {
       heading: render.resolvedSections.contact.heading ?? "",
       body: render.resolvedSections.contact.body ?? "",

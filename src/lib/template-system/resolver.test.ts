@@ -155,7 +155,7 @@ test("strict resolver includes contact fields in resolvedFields", () => {
   );
 });
 
-test("roofing preview model exposes hero and contact content from render package", () => {
+test("roofing preview model exposes resolved section headings and faq content", () => {
   const render = resolveTemplateRender({
     family: BLUE_COLLAR_SERVICE_FAMILY,
     template: ROOFING_NICHE_TEMPLATE,
@@ -169,6 +169,34 @@ test("roofing preview model exposes hero and contact content from render package
     model.hero.heading,
     "Roofing work that protects the home and the timeline"
   );
+  assert.equal(
+    model.services.heading,
+    "Roofing services for repairs, replacement, and inspections"
+  );
+  assert.equal(
+    model.whyChooseUs.heading,
+    "What homeowners want from a roofing company"
+  );
+  assert.equal(
+    model.process.heading,
+    "How the job moves from inspection to completion"
+  );
+  assert.equal(
+    model.faq.heading,
+    "Roofing questions homeowners ask before hiring"
+  );
+  assert.deepEqual(model.faq.items, [
+    {
+      question: "Do I need repair or replacement?",
+      answer:
+        "That depends on the age of the roof, the spread of damage, and whether the issue is isolated or systemic.",
+    },
+    {
+      question: "Do you handle storm-related roof issues?",
+      answer:
+        "The template should support storm-damage positioning without inventing insurance or claim language.",
+    },
+  ]);
   assert.equal(model.contact.ctaLabel, "Request a Roofing Quote");
 });
 

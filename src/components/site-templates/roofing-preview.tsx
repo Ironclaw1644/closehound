@@ -28,9 +28,9 @@ export function RoofingPreviewTemplate({
 
         <section className="mt-8 grid gap-8 lg:grid-cols-2">
           <div className="rounded-[28px] border border-black/10 bg-white p-8">
-            <h2 className="text-3xl font-semibold">Roofing services</h2>
+            <h2 className="text-3xl font-semibold">{model.services.heading}</h2>
             <div className="mt-6 grid gap-4">
-              {model.services.map((item, index) => (
+              {model.services.items.map((item, index) => (
                 <article
                   key={`${item.title ?? "service"}-${index}`}
                   className="rounded-2xl border border-black/8 p-5"
@@ -47,9 +47,11 @@ export function RoofingPreviewTemplate({
           </div>
 
           <div className="rounded-[28px] border border-black/10 bg-white p-8">
-            <h2 className="text-3xl font-semibold">What homeowners want</h2>
+            <h2 className="text-3xl font-semibold">
+              {model.whyChooseUs.heading}
+            </h2>
             <div className="mt-6 grid gap-4">
-              {model.whyChooseUs.map((item, index) => (
+              {model.whyChooseUs.items.map((item, index) => (
                 <article
                   key={`${item.title ?? "proof"}-${index}`}
                   className="rounded-2xl border border-black/8 p-5"
@@ -67,9 +69,9 @@ export function RoofingPreviewTemplate({
         </section>
 
         <section className="mt-8 rounded-[28px] border border-black/10 bg-white p-8">
-          <h2 className="text-3xl font-semibold">How the job moves</h2>
+          <h2 className="text-3xl font-semibold">{model.process.heading}</h2>
           <div className="mt-6 grid gap-4 md:grid-cols-3">
-            {model.process.map((item, index) => (
+            {model.process.items.map((item, index) => (
               <article
                 key={`${item.title ?? "step"}-${index}`}
                 className="rounded-2xl border border-black/8 p-5"
@@ -79,6 +81,23 @@ export function RoofingPreviewTemplate({
                 ) : null}
                 <p className="mt-2 text-sm leading-6 text-slate-600">
                   {item.body}
+                </p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-8 rounded-[28px] border border-black/10 bg-white p-8">
+          <h2 className="text-3xl font-semibold">{model.faq.heading}</h2>
+          <div className="mt-6 grid gap-4">
+            {model.faq.items.map((item, index) => (
+              <article
+                key={`${item.question}-${index}`}
+                className="rounded-2xl border border-black/8 p-5"
+              >
+                <h3 className="text-lg font-semibold">{item.question}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  {item.answer}
                 </p>
               </article>
             ))}
