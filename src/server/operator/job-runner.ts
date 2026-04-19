@@ -1,9 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { buildPreviewUrl } from "@/lib/preview";
-import {
-  generateContractorSiteDataFromLead,
-  getPreviewGenerationMetadataFromLead,
-} from "@/lib/site-templates/contractor/lead";
+import { generatePreviewSite } from "@/lib/site-generator";
 import type { Lead } from "@/types/lead";
 import type { Database, Json } from "@/types/supabase";
 import type {
@@ -135,8 +132,13 @@ async function runPreviewGenerateJob(
 
   logger.info(`Generating deterministic preview for ${lead.company_name}.`);
 
-  const contractorSiteData = generateContractorSiteDataFromLead(lead as Lead);
-  const metadata = getPreviewGenerationMetadataFromLead(lead as Lead);
+  const previewSite = generatePreviewSite(lead as Lead);
+  const metadata = {
+    presetDetected: previewSite.templateKey,
+    detectionMode: "explicit" as const,
+    matchedKeyword: null,
+    previewRoute: previewSite.previewUrl,
+  };
   const previewUrl = buildPreviewUrl(leadId);
 
   const { error: updateLeadError } = await closehound
@@ -158,10 +160,7 @@ async function runPreviewGenerateJob(
     leadId,
     leadId,
     previewUrl,
-    {
-      metadata,
-      siteData: contractorSiteData,
-    } as unknown as Json,
+    previewSite as unknown as Json,
     logger
   );
 
@@ -170,7 +169,7 @@ async function runPreviewGenerateJob(
     previewUrl,
     leadStatus: "generated",
     metadata,
-    previewSite: contractorSiteData as unknown as Json,
+    previewSite: previewSite as unknown as Json,
     storageMode,
   };
 

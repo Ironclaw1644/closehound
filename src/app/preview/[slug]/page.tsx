@@ -1,9 +1,7 @@
 import type { CSSProperties } from "react";
 import { notFound } from "next/navigation";
-import { ContractorSiteTemplate } from "@/components/site-templates/contractor-site";
 import { PALETTE_PRESETS } from "@/lib/palettes";
-import { getLeadById, requirePreviewSiteBySlug } from "@/lib/preview-sites";
-import { generateContractorSiteDataFromLead } from "@/lib/site-templates/contractor/lead";
+import { requirePreviewSiteBySlug } from "@/lib/preview-sites";
 import { TYPOGRAPHY_PAIRINGS } from "@/lib/site-generator/typography";
 import type { PreviewSite, PreviewSiteSectionContent } from "@/lib/site-generator";
 
@@ -95,19 +93,6 @@ export default async function PreviewPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const lead = await getLeadById(slug);
-
-  if (lead) {
-    const contractorSiteData = generateContractorSiteDataFromLead(lead);
-
-    return (
-      <ContractorSiteTemplate
-        data={contractorSiteData}
-        previewLabel={`Lead preview - ${lead.company_name}`}
-      />
-    );
-  }
-
   const previewSite = await requirePreviewSiteBySlug(slug);
 
   if (!previewSite) {
@@ -182,7 +167,7 @@ export default async function PreviewPage({
 
             <aside className="rounded-[32px] border border-black/8 bg-white/88 p-6 shadow-[0_22px_80px_rgba(15,23,42,0.08)]">
               <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-zinc-500">
-                Why this converts
+                Why Homeowners Call
               </p>
               <div className="mt-5 space-y-4">
                 {(hero.items ?? []).map((item, index) => (
@@ -194,7 +179,7 @@ export default async function PreviewPage({
               <div className="mt-6 rounded-2xl px-4 py-4" style={{ backgroundColor: palette.accentContrast }}>
                 <p className="text-sm font-medium text-zinc-950">{previewSite.business.phoneDisplay}</p>
                 <p className="mt-1 text-sm text-zinc-600">
-                  {previewSite.business.email ?? "Email ready to be added"}
+                  {previewSite.business.email ?? "Call to schedule service"}
                 </p>
               </div>
             </aside>
@@ -243,7 +228,7 @@ export default async function PreviewPage({
 
               <div className="rounded-[28px] border border-white/10 bg-white/6 p-6">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-white/50">
-                  Preview details
+                  Service Snapshot
                 </p>
                 <dl className="mt-5 space-y-4">
                   <div>
@@ -251,14 +236,16 @@ export default async function PreviewPage({
                     <dd className="mt-1 text-base font-medium text-white">{previewSite.business.name}</dd>
                   </div>
                   <div>
-                    <dt className="text-xs uppercase tracking-[0.22em] text-white/40">Market</dt>
+                    <dt className="text-xs uppercase tracking-[0.22em] text-white/40">Service Area</dt>
                     <dd className="mt-1 text-base font-medium text-white">
                       {previewSite.business.city} {previewSite.industryKey}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-xs uppercase tracking-[0.22em] text-white/40">Theme</dt>
-                    <dd className="mt-1 text-base font-medium text-white">{palette.name}</dd>
+                    <dt className="text-xs uppercase tracking-[0.22em] text-white/40">Availability</dt>
+                    <dd className="mt-1 text-base font-medium text-white">
+                      Estimates available by phone or email
+                    </dd>
                   </div>
                 </dl>
               </div>
