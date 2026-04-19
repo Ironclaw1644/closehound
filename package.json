@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "test:unit": "node --test --experimental-strip-types --import ./scripts/register-ts-path-loader.mjs src/lib/template-system/**/*.test.ts",
     "operator:worker": "node --env-file=.env.local --experimental-strip-types --import ./scripts/register-ts-path-loader.mjs ./scripts/run-operator-worker.ts"
   },
   "dependencies": {
