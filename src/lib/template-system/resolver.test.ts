@@ -198,7 +198,7 @@ test("strict resolver keeps suppression and fallback audits tied to actual decis
   assert.equal(approvedRender.status.hasFallbackSections, true);
   assert.deepEqual(
     approvedRender.sectionAudit.decisions.map((entry) => entry.section),
-    ["testimonials", "gallery"]
+    ["testimonials", "hero"]
   );
 });
 
@@ -311,5 +311,53 @@ test("resolver fails fast when seed niche template is incompatible", () => {
         sampleMode: "strict",
       }),
     /seed niche template/i
+  );
+});
+
+test("resolver omits CTA payloads for hero and contact when CTA fields are missing", () => {
+  const render = resolveTemplateRender({
+    family: BLUE_COLLAR_SERVICE_FAMILY,
+    template: ROOFING_NICHE_TEMPLATE,
+    seed: {
+      ...ROOFING_SEED_BUSINESS,
+      businessProfile: {
+        ...ROOFING_SEED_BUSINESS.businessProfile,
+        primaryCtaLabel: "",
+        primaryCtaHref: "",
+      },
+    },
+    sampleMode: "strict",
+  });
+
+  assert.equal(render.status.isPreviewSafe, false);
+  assert.deepEqual(render.status.missingCriticalFields.sort(), [
+    "primaryCtaHref",
+    "primaryCtaLabel",
+  ]);
+  assert.equal(render.resolvedSections.hero.cta, undefined);
+  assert.equal(render.resolvedSections.contact.cta, undefined);
+});
+
+test("resolver attributes omitted visual audit to the hero section", () => {
+  const render = resolveTemplateRender({
+    family: BLUE_COLLAR_SERVICE_FAMILY,
+    template: ROOFING_NICHE_TEMPLATE,
+    seed: ROOFING_SEED_BUSINESS,
+    sampleMode: "strict",
+  });
+
+  const heroAudit = render.sectionAudit.decisions.find(
+    (entry) => entry.section === "hero"
+  );
+
+  assert.deepEqual(heroAudit, {
+    section: "hero",
+    action: "hidden",
+    reasonCode: REASON_CODES.MISSING_APPROVED_ASSET,
+    note: "No approved roofing assets available yet.",
+  });
+  assert.equal(
+    render.sectionAudit.decisions.some((entry) => entry.section === "gallery"),
+    false
   );
 });

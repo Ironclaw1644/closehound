@@ -36,6 +36,20 @@ function buildSection(section: ResolvedSection): ResolvedSection {
   return section;
 }
 
+function buildResolvedCta(
+  primaryCtaLabel: string,
+  primaryCtaHref: string
+): ResolvedSection["cta"] {
+  if (primaryCtaLabel === "" || primaryCtaHref === "") {
+    return undefined;
+  }
+
+  return {
+    label: primaryCtaLabel,
+    action: "quote",
+  };
+}
+
 function toServiceItems(services: string[], fallbackItems: ResolvedSection["items"]) {
   if (services.length === 0) {
     return fallbackItems;
@@ -95,6 +109,7 @@ export function resolveTemplateRender({
   const services = Array.isArray(readBusinessField(seed, lead, "services"))
     ? (readBusinessField(seed, lead, "services") as string[])
     : [];
+  const resolvedPrimaryCta = buildResolvedCta(primaryCtaLabel, primaryCtaHref);
 
   const missingCriticalFields = family.resolverPolicy.criticalFields.filter((field) => {
     if (field === "services") {
@@ -158,10 +173,7 @@ export function resolveTemplateRender({
       body: template.sections.copy.hero?.body
         ?.replace("{{businessName}}", businessName)
         .replace("{{serviceAreaLabel}}", serviceAreaLabel),
-      cta: {
-        label: primaryCtaLabel,
-        action: "quote",
-      },
+      cta: resolvedPrimaryCta,
     }),
     about: buildSection({
       key: "about",
@@ -228,10 +240,7 @@ export function resolveTemplateRender({
       visible: true,
       heading: template.sections.copy.contact?.heading,
       body: template.sections.copy.contact?.body,
-      cta: {
-        label: primaryCtaLabel,
-        action: "quote",
-      },
+      cta: resolvedPrimaryCta,
     }),
     footer: buildSection({
       key: "footer",
@@ -271,14 +280,19 @@ export function resolveTemplateRender({
     });
   }
 
-  if (visualSlots.some((slot) => slot.status === "omitted")) {
-    sectionAuditDecisions.push({
-      section: "gallery",
-      action: "hidden",
-      reasonCode: REASON_CODES.MISSING_APPROVED_ASSET,
-      note: "No approved roofing assets available yet.",
+  visualSlots
+    .filter((slot) => slot.status === "omitted")
+    .forEach((slot) => {
+      const affectedSection =
+        slot.slot === "hero" || slot.slot === "gallery" ? slot.slot : "gallery";
+
+      sectionAuditDecisions.push({
+        section: affectedSection,
+        action: "hidden",
+        reasonCode: slot.reasonCode ?? REASON_CODES.MISSING_APPROVED_ASSET,
+        note: "No approved roofing assets available yet.",
+      });
     });
-  }
 
   const hasFallbackSections = sectionAuditDecisions.some((decision) =>
     ["hidden", "switched-variant", "downgraded"].includes(decision.action)
