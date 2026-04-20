@@ -2,6 +2,7 @@ import {
   getSupabaseAdminClient,
   hasSupabaseAdminEnv,
 } from "@/lib/supabase";
+import type { Database } from "@/types/supabase";
 import type { ArchetypeImageCandidateStatus } from "@/lib/template-system/images/types";
 
 export type ArchetypeImageCandidateRecord = {
@@ -78,12 +79,45 @@ type TemplateImageCandidateRow = {
   approval_updated_by?: string | null;
 };
 
+type TemplateImageCandidateInsert =
+  Database["closehound"]["Tables"]["template_image_candidates"]["Insert"];
+
 export function buildCandidateGroupKey({
   templateKey,
   generationBatchId,
   slot,
 }: ArchetypeCandidateGroupKey) {
   return `${templateKey}::${generationBatchId}::${slot}`;
+}
+
+function mapRecordToInsert(
+  record: ArchetypeImageCandidateRecord
+): TemplateImageCandidateInsert {
+  return {
+    id: record.id,
+    generation_batch_id: record.generationBatchId,
+    family_key: record.familyKey,
+    template_key: record.templateKey,
+    template_version: record.templateVersion,
+    seed_business_key: record.seedBusinessKey ?? null,
+    lead_id: record.leadId ?? null,
+    slot: record.slot,
+    candidate_index: record.candidateIndex,
+    prompt: record.prompt,
+    negative_prompt: record.negativePrompt,
+    prompt_version: record.promptVersion,
+    provider: record.provider,
+    model: record.model,
+    status: record.status,
+    storage_path: record.storagePath,
+    asset_url: record.assetUrl ?? null,
+    aspect_ratio: record.aspectRatio,
+    crop_notes: record.cropNotes ?? null,
+    created_at: record.createdAt,
+    created_by: record.createdBy,
+    approval_updated_at: record.approvalUpdatedAt ?? null,
+    approval_updated_by: record.approvalUpdatedBy ?? null,
+  };
 }
 
 function mapTemplateImageCandidateRow(
@@ -316,4 +350,105 @@ export async function getApprovedTemplateImageCandidates(selection: {
       slotDefinitions: selection.slotDefinitions,
     }
   );
+}
+
+export async function insertTemplateImageCandidates(
+  records: readonly ArchetypeImageCandidateRecord[]
+) {
+  if (!records.length) {
+    return [];
+  }
+
+  const closehound = getSupabaseAdminClient().schema("closehound") as any;
+  const { data, error } = await closehound
+    .from("template_image_candidates")
+    .insert(records.map(mapRecordToInsert))
+    .select("*");
+
+  if (error) {
+    throw error;
+  }
+
+  return ((data ?? []) as TemplateImageCandidateRow[]).map(mapTemplateImageCandidateRow);
+}
+
+export async function listTemplateImageCandidatesByBatch(selection: {
+  templateKey: string;
+  generationBatchId: string;
+}) {
+  if (!hasSupabaseAdminEnv()) {
+    return [];
+  }
+
+  const closehound = getSupabaseAdminClient().schema("closehound") as any;
+  const { data, error } = await closehound
+    .from("template_image_candidates")
+    .select("*")
+    .eq("template_key", selection.templateKey)
+    .eq("generation_batch_id", selection.generationBatchId)
+    .order("slot", { ascending: true })
+    .order("candidate_index", { ascending: true });
+
+  if (error || !data) {
+    return [];
+  }
+
+  return (data as TemplateImageCandidateRow[]).map(mapTemplateImageCandidateRow);
+}
+
+export async function approveTemplateImageCandidate(input: {
+  candidateId: string;
+  approvedBy: string;
+}) {
+  const closehound = getSupabaseAdminClient().schema("closehound") as any;
+  const { data: found, error: findError } = await closehound
+    .from("template_image_candidates")
+    .select("*")
+    .eq("id", input.candidateId)
+    .limit(1)
+    .maybeSingle();
+
+  if (findError) {
+    throw findError;
+  }
+
+  if (!found) {
+    throw new Error(`Template image candidate not found: ${input.candidateId}`);
+  }
+
+  const approvalUpdatedAt = new Date().toISOString();
+
+  const { error: demoteError } = await closehound
+    .from("template_image_candidates")
+    .update({
+      status: "unused",
+      approval_updated_at: approvalUpdatedAt,
+      approval_updated_by: input.approvedBy,
+    })
+    .eq("template_key", found.template_key)
+    .eq("generation_batch_id", found.generation_batch_id)
+    .eq("slot", found.slot)
+    .eq("status", "approved");
+
+  if (demoteError) {
+    throw demoteError;
+  }
+
+  const { data: approved, error: approveError } = await closehound
+    .from("template_image_candidates")
+    .update({
+      status: "approved",
+      approval_updated_at: approvalUpdatedAt,
+      approval_updated_by: input.approvedBy,
+    })
+    .eq("id", input.candidateId)
+    .select("*")
+    .limit(1)
+    .single();
+
+  if (approveError) {
+    throw approveError;
+  }
+
+  return mapTemplateImageCandidateRow(approved as TemplateImageCandidateRow);
 }

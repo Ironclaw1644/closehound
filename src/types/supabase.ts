@@ -215,6 +215,92 @@ export type Database = {
           },
         ]
       }
+      template_image_candidates: {
+        Row: {
+          approval_updated_at: string | null
+          approval_updated_by: string | null
+          aspect_ratio: string
+          asset_url: string | null
+          candidate_index: number
+          created_at: string
+          created_by: string
+          crop_notes: string | null
+          family_key: string
+          generation_batch_id: string
+          id: string
+          lead_id: string | null
+          model: string
+          negative_prompt: string
+          prompt: string
+          prompt_version: string
+          provider: string
+          seed_business_key: string | null
+          slot: string
+          status: string
+          storage_path: string
+          template_key: string
+          template_version: string
+        }
+        Insert: {
+          approval_updated_at?: string | null
+          approval_updated_by?: string | null
+          aspect_ratio: string
+          asset_url?: string | null
+          candidate_index: number
+          created_at?: string
+          created_by: string
+          crop_notes?: string | null
+          family_key: string
+          generation_batch_id: string
+          id: string
+          lead_id?: string | null
+          model: string
+          negative_prompt: string
+          prompt: string
+          prompt_version: string
+          provider: string
+          seed_business_key?: string | null
+          slot: string
+          status: string
+          storage_path: string
+          template_key: string
+          template_version: string
+        }
+        Update: {
+          approval_updated_at?: string | null
+          approval_updated_by?: string | null
+          aspect_ratio?: string
+          asset_url?: string | null
+          candidate_index?: number
+          created_at?: string
+          created_by?: string
+          crop_notes?: string | null
+          family_key?: string
+          generation_batch_id?: string
+          id?: string
+          lead_id?: string | null
+          model?: string
+          negative_prompt?: string
+          prompt?: string
+          prompt_version?: string
+          provider?: string
+          seed_business_key?: string | null
+          slot?: string
+          status?: string
+          storage_path?: string
+          template_key?: string
+          template_version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_image_candidates_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

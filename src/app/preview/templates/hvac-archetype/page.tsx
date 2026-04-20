@@ -1,15 +1,15 @@
 import { notFound } from "next/navigation";
 
 import { BlueCollarPreviewTemplate } from "@/components/site-templates/blue-collar-preview";
-import { BLUE_COLLAR_SERVICE_FAMILY } from "@/lib/template-system/families/blue-collar-service";
-import { ROOFING_NICHE_TEMPLATE } from "@/lib/template-system/niches/roofing";
 import { buildBlueCollarPreviewModel } from "@/lib/template-system/blue-collar-preview";
+import { BLUE_COLLAR_SERVICE_FAMILY } from "@/lib/template-system/families/blue-collar-service";
 import { resolveApprovedArchetypeImageCandidates } from "@/lib/template-system/images/selection";
+import { HVAC_NICHE_TEMPLATE } from "@/lib/template-system/niches/hvac";
 import { resolveTemplateRender } from "@/lib/template-system/resolver";
-import { ROOFING_SEED_BUSINESS } from "@/lib/template-system/seeds/roofing-seed";
-import { ROOFING_VISUAL_SLOTS } from "@/lib/template-system/visual-slots/roofing";
+import { HVAC_SEED_BUSINESS } from "@/lib/template-system/seeds/hvac-seed";
+import { HVAC_VISUAL_SLOTS } from "@/lib/template-system/visual-slots/hvac";
 
-export default async function RoofingArchetypePreviewPage({
+export default async function HvacArchetypePreviewPage({
   searchParams,
 }: {
   searchParams?: Promise<{ batch?: string }>;
@@ -18,16 +18,16 @@ export default async function RoofingArchetypePreviewPage({
   const hasRequestedBatch = Object.prototype.hasOwnProperty.call(params, "batch");
   const requestedBatch = hasRequestedBatch ? (params.batch?.trim() ?? "") : null;
   const { approvedImageCandidates } = await resolveApprovedArchetypeImageCandidates({
-    templateKey: ROOFING_NICHE_TEMPLATE.key,
+    templateKey: HVAC_NICHE_TEMPLATE.key,
     requestedBatch,
     hasRequestedBatch,
-    slotDefinitions: ROOFING_VISUAL_SLOTS,
+    slotDefinitions: HVAC_VISUAL_SLOTS,
   });
 
   const render = resolveTemplateRender({
     family: BLUE_COLLAR_SERVICE_FAMILY,
-    template: ROOFING_NICHE_TEMPLATE,
-    seed: ROOFING_SEED_BUSINESS,
+    template: HVAC_NICHE_TEMPLATE,
+    seed: HVAC_SEED_BUSINESS,
     sampleMode: "strict",
     approvedImageCandidates,
   });
@@ -36,7 +36,5 @@ export default async function RoofingArchetypePreviewPage({
     notFound();
   }
 
-  return (
-    <BlueCollarPreviewTemplate model={buildBlueCollarPreviewModel(render)} />
-  );
+  return <BlueCollarPreviewTemplate model={buildBlueCollarPreviewModel(render)} />;
 }

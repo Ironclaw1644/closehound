@@ -1,30 +1,29 @@
 import "./register-ts-path-loader.mjs";
 
-const [{ createRoofingGenerationBatch }, { buildTemplateImageStoragePath }] =
-  await Promise.all([
-    import("../src/lib/template-system/images/generate-roofing.ts"),
-    import("../src/lib/template-system/images/storage.ts"),
-  ]);
+const [{ runRoofingGenerationBatch }] = await Promise.all([
+  import("../src/lib/template-system/images/generate-roofing.ts"),
+]);
 
-const batch = createRoofingGenerationBatch({
+const result = await runRoofingGenerationBatch({
   familyKey: "blue-collar-service",
   templateKey: "roofing-v1",
   templateVersion: "1.0.0",
-  createdBy: "internal-command",
+  createdBy: process.env.USER || "internal-command",
 });
 
 console.log(
   JSON.stringify(
     {
-      ...batch,
-      items: batch.items.map((item) => ({
-        ...item,
-        storagePath: buildTemplateImageStoragePath({
-          templateKey: item.templateKey,
-          generationBatchId: item.generationBatchId,
-          slot: item.slot,
-          candidateIndex: item.candidateIndex,
-        }),
+      generationBatchId: result.generationBatchId,
+      createdAt: result.createdAt,
+      createdBy: result.createdBy,
+      candidates: result.records.map((record) => ({
+        id: record.id,
+        slot: record.slot,
+        candidateIndex: record.candidateIndex,
+        status: record.status,
+        storagePath: record.storagePath,
+        assetUrl: record.assetUrl ?? null,
       })),
     },
     null,

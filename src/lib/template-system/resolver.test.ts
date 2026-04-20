@@ -42,11 +42,13 @@ import {
   ROOFING_VISUAL_SLOTS,
   getRoofingCandidateCountForSlot,
 } from "@/lib/template-system/visual-slots/roofing";
+import { HVAC_VISUAL_SLOTS } from "@/lib/template-system/visual-slots/hvac";
+import { PLUMBING_VISUAL_SLOTS } from "@/lib/template-system/visual-slots/plumbing";
 import { HVAC_SEED_BUSINESS } from "@/lib/template-system/seeds/hvac-seed";
 import { PLUMBING_SEED_BUSINESS } from "@/lib/template-system/seeds/plumbing-seed";
 import { ROOFING_SEED_BUSINESS } from "@/lib/template-system/seeds/roofing-seed";
 import type { RenderPackage, SampleMode, SectionKey } from "@/lib/template-system/types";
-import { resolveRoofingArchetypeBatchSelection } from "@/lib/template-system/images/selection";
+import { resolveArchetypeBatchSelection } from "@/lib/template-system/images/selection";
 
 async function loadBlueCollarPreviewTemplate() {
   const sourceUrl = new URL(
@@ -419,8 +421,8 @@ test("approved candidate retrieval returns only approved rows for the requested 
   assert.equal(approved["service-action"], undefined);
 });
 
-test("roofing archetype image selection uses pinned batch when provided", async () => {
-  const batch = await resolveRoofingArchetypeBatchSelection({
+test("archetype image selection uses pinned batch when provided", async () => {
+  const batch = await resolveArchetypeBatchSelection({
     requestedBatch: "batch-2",
     hasRequestedBatch: true,
     getLatestApprovedBatch: async () => "batch-3",
@@ -429,8 +431,8 @@ test("roofing archetype image selection uses pinned batch when provided", async 
   assert.equal(batch, "batch-2");
 });
 
-test("roofing archetype image selection uses latest approved batch by default", async () => {
-  const batch = await resolveRoofingArchetypeBatchSelection({
+test("archetype image selection uses latest approved batch by default", async () => {
+  const batch = await resolveArchetypeBatchSelection({
     requestedBatch: null,
     hasRequestedBatch: false,
     getLatestApprovedBatch: async () => "batch-3",
@@ -439,8 +441,8 @@ test("roofing archetype image selection uses latest approved batch by default", 
   assert.equal(batch, "batch-3");
 });
 
-test("roofing archetype image selection leaves batch null when none are approved", async () => {
-  const batch = await resolveRoofingArchetypeBatchSelection({
+test("archetype image selection leaves batch null when none are approved", async () => {
+  const batch = await resolveArchetypeBatchSelection({
     requestedBatch: null,
     hasRequestedBatch: false,
     getLatestApprovedBatch: async () => null,
@@ -449,8 +451,8 @@ test("roofing archetype image selection leaves batch null when none are approved
   assert.equal(batch, null);
 });
 
-test("roofing archetype image selection keeps an explicit empty batch pin", async () => {
-  const batch = await resolveRoofingArchetypeBatchSelection({
+test("archetype image selection keeps an explicit empty batch pin", async () => {
+  const batch = await resolveArchetypeBatchSelection({
     requestedBatch: "",
     hasRequestedBatch: true,
     getLatestApprovedBatch: async () => "batch-3",
@@ -460,7 +462,7 @@ test("roofing archetype image selection keeps an explicit empty batch pin", asyn
 });
 
 test("pinned roofing batch with no approved assets does not fall back to another batch", async () => {
-  const selectedBatch = await resolveRoofingArchetypeBatchSelection({
+  const selectedBatch = await resolveArchetypeBatchSelection({
     requestedBatch: "batch-2",
     hasRequestedBatch: true,
     getLatestApprovedBatch: async () => "batch-3",
@@ -537,6 +539,100 @@ test("resolver uses approved roofing visual assets when present", () => {
   assert.equal(
     render.resolvedVisuals.slots[0]?.assetPath,
     "template-images/roofing-v1/batch-1/hero-0.png"
+  );
+});
+
+test("resolver prefers approved asset urls when present", () => {
+  const render = resolveTemplateRender({
+    family: BLUE_COLLAR_SERVICE_FAMILY,
+    template: ROOFING_NICHE_TEMPLATE,
+    seed: ROOFING_SEED_BUSINESS,
+    sampleMode: "strict",
+    approvedImageCandidates: {
+      hero: {
+        id: "hero-approved",
+        slot: "hero",
+        status: "approved",
+        storagePath: "template-images/roofing-v1/batch-1/hero-0.png",
+        assetUrl: "https://example.com/template-images/roofing-v1/batch-1/hero-0.png",
+        cropNotes: "safe center crop for desktop and mobile hero layouts",
+      } as never,
+    },
+  });
+
+  assert.equal(
+    render.resolvedVisuals.slots[0]?.assetPath,
+    "https://example.com/template-images/roofing-v1/batch-1/hero-0.png"
+  );
+});
+
+test("resolver uses approved HVAC visual assets when present", () => {
+  const render = resolveTemplateRender({
+    family: BLUE_COLLAR_SERVICE_FAMILY,
+    template: HVAC_NICHE_TEMPLATE,
+    seed: HVAC_SEED_BUSINESS,
+    sampleMode: "strict",
+    approvedImageCandidates: {
+      hero: {
+        id: "hero-approved",
+        slot: "hero",
+        status: "approved",
+        storagePath: "template-images/hvac-v1/batch-1/hero-0.png",
+        cropNotes: "safe center crop for desktop and mobile hero layouts",
+      } as never,
+    },
+  });
+
+  assert.equal(render.resolvedVisuals.slots[0]?.status, "rendered");
+  assert.equal(
+    render.resolvedVisuals.slots[0]?.assetPath,
+    "template-images/hvac-v1/batch-1/hero-0.png"
+  );
+});
+
+test("resolver uses approved plumbing visual assets when present", () => {
+  const render = resolveTemplateRender({
+    family: BLUE_COLLAR_SERVICE_FAMILY,
+    template: PLUMBING_NICHE_TEMPLATE,
+    seed: PLUMBING_SEED_BUSINESS,
+    sampleMode: "strict",
+    approvedImageCandidates: {
+      hero: {
+        id: "hero-approved",
+        slot: "hero",
+        status: "approved",
+        storagePath: "template-images/plumbing-v1/batch-1/hero-0.png",
+        cropNotes: "safe center crop for desktop and mobile hero layouts",
+      } as never,
+    },
+  });
+
+  assert.equal(render.resolvedVisuals.slots[0]?.status, "rendered");
+  assert.equal(
+    render.resolvedVisuals.slots[0]?.assetPath,
+    "template-images/plumbing-v1/batch-1/hero-0.png"
+  );
+});
+
+test("HVAC visual slot contract matches the roofing slot matrix", () => {
+  assert.deepEqual(
+    HVAC_VISUAL_SLOTS.map((slot) => slot.key),
+    ROOFING_VISUAL_SLOTS.map((slot) => slot.key)
+  );
+  assert.deepEqual(
+    HVAC_VISUAL_SLOTS.filter((slot) => slot.required).map((slot) => slot.key),
+    ["hero", "service-action", "detail-closeup"]
+  );
+});
+
+test("plumbing visual slot contract matches the roofing slot matrix", () => {
+  assert.deepEqual(
+    PLUMBING_VISUAL_SLOTS.map((slot) => slot.key),
+    ROOFING_VISUAL_SLOTS.map((slot) => slot.key)
+  );
+  assert.deepEqual(
+    PLUMBING_VISUAL_SLOTS.filter((slot) => slot.required).map((slot) => slot.key),
+    ["hero", "service-action", "detail-closeup"]
   );
 });
 
@@ -1216,6 +1312,31 @@ test("shared blue-collar preview model exposes plumbing secondary CTA", () => {
   assert.equal(model.hero.primaryCta.href, "tel:+16145550189");
   assert.equal(model.hero.secondaryCta?.label, "Request Estimate");
   assert.equal(model.hero.secondaryCta?.href, "#contact");
+});
+
+test("blue-collar preview model surfaces rendered hero image urls", () => {
+  const render = resolveTemplateRender({
+    family: BLUE_COLLAR_SERVICE_FAMILY,
+    template: ROOFING_NICHE_TEMPLATE,
+    seed: ROOFING_SEED_BUSINESS,
+    sampleMode: "strict",
+    approvedImageCandidates: {
+      hero: {
+        id: "hero-approved",
+        slot: "hero",
+        status: "approved",
+        storagePath: "template-images/roofing-v1/batch-1/hero-0.png",
+        assetUrl: "https://example.com/template-images/roofing-v1/batch-1/hero-0.png",
+      } as never,
+    },
+  });
+
+  const model = buildBlueCollarPreviewModel(render);
+
+  assert.equal(
+    model.hero.imageSrc,
+    "https://example.com/template-images/roofing-v1/batch-1/hero-0.png"
+  );
 });
 
 test("strict resolver builds service items from resolved services values", () => {

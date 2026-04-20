@@ -23,6 +23,7 @@ type ResolveTemplateRenderInput = {
       slot: string;
       status: "approved";
       storagePath: string;
+      assetUrl?: string | null;
       cropNotes?: string;
     }
   >;
@@ -331,7 +332,7 @@ export function resolveTemplateRender({
           slot: "hero",
           status: "rendered",
           source: "approved-generated",
-          assetPath: heroApproved.storagePath,
+          assetPath: heroApproved.assetUrl ?? heroApproved.storagePath,
           cropNotes: heroApproved.cropNotes,
         },
       ]

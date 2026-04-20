@@ -5,6 +5,7 @@ export type BlueCollarPreviewModel = {
   hero: {
     heading: string;
     body: string;
+    imageSrc: string | null;
     ctaLabel: string;
     primaryCta: {
       label: string;
@@ -70,6 +71,10 @@ export function buildBlueCollarPreviewModel(
     hero: {
       heading: render.resolvedSections.hero.heading ?? "",
       body: render.resolvedSections.hero.body ?? "",
+      imageSrc:
+        render.resolvedVisuals.slots.find(
+          (slot) => slot.slot === "hero" && slot.status === "rendered"
+        )?.assetPath ?? null,
       ctaLabel: primaryCta.label,
       primaryCta,
       secondaryCta:

@@ -34,6 +34,15 @@ export function BlueCollarPreviewTemplate({
               </a>
             ) : null}
           </div>
+          {model.hero.imageSrc ? (
+            <div className="mt-10 overflow-hidden rounded-[24px] border border-white/10 bg-white/5">
+              <img
+                src={model.hero.imageSrc}
+                alt={model.hero.heading}
+                className="h-auto w-full object-cover"
+              />
+            </div>
+          ) : null}
         </section>
 
         <section className="mt-8 grid gap-8 lg:grid-cols-2">
