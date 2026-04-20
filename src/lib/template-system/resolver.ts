@@ -16,6 +16,16 @@ type ResolveTemplateRenderInput = {
   seed: SeedBusiness;
   lead?: LeadRecord;
   sampleMode: SampleMode;
+  approvedImageCandidates?: Record<
+    string,
+    {
+      id: string;
+      slot: string;
+      status: "approved";
+      storagePath: string;
+      cropNotes?: string;
+    }
+  >;
 };
 
 function readBusinessField(
@@ -50,7 +60,15 @@ function buildResolvedCta(
   };
 }
 
-function toServiceItems(services: string[], fallbackItems: ResolvedSection["items"]) {
+function toServiceItems(
+  services: string[],
+  fallbackItems: ResolvedSection["items"],
+  variantKey?: string
+) {
+  if (variantKey === "grouped" && fallbackItems?.length) {
+    return fallbackItems;
+  }
+
   if (services.length === 0) {
     return fallbackItems;
   }
@@ -61,6 +79,52 @@ function toServiceItems(services: string[], fallbackItems: ResolvedSection["item
       fallbackItems?.[index]?.body ??
       `Details for ${service} should be supplied by the resolved business data.`,
   }));
+}
+
+function collectStrictProofSuppressions({
+  template,
+  seed,
+  sampleMode,
+}: Pick<ResolveTemplateRenderInput, "template" | "seed" | "sampleMode">) {
+  const suppressed: RenderPackage["overrideAudit"]["suppressed"] = [];
+  const seedProofFields = Object.keys(seed.conditionalProof);
+  const proofFields = [
+    ...template.editableModel.conditionalFields,
+    ...seedProofFields.filter((field) => !template.editableModel.conditionalFields.includes(field)),
+  ];
+  const missingProofReason =
+    sampleMode === "strict"
+      ? "is not approved for strict rendering."
+      : "is not approved for this render path.";
+
+  for (const field of proofFields) {
+    const proof = seed.conditionalProof[field];
+
+    if (!proof) {
+      suppressed.push({
+        field,
+        reasonCode: REASON_CODES.MISSING_EVIDENCE,
+        reason: `${field} ${missingProofReason}`,
+      });
+
+      continue;
+    }
+
+    if (proof.approvalStatus !== "approved" || proof.sample) {
+      const reason =
+        proof.sample && sampleMode !== "strict"
+          ? `${field} is a sample proof and is not approved for this render path.`
+          : `${field} ${missingProofReason}`;
+
+      suppressed.push({
+        field,
+        reasonCode: REASON_CODES.MISSING_EVIDENCE,
+        reason,
+      });
+    }
+  }
+
+  return suppressed;
 }
 
 function assertResolverCompatibility({
@@ -93,6 +157,7 @@ export function resolveTemplateRender({
   seed,
   lead,
   sampleMode,
+  approvedImageCandidates,
 }: ResolveTemplateRenderInput): RenderPackage {
   assertResolverCompatibility({ family, template, seed });
 
@@ -104,6 +169,12 @@ export function resolveTemplateRender({
     readBusinessField(seed, lead, "primaryCtaLabel") ?? ""
   );
   const primaryCtaHref = String(readBusinessField(seed, lead, "primaryCtaHref") ?? "");
+  const secondaryCtaLabel = String(
+    readBusinessField(seed, lead, "secondaryCtaLabel") ?? ""
+  );
+  const secondaryCtaHref = String(
+    readBusinessField(seed, lead, "secondaryCtaHref") ?? ""
+  );
   const primaryPhone = String(readBusinessField(seed, lead, "primaryPhone") ?? "");
   const contactEmail = String(readBusinessField(seed, lead, "contactEmail") ?? "");
   const services = Array.isArray(readBusinessField(seed, lead, "services"))
@@ -133,27 +204,25 @@ export function resolveTemplateRender({
   const testimonialsAreSample = testimonialsProof?.sample === true;
   const testimonialsVisible = testimonialsApproved && !testimonialsAreSample;
 
-  let testimonialSuppressionReason =
-    "Testimonial proof is not approved for rendering in this mode.";
   let testimonialSuppressionNote =
     "Testimonial proof is not approved for this render path.";
 
   if (!testimonialsApproved && sampleMode === "strict") {
-    testimonialSuppressionReason =
-      "Pending seed testimonial proof is not allowed in strict mode.";
     testimonialSuppressionNote =
       "Pending testimonial proof suppressed in strict mode.";
   } else if (testimonialsApproved && testimonialsAreSample && sampleMode === "strict") {
-    testimonialSuppressionReason =
-      "Approved sample testimonial proof is not allowed in strict mode.";
     testimonialSuppressionNote =
       "Sample testimonial proof suppressed in strict mode.";
   } else if (testimonialsApproved && testimonialsAreSample) {
-    testimonialSuppressionReason =
-      "Approved sample testimonial proof requires explicit labeling support before rendering.";
     testimonialSuppressionNote =
       "Sample testimonial proof is not approved for this render path.";
   }
+
+  const suppressedAudit = collectStrictProofSuppressions({
+    template,
+    seed,
+    sampleMode,
+  });
 
   const resolvedSections = {
     header: buildSection({
@@ -179,14 +248,18 @@ export function resolveTemplateRender({
       key: "about",
       variantKey: "default",
       visible: false,
-      resolutionNotes: ["Not used in v1 roofing path"],
+      resolutionNotes: ["Not used in this render path."],
     }),
     services: buildSection({
       key: "services",
-      variantKey: "default",
+      variantKey: template.sections.copy.services?.variantKey ?? "default",
       visible: true,
       heading: template.sections.copy.services?.heading,
-      items: toServiceItems(services, template.sections.copy.services?.items),
+      items: toServiceItems(
+        services,
+        template.sections.copy.services?.items,
+        template.sections.copy.services?.variantKey
+      ),
     }),
     "why-choose-us": buildSection({
       key: "why-choose-us",
@@ -206,7 +279,7 @@ export function resolveTemplateRender({
       key: "gallery",
       variantKey: "default",
       visible: false,
-      resolutionNotes: ["No approved assets available for v1"],
+      resolutionNotes: ["No approved assets available for this render path."],
     }),
     testimonials: buildSection({
       key: "testimonials",
@@ -250,24 +323,26 @@ export function resolveTemplateRender({
     }),
   } satisfies RenderPackage["resolvedSections"];
 
-  const visualSlots: ResolvedVisualSlot[] = [
-    {
-      key: "roofing-hero",
-      slot: "hero",
-      status: "omitted",
-      reasonCode: REASON_CODES.MISSING_APPROVED_ASSET,
-    },
-  ];
-
-  const suppressedAudit = !testimonialsVisible
+  const heroApproved = approvedImageCandidates?.hero;
+  const visualSlots: ResolvedVisualSlot[] = heroApproved
     ? [
         {
-          field: "sampleTestimonials",
-          reasonCode: REASON_CODES.MISSING_EVIDENCE,
-          reason: testimonialSuppressionReason,
+          key: "hero-visual",
+          slot: "hero",
+          status: "rendered",
+          source: "approved-generated",
+          assetPath: heroApproved.storagePath,
+          cropNotes: heroApproved.cropNotes,
         },
       ]
-    : [];
+    : [
+        {
+          key: "hero-visual",
+          slot: "hero",
+          status: "omitted",
+          reasonCode: REASON_CODES.MISSING_APPROVED_ASSET,
+        },
+      ];
 
   const sectionAuditDecisions: RenderPackage["sectionAudit"]["decisions"] = [];
 
@@ -290,7 +365,7 @@ export function resolveTemplateRender({
         section: affectedSection,
         action: affectedSection === "hero" ? "downgraded" : "hidden",
         reasonCode: slot.reasonCode ?? REASON_CODES.MISSING_APPROVED_ASSET,
-        note: "No approved roofing assets available yet.",
+        note: "No approved assets available for this render path.",
       });
     });
 
@@ -308,6 +383,8 @@ export function resolveTemplateRender({
       serviceAreaLabel,
       primaryCtaLabel,
       primaryCtaHref,
+      secondaryCtaLabel,
+      secondaryCtaHref,
       primaryPhone,
       contactEmail,
       services,

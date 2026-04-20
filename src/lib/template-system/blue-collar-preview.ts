@@ -1,11 +1,19 @@
 import type { RenderPackage } from "@/lib/template-system/types";
 
-export type RoofingPreviewModel = {
+export type BlueCollarPreviewModel = {
   businessName: string;
   hero: {
     heading: string;
     body: string;
     ctaLabel: string;
+    primaryCta: {
+      label: string;
+      href: string;
+    };
+    secondaryCta: {
+      label: string;
+      href: string;
+    } | null;
   };
   services: {
     heading: string;
@@ -23,6 +31,10 @@ export type RoofingPreviewModel = {
     heading: string;
     items: Array<{ question: string; answer: string }>;
   };
+  serviceArea: {
+    heading: string;
+    body: string;
+  };
   contact: {
     heading: string;
     body: string;
@@ -33,15 +45,40 @@ export type RoofingPreviewModel = {
   status: RenderPackage["status"];
 };
 
-export function buildRoofingPreviewModel(
+function readStringField(
+  render: RenderPackage,
+  key: string,
+  fallback = ""
+) {
+  const value = render.resolvedFields[key];
+
+  return typeof value === "string" ? value : fallback;
+}
+
+export function buildBlueCollarPreviewModel(
   render: RenderPackage
-): RoofingPreviewModel {
+): BlueCollarPreviewModel {
+  const primaryCta = {
+    label: readStringField(render, "primaryCtaLabel"),
+    href: readStringField(render, "primaryCtaHref"),
+  };
+  const secondaryCtaLabel = readStringField(render, "secondaryCtaLabel");
+  const secondaryCtaHref = readStringField(render, "secondaryCtaHref");
+
   return {
     businessName: String(render.resolvedFields.businessName ?? ""),
     hero: {
       heading: render.resolvedSections.hero.heading ?? "",
       body: render.resolvedSections.hero.body ?? "",
-      ctaLabel: render.resolvedSections.hero.cta?.label ?? "Request a Roofing Quote",
+      ctaLabel: primaryCta.label,
+      primaryCta,
+      secondaryCta:
+        secondaryCtaLabel !== "" && secondaryCtaHref !== ""
+          ? {
+              label: secondaryCtaLabel,
+              href: secondaryCtaHref,
+            }
+          : null,
     },
     services: {
       heading: render.resolvedSections.services.heading ?? "",
@@ -59,11 +96,14 @@ export function buildRoofingPreviewModel(
       heading: render.resolvedSections.faq.heading ?? "",
       items: render.resolvedSections.faq.faqItems ?? [],
     },
+    serviceArea: {
+      heading: render.resolvedSections["service-area"].heading ?? "",
+      body: render.resolvedSections["service-area"].body ?? "",
+    },
     contact: {
       heading: render.resolvedSections.contact.heading ?? "",
       body: render.resolvedSections.contact.body ?? "",
-      ctaLabel:
-        render.resolvedSections.contact.cta?.label ?? "Request a Roofing Quote",
+      ctaLabel: render.resolvedSections.contact.cta?.label ?? "",
       phone: render.resolvedFields.primaryPhone as string | undefined,
       email: render.resolvedFields.contactEmail as string | undefined,
     },

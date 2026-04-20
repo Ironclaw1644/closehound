@@ -1,7 +1,11 @@
 import type { CSSProperties } from "react";
-import { notFound } from "next/navigation";
+import { BlueCollarPreviewTemplate } from "@/components/site-templates/blue-collar-preview";
+import { buildBlueCollarPreviewModel } from "@/lib/template-system/blue-collar-preview";
 import { PALETTE_PRESETS } from "@/lib/palettes";
-import { requirePreviewSiteBySlug } from "@/lib/preview-sites";
+import {
+  buildLeadPreviewView,
+} from "@/lib/template-system/lead-preview";
+import { requirePreviewSiteBySlug, getLeadById } from "@/lib/preview-sites";
 import { TYPOGRAPHY_PAIRINGS } from "@/lib/site-generator/typography";
 import type { PreviewSite, PreviewSiteSectionContent } from "@/lib/site-generator";
 
@@ -93,11 +97,32 @@ export default async function PreviewPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  const lead = await getLeadById(slug);
+
+  if (lead) {
+    const leadPreview = buildLeadPreviewView(lead);
+
+    if (leadPreview.kind === "blue-collar") {
+      return (
+        <BlueCollarPreviewTemplate
+          model={leadPreview.model}
+        />
+      );
+    }
+
+    if (leadPreview.fallbackSlug) {
+      const previewSite = await requirePreviewSiteBySlug(leadPreview.fallbackSlug);
+
+      return renderLegacyPreview(previewSite);
+    }
+  }
+
   const previewSite = await requirePreviewSiteBySlug(slug);
 
-  if (!previewSite) {
-    notFound();
-  }
+  return renderLegacyPreview(previewSite);
+}
+
+function renderLegacyPreview(previewSite: PreviewSite) {
 
   const palette = getPalette(previewSite);
   const typography = getTypography(previewSite);
