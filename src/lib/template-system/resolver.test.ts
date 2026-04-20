@@ -26,7 +26,9 @@ import { buildLeadPreviewView } from "@/lib/template-system/lead-preview";
 import { resolveTemplateRender } from "@/lib/template-system/resolver";
 import {
   buildCandidateGroupKey,
+  getApprovedTemplateImageCandidatesFromRecords,
   listMissingRequiredApprovedSlots,
+  selectMostRecentlyApprovedTemplateImageBatch,
   pickApprovedCandidateBySlot,
   type ArchetypeImageCandidateRecord,
 } from "@/lib/template-system/images/repository";
@@ -44,6 +46,7 @@ import { HVAC_SEED_BUSINESS } from "@/lib/template-system/seeds/hvac-seed";
 import { PLUMBING_SEED_BUSINESS } from "@/lib/template-system/seeds/plumbing-seed";
 import { ROOFING_SEED_BUSINESS } from "@/lib/template-system/seeds/roofing-seed";
 import type { RenderPackage, SampleMode, SectionKey } from "@/lib/template-system/types";
+import { resolveRoofingArchetypeBatchSelection } from "@/lib/template-system/images/selection";
 
 async function loadBlueCollarPreviewTemplate() {
   const sourceUrl = new URL(
@@ -275,6 +278,208 @@ test("candidate registry keys isolate template batch slot groups", () => {
       slotDefinitions: ROOFING_VISUAL_SLOTS,
     }),
     ["service-action", "detail-closeup"]
+  );
+});
+
+test("most recently approved template image batch prefers the newest eligible batch", () => {
+  const rows: ArchetypeImageCandidateRecord[] = [
+    {
+      id: "old-approved",
+      generationBatchId: "batch-1",
+      familyKey: "blue-collar-service",
+      templateKey: "roofing-v1",
+      templateVersion: "1.0.0",
+      slot: "hero",
+      candidateIndex: 0,
+      prompt: "prompt",
+      negativePrompt: "negative",
+      promptVersion: "1.0.0",
+      provider: "gemini",
+      model: "nano-banana-2",
+      status: "approved",
+      storagePath: "template-images/roofing-v1/batch-1/hero-0.png",
+      aspectRatio: "16:9",
+      createdAt: "2026-04-19T00:00:00.000Z",
+      createdBy: "test",
+    },
+    {
+      id: "new-approved",
+      generationBatchId: "batch-2",
+      familyKey: "blue-collar-service",
+      templateKey: "roofing-v1",
+      templateVersion: "1.0.0",
+      slot: "hero",
+      candidateIndex: 0,
+      prompt: "prompt",
+      negativePrompt: "negative",
+      promptVersion: "1.0.0",
+      provider: "gemini",
+      model: "nano-banana-2",
+      status: "approved",
+      storagePath: "template-images/roofing-v1/batch-2/hero-0.png",
+      aspectRatio: "16:9",
+      createdAt: "2026-04-20T00:00:00.000Z",
+      createdBy: "test",
+    },
+    {
+      id: "older-generated-later-approved",
+      generationBatchId: "batch-1",
+      familyKey: "blue-collar-service",
+      templateKey: "roofing-v1",
+      templateVersion: "1.0.0",
+      slot: "service-action",
+      candidateIndex: 0,
+      prompt: "prompt",
+      negativePrompt: "negative",
+      promptVersion: "1.0.0",
+      provider: "gemini",
+      model: "nano-banana-2",
+      status: "approved",
+      storagePath: "template-images/roofing-v1/batch-1/service-action-0.png",
+      aspectRatio: "4:3",
+      createdAt: "2026-04-19T12:00:00.000Z",
+      createdBy: "test",
+    },
+    {
+      id: "second-approved-in-later-generated-batch",
+      generationBatchId: "batch-2",
+      familyKey: "blue-collar-service",
+      templateKey: "roofing-v1",
+      templateVersion: "1.0.0",
+      slot: "hero",
+      candidateIndex: 0,
+      prompt: "prompt",
+      negativePrompt: "negative",
+      promptVersion: "1.0.0",
+      provider: "gemini",
+      model: "nano-banana-2",
+      status: "approved",
+      storagePath: "template-images/roofing-v1/batch-2/hero-0.png",
+      aspectRatio: "16:9",
+      createdAt: "2026-04-20T12:00:00.000Z",
+      createdBy: "test",
+    },
+  ];
+
+  assert.equal(
+    selectMostRecentlyApprovedTemplateImageBatch(rows, "roofing-v1"),
+    "batch-2"
+  );
+});
+
+test("approved candidate retrieval returns only approved rows for the requested batch", () => {
+  const rows: ArchetypeImageCandidateRecord[] = [
+    {
+      id: "approved-hero",
+      generationBatchId: "batch-1",
+      familyKey: "blue-collar-service",
+      templateKey: "roofing-v1",
+      templateVersion: "1.0.0",
+      slot: "hero",
+      candidateIndex: 0,
+      prompt: "prompt",
+      negativePrompt: "negative",
+      promptVersion: "1.0.0",
+      provider: "gemini",
+      model: "nano-banana-2",
+      status: "approved",
+      storagePath: "template-images/roofing-v1/batch-1/hero-0.png",
+      aspectRatio: "16:9",
+      createdAt: "2026-04-20T00:00:00.000Z",
+      createdBy: "test",
+    },
+    {
+      id: "generated-hero",
+      generationBatchId: "batch-1",
+      familyKey: "blue-collar-service",
+      templateKey: "roofing-v1",
+      templateVersion: "1.0.0",
+      slot: "hero",
+      candidateIndex: 1,
+      prompt: "prompt",
+      negativePrompt: "negative",
+      promptVersion: "1.0.0",
+      provider: "gemini",
+      model: "nano-banana-2",
+      status: "generated",
+      storagePath: "template-images/roofing-v1/batch-1/hero-1.png",
+      aspectRatio: "16:9",
+      createdAt: "2026-04-20T00:01:00.000Z",
+      createdBy: "test",
+    },
+  ];
+
+  const approved = getApprovedTemplateImageCandidatesFromRecords(rows, {
+    templateKey: "roofing-v1",
+    generationBatchId: "batch-1",
+    slotDefinitions: ROOFING_VISUAL_SLOTS,
+  });
+
+  assert.equal(approved.hero?.id, "approved-hero");
+  assert.equal(approved["service-action"], undefined);
+});
+
+test("roofing archetype image selection uses pinned batch when provided", async () => {
+  const batch = await resolveRoofingArchetypeBatchSelection({
+    requestedBatch: "batch-2",
+    hasRequestedBatch: true,
+    getLatestApprovedBatch: async () => "batch-3",
+  });
+
+  assert.equal(batch, "batch-2");
+});
+
+test("roofing archetype image selection uses latest approved batch by default", async () => {
+  const batch = await resolveRoofingArchetypeBatchSelection({
+    requestedBatch: null,
+    hasRequestedBatch: false,
+    getLatestApprovedBatch: async () => "batch-3",
+  });
+
+  assert.equal(batch, "batch-3");
+});
+
+test("roofing archetype image selection leaves batch null when none are approved", async () => {
+  const batch = await resolveRoofingArchetypeBatchSelection({
+    requestedBatch: null,
+    hasRequestedBatch: false,
+    getLatestApprovedBatch: async () => null,
+  });
+
+  assert.equal(batch, null);
+});
+
+test("roofing archetype image selection keeps an explicit empty batch pin", async () => {
+  const batch = await resolveRoofingArchetypeBatchSelection({
+    requestedBatch: "",
+    hasRequestedBatch: true,
+    getLatestApprovedBatch: async () => "batch-3",
+  });
+
+  assert.equal(batch, "");
+});
+
+test("pinned roofing batch with no approved assets does not fall back to another batch", async () => {
+  const selectedBatch = await resolveRoofingArchetypeBatchSelection({
+    requestedBatch: "batch-2",
+    hasRequestedBatch: true,
+    getLatestApprovedBatch: async () => "batch-3",
+  });
+
+  assert.equal(selectedBatch, "batch-2");
+
+  const render = resolveTemplateRender({
+    family: BLUE_COLLAR_SERVICE_FAMILY,
+    template: ROOFING_NICHE_TEMPLATE,
+    seed: ROOFING_SEED_BUSINESS,
+    sampleMode: "strict",
+    approvedImageCandidates: {},
+  });
+
+  assert.equal(render.resolvedVisuals.slots[0]?.status, "omitted");
+  assert.equal(
+    render.resolvedVisuals.slots[0]?.reasonCode,
+    REASON_CODES.MISSING_APPROVED_ASSET
   );
 });
 
