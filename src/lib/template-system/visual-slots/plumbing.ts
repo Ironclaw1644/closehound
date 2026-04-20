@@ -62,3 +62,18 @@ export const PLUMBING_VISUAL_SLOTS: ArchetypeVisualSlot[] = [
       "embedded text, fake logo, surreal lighting, unusable crop",
   },
 ];
+
+const PLUMBING_CANDIDATE_COUNTS: Record<ArchetypeVisualSlot["key"], number> = {
+  hero: 3,
+  "service-action": 2,
+  "detail-closeup": 2,
+  "team-or-workmanship": 2,
+  "workspace-or-site": 2,
+  "gallery-extra": 2,
+};
+
+export function getPlumbingCandidateCountForSlot(
+  slotKey: ArchetypeVisualSlot["key"]
+) {
+  return PLUMBING_CANDIDATE_COUNTS[slotKey];
+}
