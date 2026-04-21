@@ -38,6 +38,7 @@ import {
 import { buildTemplateImageStoragePath } from "@/lib/template-system/images/storage";
 import {
   buildRoofingPromptBatch,
+  buildMedSpaPromptBatch,
   buildRoofingSlotPrompt,
 } from "@/lib/template-system/images/prompts";
 import { createRoofingGenerationBatch } from "@/lib/template-system/images/generate-roofing";
@@ -46,6 +47,10 @@ import {
   getRoofingCandidateCountForSlot,
 } from "@/lib/template-system/visual-slots/roofing";
 import { HVAC_VISUAL_SLOTS } from "@/lib/template-system/visual-slots/hvac";
+import {
+  MED_SPA_VISUAL_SLOTS,
+  getMedSpaCandidateCountForSlot,
+} from "@/lib/template-system/visual-slots/med-spa";
 import { PLUMBING_VISUAL_SLOTS } from "@/lib/template-system/visual-slots/plumbing";
 import { HVAC_SEED_BUSINESS } from "@/lib/template-system/seeds/hvac-seed";
 import { MED_SPA_SEED_BUSINESS } from "@/lib/template-system/seeds/med-spa-seed";
@@ -201,6 +206,17 @@ test("roofing prompt batch uses 3 hero candidates and 2 for non-hero slots", () 
     batch.filter((item) => item.slot === "service-action").length,
     2
   );
+});
+
+test("med spa prompt batch uses 3 hero candidates and 2 for non-hero slots", () => {
+  const batch = buildMedSpaPromptBatch({
+    familyKey: "health-wellness",
+    templateKey: "med-spa-v1",
+    templateVersion: "1.0.0",
+  });
+
+  assert.equal(batch.filter((item) => item.slot === "hero").length, 3);
+  assert.equal(batch.filter((item) => item.slot === "service-action").length, 2);
 });
 
 test("roofing prompt builder includes slot intent and negative prompt", () => {
@@ -640,6 +656,31 @@ test("plumbing visual slot contract matches the roofing slot matrix", () => {
   );
 });
 
+test("med spa visual slot contract matches the archetype slot matrix", () => {
+  assert.deepEqual(
+    MED_SPA_VISUAL_SLOTS.map((slot) => slot.key),
+    ROOFING_VISUAL_SLOTS.map((slot) => slot.key)
+  );
+  assert.deepEqual(
+    MED_SPA_VISUAL_SLOTS.filter((slot) => slot.required).map((slot) => slot.key),
+    ["hero", "service-action", "detail-closeup"]
+  );
+  assert.deepEqual(
+    MED_SPA_VISUAL_SLOTS.map((slot) => ({
+      key: slot.key,
+      candidates: getMedSpaCandidateCountForSlot(slot.key),
+    })),
+    [
+      { key: "hero", candidates: 3 },
+      { key: "service-action", candidates: 2 },
+      { key: "detail-closeup", candidates: 2 },
+      { key: "team-or-workmanship", candidates: 2 },
+      { key: "workspace-or-site", candidates: 2 },
+      { key: "gallery-extra", candidates: 2 },
+    ]
+  );
+});
+
 test("supported-industry helper normalizes HVAC variants", () => {
   assert.equal(normalizeSupportedIndustry("HVAC"), "hvac");
   assert.equal(normalizeSupportedIndustry("hvac"), "hvac");
@@ -833,7 +874,7 @@ test("lead preview view uses the shared blue-collar path for plumbing leads", ()
 
   assert.equal(
     plumbingView.model.hero.heading,
-    "Plumbing help for active issues and planned work"
+    "Plumbing help for urgent repairs and new installations"
   );
   assert.equal(plumbingView.model.contact.ctaLabel, "Call Now");
   assert.equal(plumbingView.model.hero.primaryCta.label, "Call Now");
@@ -841,7 +882,7 @@ test("lead preview view uses the shared blue-collar path for plumbing leads", ()
   assert.equal(plumbingView.model.hero.secondaryCta?.href, "#contact");
   assert.deepEqual(
     plumbingView.model.services.items.map((item) => item.title),
-    ["Immediate Needs", "Planned Work / Installations"]
+    ["Immediate Needs", "Upgrades & Installations"]
   );
 });
 
@@ -1460,11 +1501,11 @@ test("blue-collar preview model exposes roofing and hvac section content", () =>
 
   assert.equal(
     roofingModel.hero.heading,
-    "Roofing work that protects the home and the timeline"
+    "Roofing work that protects your home and keeps the job moving"
   );
   assert.equal(
     hvacModel.hero.heading,
-    "Heating and cooling service without the vague upsell"
+    "Heating and cooling solutions you can trust"
   );
   assert.equal(
     roofingModel.contact.ctaLabel,

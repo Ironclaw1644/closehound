@@ -707,19 +707,62 @@ export async function approveTemplateImageCandidate(input: {
   }
 
   const closehound = getSupabaseAdminClient().schema("closehound") as any;
-  const { data, error } = await closehound.rpc(
-    "approve_template_image_candidate",
-    {
-      input_candidate_id: input.candidateId,
-      input_approved_by: input.approvedBy,
-    }
-  );
+  const { data: targetRows, error: targetError } = await closehound
+    .from("template_image_candidates")
+    .select("*")
+    .eq("id", input.candidateId)
+    .limit(1);
 
-  if (error) {
-    throw error;
+  if (targetError) {
+    throw targetError;
   }
 
-  const approved = Array.isArray(data) ? data[0] : data;
+  const target = (targetRows as TemplateImageCandidateRow[] | null)?.[0];
+
+  if (!target) {
+    throw new Error(`Template image candidate not found: ${input.candidateId}`);
+  }
+
+  if (!hasRenderableTemplateImageAsset({ assetUrl: target.asset_url ?? null })) {
+    throw new Error(
+      `Cannot approve template image candidate without asset URL: ${input.candidateId}`
+    );
+  }
+
+  const approvalUpdatedAt = new Date().toISOString();
+
+  const { error: demoteError } = await closehound
+    .from("template_image_candidates")
+    .update({
+      status: "generated",
+      approval_updated_at: approvalUpdatedAt,
+      approval_updated_by: input.approvedBy,
+    })
+    .eq("template_key", target.template_key)
+    .eq("slot", target.slot)
+    .eq("status", "approved")
+    .neq("id", target.id);
+
+  if (demoteError) {
+    throw demoteError;
+  }
+
+  const { data: approvedRows, error: approveError } = await closehound
+    .from("template_image_candidates")
+    .update({
+      status: "approved",
+      approval_updated_at: approvalUpdatedAt,
+      approval_updated_by: input.approvedBy,
+    })
+    .eq("id", target.id)
+    .select("*")
+    .limit(1);
+
+  if (approveError) {
+    throw approveError;
+  }
+
+  const approved = (approvedRows as TemplateImageCandidateRow[] | null)?.[0];
 
   if (!approved) {
     throw new Error(`Template image candidate not found: ${input.candidateId}`);
@@ -737,19 +780,23 @@ export async function rejectTemplateImageCandidate(input: {
   }
 
   const closehound = getSupabaseAdminClient().schema("closehound") as any;
-  const { data, error } = await closehound.rpc(
-    "reject_template_image_candidate",
-    {
-      input_candidate_id: input.candidateId,
-      input_rejected_by: input.rejectedBy,
-    }
-  );
+  const rejectionUpdatedAt = new Date().toISOString();
+  const { data: rejectedRows, error } = await closehound
+    .from("template_image_candidates")
+    .update({
+      status: "rejected",
+      approval_updated_at: rejectionUpdatedAt,
+      approval_updated_by: input.rejectedBy,
+    })
+    .eq("id", input.candidateId)
+    .select("*")
+    .limit(1);
 
   if (error) {
     throw error;
   }
 
-  const rejected = Array.isArray(data) ? data[0] : data;
+  const rejected = (rejectedRows as TemplateImageCandidateRow[] | null)?.[0];
 
   if (!rejected) {
     throw new Error(`Template image candidate not found: ${input.candidateId}`);

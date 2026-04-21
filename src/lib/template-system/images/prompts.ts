@@ -10,6 +10,10 @@ import {
   PLUMBING_VISUAL_SLOTS,
   getPlumbingCandidateCountForSlot,
 } from "@/lib/template-system/visual-slots/plumbing";
+import {
+  MED_SPA_VISUAL_SLOTS,
+  getMedSpaCandidateCountForSlot,
+} from "@/lib/template-system/visual-slots/med-spa";
 import type { ArchetypeVisualSlot } from "@/lib/template-system/images/types";
 
 const PROMPT_VERSION = "1.0.0";
@@ -49,7 +53,7 @@ export type RoofingPromptBatchItem = RoofingPrompt & {
   candidateIndex: number;
 };
 
-function buildRoofingPromptText(slotIntent: string, cropNotes: string) {
+function buildPromptText(slotIntent: string, cropNotes: string) {
   return `${slotIntent}. Realistic local-business photography. ${cropNotes}.`;
 }
 
@@ -80,7 +84,7 @@ function buildSlotPrompt(
     promptVersion: PROMPT_VERSION,
     provider: PROVIDER,
     model: MODEL,
-    prompt: buildRoofingPromptText(slot.promptIntent, slot.cropNotes),
+    prompt: buildPromptText(slot.promptIntent, slot.cropNotes),
     negativePrompt: slot.negativePrompt,
     familyKey: input.familyKey,
     templateKey: input.templateKey,
@@ -150,5 +154,18 @@ export function buildPlumbingPromptBatch(
     ...input,
     slots: PLUMBING_VISUAL_SLOTS,
     getCandidateCountForSlot: getPlumbingCandidateCountForSlot,
+  });
+}
+
+export type MedSpaPromptBatchInput = RoofingPromptBatchInput;
+export type MedSpaPromptBatchItem = RoofingPromptBatchItem;
+
+export function buildMedSpaPromptBatch(
+  input: MedSpaPromptBatchInput
+): MedSpaPromptBatchItem[] {
+  return buildPromptBatch({
+    ...input,
+    slots: MED_SPA_VISUAL_SLOTS,
+    getCandidateCountForSlot: getMedSpaCandidateCountForSlot,
   });
 }

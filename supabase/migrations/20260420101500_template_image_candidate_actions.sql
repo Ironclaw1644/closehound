@@ -1,5 +1,5 @@
 create or replace function closehound.approve_template_image_candidate(
-  input_candidate_id uuid,
+  input_candidate_id text,
   input_approved_by text
 )
 returns setof closehound.template_image_candidates
@@ -53,7 +53,7 @@ end;
 $$;
 
 create or replace function closehound.reject_template_image_candidate(
-  input_candidate_id uuid,
+  input_candidate_id text,
   input_rejected_by text
 )
 returns setof closehound.template_image_candidates

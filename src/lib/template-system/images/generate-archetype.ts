@@ -64,8 +64,16 @@ export async function runArchetypeGenerationBatch<TItem extends PromptBatchItem>
 }) {
   const batch = createArchetypeGenerationBatch(input);
   const records: ArchetypeImageCandidateRecord[] = [];
+  const CONCURRENCY = 2;
 
-  for (const item of batch.items) {
+  async function generateCandidate(
+    item: (typeof batch.items)[number],
+    index: number
+  ) {
+    console.error(
+      `[template-images] generating ${index + 1}/${batch.items.length} ${item.templateKey} ${item.slot}#${item.candidateIndex}`
+    );
+
     const generated = await generateGeminiImage({
       prompt: item.prompt,
       negativePrompt: item.negativePrompt,
@@ -82,7 +90,11 @@ export async function runArchetypeGenerationBatch<TItem extends PromptBatchItem>
       contentType: generated.contentType,
     });
 
-    records.push({
+    console.error(
+      `[template-images] stored ${index + 1}/${batch.items.length} ${item.templateKey} ${item.slot}#${item.candidateIndex}`
+    );
+
+    return {
       id: crypto.randomUUID(),
       generationBatchId: item.generationBatchId,
       familyKey: item.familyKey,
@@ -95,14 +107,22 @@ export async function runArchetypeGenerationBatch<TItem extends PromptBatchItem>
       promptVersion: item.promptVersion,
       provider: item.provider,
       model: item.model,
-      status: "generated",
+      status: "generated" as const,
       storagePath: uploaded.storagePath,
       assetUrl: uploaded.assetUrl,
       aspectRatio: item.aspectRatio,
       cropNotes: item.cropNotes,
       createdAt: item.createdAt,
       createdBy: item.createdBy,
-    });
+    };
+  }
+
+  for (let start = 0; start < batch.items.length; start += CONCURRENCY) {
+    const slice = batch.items.slice(start, start + CONCURRENCY);
+    const generatedSlice = await Promise.all(
+      slice.map((item, sliceIndex) => generateCandidate(item, start + sliceIndex))
+    );
+    records.push(...generatedSlice);
   }
 
   const persisted = await insertTemplateImageCandidates(records);

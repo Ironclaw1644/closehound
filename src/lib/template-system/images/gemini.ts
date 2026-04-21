@@ -1,6 +1,6 @@
-const GEMINI_MODEL = "gemini-2.5-flash-image";
+const GEMINI_MODEL = "gemini-3.1-flash-image-preview";
 const GEMINI_ENDPOINT =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent";
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent";
 const MAX_RETRIES = 6;
 const REQUEST_TIMEOUT_MS = 120_000;
 const RETRYABLE_STATUS_CODES = new Set([429, 500, 502, 503, 504]);
@@ -106,8 +106,16 @@ export async function generateGeminiImage(input: {
     );
 
     if (!part?.inlineData?.data) {
+      const textResponse = payload.candidates?.[0]?.content?.parts
+        ?.map((candidatePart) => candidatePart.text?.trim())
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+
       lastError = new Error(
-        "Gemini image generation returned no inline image payload."
+        textResponse
+          ? `Gemini image generation returned no inline image payload. Model text: ${textResponse}`
+          : "Gemini image generation returned no inline image payload."
       );
       break;
     }

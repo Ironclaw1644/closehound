@@ -4,11 +4,12 @@ import type {
 } from "@/lib/template-system/images/repository";
 import { sortTemplateBatchesNewestFirst } from "@/lib/template-system/images/repository";
 import { HVAC_VISUAL_SLOTS } from "@/lib/template-system/visual-slots/hvac";
+import { MED_SPA_VISUAL_SLOTS } from "@/lib/template-system/visual-slots/med-spa";
 import { PLUMBING_VISUAL_SLOTS } from "@/lib/template-system/visual-slots/plumbing";
 import { ROOFING_VISUAL_SLOTS } from "@/lib/template-system/visual-slots/roofing";
 
 export type TemplateImageReviewConfig = {
-  templateKey: "roofing-v1" | "hvac-v1" | "plumbing-v1";
+  templateKey: "roofing-v1" | "hvac-v1" | "plumbing-v1" | "med-spa-v1";
   label: string;
   previewPath: string;
   slotDefinitions: readonly ArchetypeImageSlotDefinition[];
@@ -41,6 +42,12 @@ export const TEMPLATE_IMAGE_REVIEW_TEMPLATES = [
     label: "Plumbing",
     previewPath: "/preview/templates/plumbing-archetype",
     slotDefinitions: toSlotDefinitions(PLUMBING_VISUAL_SLOTS),
+  },
+  {
+    templateKey: "med-spa-v1",
+    label: "Med Spa",
+    previewPath: "/preview/templates/med-spa-archetype",
+    slotDefinitions: toSlotDefinitions(MED_SPA_VISUAL_SLOTS),
   },
 ] as const satisfies readonly TemplateImageReviewConfig[];
 
