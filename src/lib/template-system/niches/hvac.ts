@@ -41,8 +41,8 @@ export const HVAC_NICHE_TEMPLATE: NicheTemplate = {
     copy: {
       hero: {
         variantKey: "default",
-        heading: "Heating and cooling service without the vague upsell",
-        body: "{{businessName}} helps homeowners in {{serviceAreaLabel}} diagnose comfort problems, plan repairs, and compare replacement options with a clear next step.",
+        heading: "Heating and cooling solutions you can trust",
+        body: "{{businessName}} helps {{serviceAreaLabel}} homeowners diagnose comfort issues, plan repairs, and choose the right solution clearly and confidently.",
         cta: { label: "Request HVAC Service", action: "quote" },
       },
       services: {
@@ -51,7 +51,7 @@ export const HVAC_NICHE_TEMPLATE: NicheTemplate = {
         items: [
           {
             title: "AC Repair",
-            body: "Find the cooling issue, explain what failed, and restore performance without padding the scope.",
+            body: "We find the problem, explain what failed, and get your system working again.",
           },
           {
             title: "Heating Service",
@@ -59,25 +59,25 @@ export const HVAC_NICHE_TEMPLATE: NicheTemplate = {
           },
           {
             title: "System Replacement",
-            body: "Compare replacement paths with a clear explanation of system fit, timing, and next steps.",
+            body: "Compare replacement options with a clear explanation of system fit, timing, and next steps.",
           },
         ],
       },
       "why-choose-us": {
         variantKey: "process-heavy",
-        heading: "What homeowners want from an HVAC company",
+        heading: "What matters when you hire an HVAC company",
         items: [
           {
             title: "Straight diagnostics",
-            body: "Explain the issue clearly before jumping to replacement language.",
+            body: "Explain the issue clearly before recommending bigger work.",
           },
           {
             title: "Comfort-focused service",
-            body: "Keep the visit centered on restoring reliable heating or cooling.",
+            body: "Restoring reliable comfort-every visit.",
           },
           {
             title: "Organized follow-through",
-            body: "Make scheduling, scope, and next steps easy to track.",
+            body: "Keep scheduling, scope, and next steps easy to follow.",
           },
         ],
       },
@@ -95,7 +95,7 @@ export const HVAC_NICHE_TEMPLATE: NicheTemplate = {
           },
           {
             title: "Schedule the work",
-            body: "Confirm timing, equipment plan, and the next homeowner touchpoint.",
+            body: "Confirm timing, equipment plans, and the next step before the work begins.",
           },
         ],
       },
@@ -111,14 +111,14 @@ export const HVAC_NICHE_TEMPLATE: NicheTemplate = {
           {
             question: "Do you handle both heating and cooling service?",
             answer:
-              "The template should support full-service positioning without inventing proof claims that the business has not supplied.",
+              "Yes. It helps to have one company that can inspect the full system and explain the next step clearly, whether the issue is heating or cooling.",
           },
         ],
       },
       "service-area": {
         variantKey: "regional-coverage",
         heading: "HVAC service in {{serviceAreaLabel}}",
-        body: "Use a regional coverage statement when hyperlocal proof is weak or incomplete.",
+        body: "{{businessName}} helps homeowners across {{serviceAreaLabel}} with heating service, air conditioning repair, and system replacement planning.",
       },
       contact: {
         variantKey: "default",

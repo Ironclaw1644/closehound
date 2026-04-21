@@ -53,40 +53,40 @@ export const PLUMBING_NICHE_TEMPLATE: NicheTemplate = {
     copy: {
       hero: {
         variantKey: "urgent-first",
-        heading: "Plumbing help for active issues and planned work",
+        heading: "Plumbing help for urgent repairs and new installations",
         body:
-          "{{businessName}} helps homeowners in {{serviceAreaLabel}} handle leaks, clogs, water-heater trouble, and larger plumbing work with a clear next step instead of vague urgency language.",
+          "{{businessName}} helps {{serviceAreaLabel}} homeowners handle leaks, clogs, water heater issues, and plumbing upgrades with clear recommendations and a practical next step.",
         cta: { label: "Call Now", action: "call" },
       },
       services: {
         variantKey: "grouped",
-        heading: "Plumbing services for immediate problems and planned work",
+        heading: "Plumbing services for repairs and installations",
         items: [
           {
             title: "Immediate Needs",
             body: "Leaking lines, backed-up drains, running fixtures, and other active plumbing problems that need a fast diagnosis.",
           },
           {
-            title: "Planned Work / Installations",
-            body: "Water-heater replacements, fixture installs, line updates, and scope-based residential plumbing work.",
+            title: "Upgrades & Installations",
+            body: "Water heater replacements, fixture installs, and pipe upgrades for your home.",
           },
         ],
       },
       "why-choose-us": {
         variantKey: "process-heavy",
-        heading: "What homeowners want from a plumbing company",
+        heading: "What matters when you hire a plumbing company",
         items: [
           {
             title: "Fast diagnosis",
-            body: "Explain the problem before turning every visit into a replacement pitch.",
+            body: "Clear diagnosis before any repair or replacement recommendations.",
           },
           {
             title: "Clear scope",
-            body: "Make it obvious what needs attention now and what can be planned.",
+            body: "Know what needs fixing now and what can be handled later.",
           },
           {
             title: "Organized follow-through",
-            body: "Keep the next step, estimate, and scheduling process easy to understand.",
+            body: "Keep the next step, estimate, and scheduling process easy to follow.",
           },
         ],
       },
@@ -96,7 +96,7 @@ export const PLUMBING_NICHE_TEMPLATE: NicheTemplate = {
         items: [
           {
             title: "Inspect the issue",
-            body: "Start with the visible symptom, likely cause, and access point.",
+            body: "We look at what you're seeing, what's causing it, and where the problem is.",
           },
           {
             title: "Explain the scope",
@@ -104,7 +104,7 @@ export const PLUMBING_NICHE_TEMPLATE: NicheTemplate = {
           },
           {
             title: "Confirm the next step",
-            body: "Move into service or estimate scheduling without vague promises.",
+            body: "Move into service or estimate scheduling with a clear next step.",
           },
         ],
       },
@@ -115,24 +115,24 @@ export const PLUMBING_NICHE_TEMPLATE: NicheTemplate = {
           {
             question: "Should I call for this leak right away?",
             answer:
-              "The template should support active-issue urgency without inventing emergency or same-day claims.",
+              "If water is actively leaking, a fixture will not shut off, or a drain is backing up into the home, it makes sense to call right away so the problem can be diagnosed before it spreads.",
           },
           {
             question: "Do you provide estimates for larger plumbing work?",
             answer:
-              "Yes. The page should support estimate-driven residential plumbing without weakening the call-first posture.",
+              "Yes. Larger plumbing work usually starts with a walkthrough of the scope, the access points, and the best next step for the home.",
           },
         ],
       },
       "service-area": {
         variantKey: "regional-coverage",
         heading: "Plumbing service in {{serviceAreaLabel}}",
-        body: "Use a regional coverage statement when hyperlocal proof is limited or unverified.",
+        body: "{{businessName}} handles residential plumbing calls and estimate-based work throughout {{serviceAreaLabel}}.",
       },
       contact: {
         variantKey: "dual-cta",
         heading: "Call now or request a plumbing estimate",
-        body: "Use the direct call path for active plumbing issues or request an estimate for larger residential work.",
+        body: "Call for active plumbing issues or request an estimate for larger residential work.",
         cta: { label: "Call Now", action: "call" },
       },
     },

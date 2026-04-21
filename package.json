@@ -12,6 +12,9 @@
     "operator:worker": "node --env-file=.env.local --experimental-strip-types --import ./scripts/register-ts-path-loader.mjs ./scripts/run-operator-worker.ts"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^7.2.0",
+    "@fortawesome/free-solid-svg-icons": "^7.2.0",
+    "@fortawesome/react-fontawesome": "^3.3.1",
     "@supabase/supabase-js": "^2.49.4",
     "next": "^15.3.0",
     "react": "^19.1.0",

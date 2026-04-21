@@ -10,7 +10,7 @@ export function BlueCollarPreviewTemplate({
       <div className="mx-auto max-w-7xl px-6 py-12">
         <section className="rounded-[32px] bg-slate-950 px-8 py-12 text-white">
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-orange-300">
-            Blue-Collar Archetype
+            {model.businessName}
           </p>
           <h1 className="mt-4 text-5xl font-semibold tracking-tight">
             {model.hero.heading}

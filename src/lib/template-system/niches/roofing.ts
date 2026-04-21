@@ -36,8 +36,8 @@ export const ROOFING_NICHE_TEMPLATE: NicheTemplate = {
     copy: {
       hero: {
         variantKey: "default",
-        heading: "Roofing work that protects the home and the timeline",
-        body: "From active leaks to full replacement planning, {{businessName}} gives homeowners in {{serviceAreaLabel}} a clear next step without vague promises or inflated claims.",
+        heading: "Roofing work that protects your home and keeps the job moving",
+        body: "From active leaks to full roof replacement planning, {{businessName}} helps {{serviceAreaLabel}} homeowners understand the problem, the scope, and the next step.",
         cta: { label: "Request a Roofing Quote", action: "quote" },
       },
       services: {
@@ -45,17 +45,17 @@ export const ROOFING_NICHE_TEMPLATE: NicheTemplate = {
         heading: "Roofing services for repairs, replacement, and inspections",
         items: [
           { title: "Roof Repair", body: "Track down leaks, replace damaged shingles, and stabilize problem areas before they spread." },
-          { title: "Roof Replacement", body: "Replace worn roofing systems with a clear scope, material options, and homeowner-focused communication." },
+          { title: "Roof Replacement", body: "Replace your roof with confidence: clear options, honest pricing, and communication every step of the way." },
           { title: "Roof Inspection", body: "Inspect storm damage, aging roof sections, and active issues before deciding on repair versus replacement." },
         ],
       },
       "why-choose-us": {
         variantKey: "process-heavy",
-        heading: "What homeowners want from a roofing company",
+        heading: "What matters when you hire a roofing company",
         items: [
-          { title: "Clear scope", body: "Explain the problem in plain language and show what needs to be repaired now." },
-          { title: "Responsive scheduling", body: "Keep the process moving when the roof issue is urgent." },
-          { title: "Organized communication", body: "Make replacement and repair work feel predictable instead of chaotic." },
+          { title: "Clear scope", body: "Clear answers. Honest priorities. No confusion." },
+          { title: "Easy scheduling", body: "Fast scheduling, clear time windows, and crews that show up when promised." },
+          { title: "Organized communication", body: "Clear timelines, steady communication, and no surprises." },
         ],
       },
       process: {
@@ -63,8 +63,8 @@ export const ROOFING_NICHE_TEMPLATE: NicheTemplate = {
         heading: "How the job moves from inspection to completion",
         items: [
           { title: "Inspect the roof", body: "Start with the visible problem areas and the likely source of the issue." },
-          { title: "Review the scope", body: "Lay out repair or replacement options in a way the homeowner can actually compare." },
-          { title: "Schedule the work", body: "Confirm timing, material plan, and the next homeowner touchpoint." },
+          { title: "Review the scope", body: "Lay out repair and replacement options in a way that is easy to compare." },
+          { title: "Schedule the work", body: "Confirm timing, materials, and the next step before the work begins." },
         ],
       },
       faq: {
@@ -72,13 +72,13 @@ export const ROOFING_NICHE_TEMPLATE: NicheTemplate = {
         heading: "Roofing questions homeowners ask before hiring",
         faqItems: [
           { question: "Do I need repair or replacement?", answer: "That depends on the age of the roof, the spread of damage, and whether the issue is isolated or systemic." },
-          { question: "Do you handle storm-related roof issues?", answer: "The template should support storm-damage positioning without inventing insurance or claim language." },
+          { question: "Do you handle storm-related roof issues?", answer: "Yes. After wind, hail, or sudden leaks, the first step is figuring out whether the damage is limited to one area or part of a larger roofing issue." },
         ],
       },
       "service-area": {
         variantKey: "regional-coverage",
         heading: "Roofing service in {{serviceAreaLabel}}",
-        body: "Use a regional coverage statement when city-level proof is weak or incomplete.",
+        body: "{{businessName}} works with homeowners across {{serviceAreaLabel}} on roof repair, roof replacement, and inspection work.",
       },
       contact: {
         variantKey: "default",

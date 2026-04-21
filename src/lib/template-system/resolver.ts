@@ -49,7 +49,8 @@ function buildSection(section: ResolvedSection): ResolvedSection {
 
 function buildResolvedCta(
   primaryCtaLabel: string,
-  primaryCtaHref: string
+  primaryCtaHref: string,
+  action: NonNullable<ResolvedSection["cta"]>["action"]
 ): ResolvedSection["cta"] {
   if (primaryCtaLabel === "" || primaryCtaHref === "") {
     return undefined;
@@ -57,7 +58,7 @@ function buildResolvedCta(
 
   return {
     label: primaryCtaLabel,
-    action: "quote",
+    action,
   };
 }
 
@@ -181,7 +182,23 @@ export function resolveTemplateRender({
   const services = Array.isArray(readBusinessField(seed, lead, "services"))
     ? (readBusinessField(seed, lead, "services") as string[])
     : [];
-  const resolvedPrimaryCta = buildResolvedCta(primaryCtaLabel, primaryCtaHref);
+  const heroCtaAction =
+    template.sections.copy.hero?.cta?.action ?? family.conversionModel.primaryGoal;
+  const contactCtaAction =
+    template.sections.copy.contact?.cta?.action ?? family.conversionModel.primaryGoal;
+  const resolvedHeroCta = buildResolvedCta(
+    primaryCtaLabel,
+    primaryCtaHref,
+    heroCtaAction
+  );
+  const resolvedContactCta = buildResolvedCta(
+    primaryCtaLabel,
+    primaryCtaHref,
+    contactCtaAction
+  );
+  const aboutVisible =
+    Boolean(template.sections.copy.about?.heading || template.sections.copy.about?.body) ||
+    family.structure.requiredSections.includes("about");
 
   const missingCriticalFields = family.resolverPolicy.criticalFields.filter((field) => {
     if (field === "services") {
@@ -243,13 +260,17 @@ export function resolveTemplateRender({
       body: template.sections.copy.hero?.body
         ?.replace("{{businessName}}", businessName)
         .replace("{{serviceAreaLabel}}", serviceAreaLabel),
-      cta: resolvedPrimaryCta,
+      cta: resolvedHeroCta,
     }),
     about: buildSection({
       key: "about",
-      variantKey: "default",
-      visible: false,
-      resolutionNotes: ["Not used in this render path."],
+      variantKey: template.sections.copy.about?.variantKey ?? "default",
+      visible: aboutVisible,
+      heading: template.sections.copy.about?.heading,
+      body: template.sections.copy.about?.body
+        ?.replace("{{businessName}}", businessName)
+        .replace("{{serviceAreaLabel}}", serviceAreaLabel),
+      resolutionNotes: aboutVisible ? [] : ["Not used in this render path."],
     }),
     services: buildSection({
       key: "services",
@@ -279,8 +300,20 @@ export function resolveTemplateRender({
     gallery: buildSection({
       key: "gallery",
       variantKey: "default",
-      visible: false,
-      resolutionNotes: ["No approved assets available for this render path."],
+      visible: Boolean(
+        template.sections.copy.gallery?.heading ||
+          template.sections.copy.gallery?.body ||
+          template.sections.copy.gallery?.items?.length
+      ),
+      heading: template.sections.copy.gallery?.heading,
+      body: template.sections.copy.gallery?.body,
+      items: template.sections.copy.gallery?.items,
+      resolutionNotes:
+        template.sections.copy.gallery?.heading ||
+        template.sections.copy.gallery?.body ||
+        template.sections.copy.gallery?.items?.length
+          ? []
+          : ["No approved assets available for this render path."],
     }),
     testimonials: buildSection({
       key: "testimonials",
@@ -303,10 +336,9 @@ export function resolveTemplateRender({
         "{{serviceAreaLabel}}",
         serviceAreaLabel
       ),
-      body: template.sections.copy["service-area"]?.body?.replace(
-        "{{serviceAreaLabel}}",
-        serviceAreaLabel
-      ),
+      body: template.sections.copy["service-area"]?.body
+        ?.replace("{{businessName}}", businessName)
+        .replace("{{serviceAreaLabel}}", serviceAreaLabel),
     }),
     contact: buildSection({
       key: "contact",
@@ -314,7 +346,7 @@ export function resolveTemplateRender({
       visible: true,
       heading: template.sections.copy.contact?.heading,
       body: template.sections.copy.contact?.body,
-      cta: resolvedPrimaryCta,
+      cta: resolvedContactCta,
     }),
     footer: buildSection({
       key: "footer",

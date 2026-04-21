@@ -1,7 +1,8 @@
-import type { RenderPackage } from "@/lib/template-system/types";
+import type { RenderPackage, SectionKey } from "@/lib/template-system/types";
 
 export type BlueCollarPreviewModel = {
   businessName: string;
+  sectionKeys: SectionKey[];
   hero: {
     heading: string;
     body: string;
@@ -68,6 +69,9 @@ export function buildBlueCollarPreviewModel(
 
   return {
     businessName: String(render.resolvedFields.businessName ?? ""),
+    sectionKeys: Object.entries(render.resolvedSections)
+      .filter(([, section]) => section.visible)
+      .map(([sectionKey]) => sectionKey as SectionKey),
     hero: {
       heading: render.resolvedSections.hero.heading ?? "",
       body: render.resolvedSections.hero.body ?? "",

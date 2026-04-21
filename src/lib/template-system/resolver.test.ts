@@ -13,15 +13,18 @@ import { pathToFileURL } from "node:url";
 import ts from "typescript";
 
 import { BLUE_COLLAR_SERVICE_FAMILY } from "@/lib/template-system/families/blue-collar-service";
+import { HEALTH_WELLNESS_FAMILY } from "@/lib/template-system/families/health-wellness";
 import {
   normalizeSupportedIndustry,
   resolveLeadTemplatePreview,
 } from "@/lib/template-system/lead-preview";
 import { REASON_CODES } from "@/lib/template-system/reason-codes";
 import { HVAC_NICHE_TEMPLATE } from "@/lib/template-system/niches/hvac";
+import { MED_SPA_NICHE_TEMPLATE } from "@/lib/template-system/niches/med-spa";
 import { PLUMBING_NICHE_TEMPLATE } from "@/lib/template-system/niches/plumbing";
 import { ROOFING_NICHE_TEMPLATE } from "@/lib/template-system/niches/roofing";
 import { buildBlueCollarPreviewModel } from "@/lib/template-system/blue-collar-preview";
+import { buildMedSpaPreviewModel } from "@/lib/template-system/med-spa-preview";
 import { buildLeadPreviewView } from "@/lib/template-system/lead-preview";
 import { resolveTemplateRender } from "@/lib/template-system/resolver";
 import {
@@ -45,6 +48,7 @@ import {
 import { HVAC_VISUAL_SLOTS } from "@/lib/template-system/visual-slots/hvac";
 import { PLUMBING_VISUAL_SLOTS } from "@/lib/template-system/visual-slots/plumbing";
 import { HVAC_SEED_BUSINESS } from "@/lib/template-system/seeds/hvac-seed";
+import { MED_SPA_SEED_BUSINESS } from "@/lib/template-system/seeds/med-spa-seed";
 import { PLUMBING_SEED_BUSINESS } from "@/lib/template-system/seeds/plumbing-seed";
 import { ROOFING_SEED_BUSINESS } from "@/lib/template-system/seeds/roofing-seed";
 import type { RenderPackage, SampleMode, SectionKey } from "@/lib/template-system/types";
@@ -674,7 +678,14 @@ test("supported-industry helper normalizes plumbing variants", () => {
   assert.equal(normalizeSupportedIndustry("water heater service"), "plumbing");
 });
 
-test("supported-industry helper only supports roofing hvac and plumbing", () => {
+test("supported lead preview helper normalizes med spa variants", () => {
+  assert.equal(normalizeSupportedIndustry("med spa"), "med-spa");
+  assert.equal(normalizeSupportedIndustry("medspa"), "med-spa");
+  assert.equal(normalizeSupportedIndustry("medical spa"), "med-spa");
+  assert.equal(normalizeSupportedIndustry("aesthetic med spa"), "med-spa");
+});
+
+test("supported-industry helper supports roofing hvac plumbing and med spa", () => {
   const roofing = resolveLeadTemplatePreview({
     id: "lead-1",
     industry: "roofing",
@@ -714,13 +725,74 @@ test("supported-industry helper only supports roofing hvac and plumbing", () => 
     email: "service@steadyflowplumbing.com",
   } as never);
 
+  const medSpa = resolveLeadTemplatePreview({
+    id: "lead-3d",
+    industry: "med spa",
+    company_name: "North Hills Med Spa",
+    city: "Raleigh",
+    state: "NC",
+    phone: "(919) 555-0199",
+    email: "hello@northhillsmedspa.com",
+  } as never);
+
   assert.equal(roofing.supported, true);
   assert.equal(hvac.supported, true);
   assert.equal(plumbing.supported, true);
+  assert.equal(medSpa.supported, true);
   assert.deepEqual(unsupported, {
     supported: false,
     reason: "UNSUPPORTED_INDUSTRY",
   });
+});
+
+test("supported lead preview helper resolves med spa leads through template system", () => {
+  const result = resolveLeadTemplatePreview({
+    id: "lead-med-spa-1",
+    industry: "medical spa",
+    company_name: "Sample Med Spa",
+    city: "Raleigh",
+    state: "NC",
+    phone: "(919) 555-0199",
+    email: "hello@example.com",
+  } as never);
+
+  assert.equal(result.supported, true);
+  if (!result.supported) {
+    return;
+  }
+
+  assert.equal(result.templateKey, "med-spa-v1");
+  assert.equal(result.familyKey, "health-wellness");
+  assert.equal(result.renderPackage.status.isPreviewSafe, true);
+  assert.equal(result.renderPackage.resolvedFields.primaryCtaHref, "#contact");
+  assert.equal(
+    result.renderPackage.resolvedFields.secondaryCtaHref,
+    "#services"
+  );
+});
+
+test("lead preview view routes med spa through the health-wellness renderer once supported", () => {
+  const medSpaView = buildLeadPreviewView({
+    id: "lead-med-spa-view",
+    status: "generated",
+    industry: "medical spa",
+    company_name: "Sample Med Spa",
+    city: "Raleigh",
+    phone: "(919) 555-0199",
+    contact_email: "hello@example.com",
+    preview_url: "https://preview.closehound.local/preview/sample-med-spa-123",
+  } as never);
+
+  assert.equal(medSpaView.kind, "health-wellness");
+  if (medSpaView.kind !== "health-wellness") {
+    return;
+  }
+
+  assert.equal(medSpaView.model.primaryCtaLabel, "Book Consultation");
+  assert.equal(medSpaView.model.primaryCtaHref, "#contact");
+  assert.equal(medSpaView.model.secondaryCtaLabel, "View Treatments");
+  assert.equal(medSpaView.model.secondaryCtaHref, "#services");
+  assert.equal(medSpaView.model.sectionKeys.includes("gallery"), true);
 });
 
 test("supported plumbing lead resolves to the plumbing family and template", () => {
@@ -931,6 +1003,14 @@ test("plumbing niche matches family and schema version", () => {
   );
 });
 
+test("med spa niche matches health-wellness family and schema version", () => {
+  assert.equal(MED_SPA_NICHE_TEMPLATE.familyKey, HEALTH_WELLNESS_FAMILY.key);
+  assert.equal(
+    MED_SPA_NICHE_TEMPLATE.expectedSchemaVersion,
+    HEALTH_WELLNESS_FAMILY.schemaVersion
+  );
+});
+
 test("roofing seed business does not pre-approve fabricated testimonials", () => {
   assert.equal(
     ROOFING_SEED_BUSINESS.conditionalProof.sampleTestimonials.approvalStatus,
@@ -964,6 +1044,25 @@ test("plumbing seed business does not pre-approve fabricated urgent-service proo
   );
   assert.equal(
     PLUMBING_SEED_BUSINESS.conditionalProof.licensedAndInsured?.approvalStatus,
+    "pending"
+  );
+});
+
+test("med spa seed business does not pre-approve fabricated proof", () => {
+  assert.equal(
+    MED_SPA_SEED_BUSINESS.conditionalProof.boardCertification?.approvalStatus,
+    "pending"
+  );
+  assert.equal(
+    MED_SPA_SEED_BUSINESS.conditionalProof.reviewCount?.approvalStatus,
+    "pending"
+  );
+  assert.equal(
+    MED_SPA_SEED_BUSINESS.conditionalProof.promotionalOffer?.approvalStatus,
+    "pending"
+  );
+  assert.equal(
+    MED_SPA_SEED_BUSINESS.conditionalProof.sampleTestimonials?.approvalStatus,
     "pending"
   );
 });
@@ -1040,6 +1139,142 @@ test("strict resolver suppresses absent plumbing proof claims", () => {
       "financing",
       "sampleTestimonials",
     ]
+  );
+});
+
+test("strict resolver suppresses absent med spa proof claims", () => {
+  const render = resolveTemplateRender({
+    family: HEALTH_WELLNESS_FAMILY,
+    template: MED_SPA_NICHE_TEMPLATE,
+    seed: MED_SPA_SEED_BUSINESS,
+    sampleMode: "strict",
+  });
+
+  assert.equal(render.status.isPreviewSafe, true);
+  assert.equal(render.status.hasSuppressedClaims, true);
+  assert.deepEqual(
+    render.overrideAudit.suppressed.map((entry) => entry.field),
+    [
+      "boardCertification",
+      "medicalDirector",
+      "yearsInBusiness",
+      "reviewCount",
+      "namedAwards",
+      "namedTechnologies",
+      "financing",
+      "guarantees",
+      "clinicalOutcomeClaims",
+      "sampleTestimonials",
+      "promotionalOffer",
+    ]
+  );
+  assert.equal(render.resolvedSections.about.visible, true);
+  assert.equal(
+    render.resolvedSections.about.body,
+    "Lumen Aesthetics Studio is designed for clients who want thoughtful treatment planning, discreet care, and a polished setting that feels calm from the first consultation onward."
+  );
+  assert.equal(render.resolvedSections.hero.cta?.action, "consult");
+  assert.equal(render.resolvedSections.contact.cta?.action, "consult");
+});
+
+test("med spa preview model is consultation-led and treatment-curated", () => {
+  const render = resolveTemplateRender({
+    family: HEALTH_WELLNESS_FAMILY,
+    template: MED_SPA_NICHE_TEMPLATE,
+    seed: MED_SPA_SEED_BUSINESS,
+    sampleMode: "strict",
+  });
+
+  const preview = buildMedSpaPreviewModel(render);
+
+  assert.equal(preview.primaryCtaLabel, "Book Consultation");
+  assert.equal(preview.secondaryCtaLabel, "View Treatments");
+  assert.equal(preview.primaryCtaHref, "#contact");
+  assert.equal(preview.secondaryCtaHref, "#services");
+  assert.equal(preview.sectionKeys.includes("featured-treatments"), true);
+  assert.equal(preview.sectionKeys.includes("process"), true);
+  assert.equal(preview.sectionKeys.includes("gallery"), true);
+  assert.match(preview.about.body ?? "", /thoughtful treatment planning/i);
+  assert.equal(preview.gallery.visible, true);
+  assert.match(preview.gallery.heading ?? "", /private|polished|settle into/i);
+
+  const renderedCopy = [
+    preview.hero.body,
+    preview.about.body,
+    preview.gallery.body,
+    ...(preview.faq.faqItems ?? []).map((item) => item.answer),
+  ].join(" ");
+
+  assert.doesNotMatch(
+    renderedCopy,
+    /(template should|practice should|ai-generated|placeholder|lorem ipsum)/i
+  );
+});
+
+test("blue-collar niches do not leak internal template language into authored copy", () => {
+  const regex =
+    /(template should|practice should|use a regional coverage statement|hyperlocal proof|city-level proof|without inventing|the page should support)/i;
+
+  const renders = [
+    resolveTemplateRender({
+      family: BLUE_COLLAR_SERVICE_FAMILY,
+      template: ROOFING_NICHE_TEMPLATE,
+      seed: ROOFING_SEED_BUSINESS,
+      sampleMode: "strict",
+    }),
+    resolveTemplateRender({
+      family: BLUE_COLLAR_SERVICE_FAMILY,
+      template: HVAC_NICHE_TEMPLATE,
+      seed: HVAC_SEED_BUSINESS,
+      sampleMode: "strict",
+    }),
+    resolveTemplateRender({
+      family: BLUE_COLLAR_SERVICE_FAMILY,
+      template: PLUMBING_NICHE_TEMPLATE,
+      seed: PLUMBING_SEED_BUSINESS,
+      sampleMode: "strict",
+    }),
+  ];
+
+  for (const render of renders) {
+    const preview = buildBlueCollarPreviewModel(render);
+    const copy = [
+      preview.hero.heading,
+      preview.hero.body,
+      preview.services.heading,
+      ...preview.services.items.map((item) => `${item.title ?? ""} ${item.body}`),
+      preview.whyChooseUs.heading,
+      ...preview.whyChooseUs.items.map((item) => `${item.title ?? ""} ${item.body}`),
+      preview.process.heading,
+      ...preview.process.items.map((item) => `${item.title ?? ""} ${item.body}`),
+      preview.faq.heading,
+      ...preview.faq.items.map((item) => `${item.question} ${item.answer}`),
+      preview.serviceArea.heading,
+      preview.serviceArea.body,
+      preview.contact.heading,
+      preview.contact.body,
+    ].join(" ");
+
+    assert.doesNotMatch(copy, regex);
+  }
+});
+
+test("health-wellness family encodes med spa claim policy guardrails", () => {
+  assert.equal(
+    HEALTH_WELLNESS_FAMILY.claimPolicies.boardCertification?.allowed,
+    false
+  );
+  assert.equal(
+    HEALTH_WELLNESS_FAMILY.claimPolicies.medicalDirector?.allowed,
+    false
+  );
+  assert.equal(
+    HEALTH_WELLNESS_FAMILY.claimPolicies.clinicalOutcomeClaims?.allowed,
+    false
+  );
+  assert.equal(
+    HEALTH_WELLNESS_FAMILY.claimPolicies.promotionalOffer?.evidenceRequired,
+    true
   );
 });
 

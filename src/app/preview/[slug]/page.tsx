@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import { BlueCollarPreviewTemplate } from "@/components/site-templates/blue-collar-preview";
+import { HealthWellnessPreviewTemplate } from "@/components/site-templates/health-wellness-preview";
 import { buildBlueCollarPreviewModel } from "@/lib/template-system/blue-collar-preview";
 import { PALETTE_PRESETS } from "@/lib/palettes";
 import {
@@ -108,6 +109,10 @@ export default async function PreviewPage({
           model={leadPreview.model}
         />
       );
+    }
+
+    if (leadPreview.kind === "health-wellness") {
+      return <HealthWellnessPreviewTemplate model={leadPreview.model} />;
     }
 
     if (leadPreview.fallbackSlug) {

@@ -1,17 +1,21 @@
 import { extractPreviewPath } from "@/lib/preview";
 import { BLUE_COLLAR_SERVICE_FAMILY } from "@/lib/template-system/families/blue-collar-service";
+import { HEALTH_WELLNESS_FAMILY } from "@/lib/template-system/families/health-wellness";
 import { HVAC_NICHE_TEMPLATE } from "@/lib/template-system/niches/hvac";
+import { MED_SPA_NICHE_TEMPLATE } from "@/lib/template-system/niches/med-spa";
 import { PLUMBING_NICHE_TEMPLATE } from "@/lib/template-system/niches/plumbing";
 import { ROOFING_NICHE_TEMPLATE } from "@/lib/template-system/niches/roofing";
 import { buildBlueCollarPreviewModel } from "@/lib/template-system/blue-collar-preview";
+import { buildHealthWellnessPreviewModel } from "@/lib/template-system/health-wellness-preview";
 import { resolveTemplateRender } from "@/lib/template-system/resolver";
 import { HVAC_SEED_BUSINESS } from "@/lib/template-system/seeds/hvac-seed";
+import { MED_SPA_SEED_BUSINESS } from "@/lib/template-system/seeds/med-spa-seed";
 import { PLUMBING_SEED_BUSINESS } from "@/lib/template-system/seeds/plumbing-seed";
 import { ROOFING_SEED_BUSINESS } from "@/lib/template-system/seeds/roofing-seed";
 import type { Lead } from "@/types/lead";
 import type { LeadRecord, RenderPackage } from "@/lib/template-system/types";
 
-type SupportedIndustry = "roofing" | "hvac" | "plumbing";
+type SupportedIndustry = "roofing" | "hvac" | "plumbing" | "med-spa";
 
 type SupportedPreviewResult =
   | {
@@ -68,6 +72,13 @@ const PLUMBING_INDUSTRY_ALIASES = new Set([
   "water heater service",
 ]);
 
+const MED_SPA_INDUSTRY_ALIASES = new Set([
+  "med spa",
+  "medspa",
+  "medical spa",
+  "aesthetic med spa",
+]);
+
 function canonicalizeIndustry(value: string): string {
   return value
     .trim()
@@ -89,11 +100,15 @@ function buildLeadRecord(
       ? "Request a Roofing Quote"
       : industry === "hvac"
         ? "Request HVAC Service"
-        : "Call Now";
+        : industry === "plumbing"
+          ? "Call Now"
+          : "Book Consultation";
   const primaryCtaHref =
     industry === "plumbing" && lead.phone?.trim()
       ? `tel:${lead.phone.trim()}`
-      : "#contact";
+      : industry === "med-spa"
+        ? "#contact"
+        : "#contact";
 
   return {
     source: "closehound-lead",
@@ -104,8 +119,18 @@ function buildLeadRecord(
       contactEmail,
       primaryCtaLabel,
       primaryCtaHref,
-      secondaryCtaLabel: industry === "plumbing" ? "Request Estimate" : null,
-      secondaryCtaHref: industry === "plumbing" ? "#contact" : null,
+      secondaryCtaLabel:
+        industry === "plumbing"
+          ? "Request Estimate"
+          : industry === "med-spa"
+            ? "View Treatments"
+            : null,
+      secondaryCtaHref:
+        industry === "plumbing"
+          ? "#contact"
+          : industry === "med-spa"
+            ? "#services"
+            : null,
     },
   };
 }
@@ -140,16 +165,24 @@ function resolveSupportedPreview(
       ? ROOFING_NICHE_TEMPLATE
       : templateKey === "hvac"
         ? HVAC_NICHE_TEMPLATE
-        : PLUMBING_NICHE_TEMPLATE;
+        : templateKey === "plumbing"
+          ? PLUMBING_NICHE_TEMPLATE
+          : MED_SPA_NICHE_TEMPLATE;
   const seed =
     templateKey === "roofing"
       ? ROOFING_SEED_BUSINESS
       : templateKey === "hvac"
         ? HVAC_SEED_BUSINESS
-        : PLUMBING_SEED_BUSINESS;
+        : templateKey === "plumbing"
+          ? PLUMBING_SEED_BUSINESS
+          : MED_SPA_SEED_BUSINESS;
+  const family =
+    templateKey === "med-spa"
+      ? HEALTH_WELLNESS_FAMILY
+      : BLUE_COLLAR_SERVICE_FAMILY;
 
   const renderPackage = resolveTemplateRender({
-    family: BLUE_COLLAR_SERVICE_FAMILY,
+    family,
     template,
     seed,
     lead: buildLeadRecord(lead, templateKey),
@@ -165,7 +198,7 @@ function resolveSupportedPreview(
 
   return {
     supported: true,
-    familyKey: BLUE_COLLAR_SERVICE_FAMILY.key,
+    familyKey: family.key,
     templateKey: template.key,
     renderPackage,
   };
@@ -192,6 +225,10 @@ export function normalizeSupportedIndustry(
     return "plumbing";
   }
 
+  if (MED_SPA_INDUSTRY_ALIASES.has(value)) {
+    return "med-spa";
+  }
+
   return null;
 }
 
@@ -210,6 +247,10 @@ export function resolveLeadTemplatePreview(
 
   if (normalizedIndustry === "plumbing") {
     return resolveSupportedPreview("plumbing", lead);
+  }
+
+  if (normalizedIndustry === "med-spa") {
+    return resolveSupportedPreview("med-spa", lead);
   }
 
   return {
@@ -243,6 +284,22 @@ export function buildLeadPreviewViewWithResolver(
     return {
       kind: "legacy" as const,
       reason: resolvedPreview.reason,
+      fallbackSlug: extractLegacyFallbackSlug(lead.preview_url),
+    };
+  }
+
+  if (resolvedPreview.familyKey !== BLUE_COLLAR_SERVICE_FAMILY.key) {
+    if (resolvedPreview.familyKey === HEALTH_WELLNESS_FAMILY.key) {
+      return {
+        kind: "health-wellness" as const,
+        model: buildHealthWellnessPreviewModel(resolvedPreview.renderPackage),
+        renderPackage: resolvedPreview.renderPackage,
+      };
+    }
+
+    return {
+      kind: "legacy" as const,
+      reason: "UNSUPPORTED_INDUSTRY" as const,
       fallbackSlug: extractLegacyFallbackSlug(lead.preview_url),
     };
   }
