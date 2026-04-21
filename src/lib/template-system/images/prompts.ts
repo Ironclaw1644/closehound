@@ -14,6 +14,10 @@ import {
   MED_SPA_VISUAL_SLOTS,
   getMedSpaCandidateCountForSlot,
 } from "@/lib/template-system/visual-slots/med-spa";
+import {
+  DENTAL_VISUAL_SLOTS,
+  getDentalCandidateCountForSlot,
+} from "@/lib/template-system/visual-slots/dental";
 import type { ArchetypeVisualSlot } from "@/lib/template-system/images/types";
 
 const PROMPT_VERSION = "1.0.0";
@@ -167,5 +171,18 @@ export function buildMedSpaPromptBatch(
     ...input,
     slots: MED_SPA_VISUAL_SLOTS,
     getCandidateCountForSlot: getMedSpaCandidateCountForSlot,
+  });
+}
+
+export type DentalPromptBatchInput = RoofingPromptBatchInput;
+export type DentalPromptBatchItem = RoofingPromptBatchItem;
+
+export function buildDentalPromptBatch(
+  input: DentalPromptBatchInput
+): DentalPromptBatchItem[] {
+  return buildPromptBatch({
+    ...input,
+    slots: DENTAL_VISUAL_SLOTS,
+    getCandidateCountForSlot: getDentalCandidateCountForSlot,
   });
 }

@@ -41,6 +41,7 @@ import {
 import { buildTemplateImageStoragePath } from "@/lib/template-system/images/storage";
 import {
   buildRoofingPromptBatch,
+  buildDentalPromptBatch,
   buildMedSpaPromptBatch,
   buildRoofingSlotPrompt,
 } from "@/lib/template-system/images/prompts";
@@ -50,6 +51,10 @@ import {
   getRoofingCandidateCountForSlot,
 } from "@/lib/template-system/visual-slots/roofing";
 import { HVAC_VISUAL_SLOTS } from "@/lib/template-system/visual-slots/hvac";
+import {
+  DENTAL_VISUAL_SLOTS,
+  getDentalCandidateCountForSlot,
+} from "@/lib/template-system/visual-slots/dental";
 import {
   MED_SPA_VISUAL_SLOTS,
   getMedSpaCandidateCountForSlot,
@@ -280,6 +285,17 @@ test("med spa prompt batch uses 3 hero candidates and 2 for non-hero slots", () 
   const batch = buildMedSpaPromptBatch({
     familyKey: "health-wellness",
     templateKey: "med-spa-v1",
+    templateVersion: "1.0.0",
+  });
+
+  assert.equal(batch.filter((item) => item.slot === "hero").length, 3);
+  assert.equal(batch.filter((item) => item.slot === "service-action").length, 2);
+});
+
+test("dental prompt batch uses 3 hero candidates and 2 for non-hero slots", () => {
+  const batch = buildDentalPromptBatch({
+    familyKey: "clinical-care",
+    templateKey: "dental-v1",
     templateVersion: "1.0.0",
   });
 
@@ -737,6 +753,31 @@ test("med spa visual slot contract matches the archetype slot matrix", () => {
     MED_SPA_VISUAL_SLOTS.map((slot) => ({
       key: slot.key,
       candidates: getMedSpaCandidateCountForSlot(slot.key),
+    })),
+    [
+      { key: "hero", candidates: 3 },
+      { key: "service-action", candidates: 2 },
+      { key: "detail-closeup", candidates: 2 },
+      { key: "team-or-workmanship", candidates: 2 },
+      { key: "workspace-or-site", candidates: 2 },
+      { key: "gallery-extra", candidates: 2 },
+    ]
+  );
+});
+
+test("dental visual slots match the 6-slot archetype matrix", () => {
+  assert.deepEqual(
+    DENTAL_VISUAL_SLOTS.map((slot) => slot.key),
+    ROOFING_VISUAL_SLOTS.map((slot) => slot.key)
+  );
+  assert.deepEqual(
+    DENTAL_VISUAL_SLOTS.filter((slot) => slot.required).map((slot) => slot.key),
+    ["hero", "service-action", "detail-closeup"]
+  );
+  assert.deepEqual(
+    DENTAL_VISUAL_SLOTS.map((slot) => ({
+      key: slot.key,
+      candidates: getDentalCandidateCountForSlot(slot.key),
     })),
     [
       { key: "hero", candidates: 3 },

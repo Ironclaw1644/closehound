@@ -130,6 +130,84 @@ export const DENTAL_NICHE_TEMPLATE: DentalNicheTemplate = {
           },
         ],
       },
+      about: {
+        variantKey: "default",
+        heading: "Care that feels clear, modern, and comfortable",
+        body:
+          "{{businessName}} is built for patients who want straightforward guidance, a calm office experience, and treatment plans that make sense before anything moves forward.",
+      },
+      "why-choose-us": {
+        variantKey: "default",
+        heading: "What patients value in this office",
+        items: [
+          {
+            title: "Clear explanations",
+            body: "Visits focus on what is happening, what needs attention now, and what can be planned later.",
+          },
+          {
+            title: "Comfortable appointments",
+            body: "The office experience is designed to feel calm, organized, and easy to navigate from check-in to follow-up.",
+          },
+          {
+            title: "Practical treatment planning",
+            body: "Recommendations stay grounded in your needs, your timeline, and the next sensible step.",
+          },
+        ],
+      },
+      process: {
+        variantKey: "default",
+        heading: "What to expect at your first visit",
+        items: [
+          {
+            title: "Start with a clear exam",
+            body: "Your visit begins with a conversation about concerns, priorities, and the reason you came in.",
+          },
+          {
+            title: "Review findings together",
+            body: "You will walk through what the exam shows and what options make sense before any bigger treatment decisions.",
+          },
+          {
+            title: "Leave with a next step",
+            body: "Whether you need routine care or restorative work, the plan should feel clear before you leave the office.",
+          },
+        ],
+      },
+      gallery: {
+        variantKey: "default",
+        heading: "A clean, modern office designed for comfortable visits",
+        body:
+          "From the treatment rooms to the front desk, the office should feel bright, organized, and easy to settle into.",
+        items: [
+          {
+            title: "Bright treatment rooms",
+            body: "Clean spaces and modern equipment help visits feel calm and straightforward.",
+          },
+          {
+            title: "Welcoming reception",
+            body: "The front desk and waiting area are designed to feel polished without feeling cold or corporate.",
+          },
+          {
+            title: "Comfort-focused details",
+            body: "Small touches throughout the office support a smoother experience from arrival to checkout.",
+          },
+        ],
+      },
+      faq: {
+        variantKey: "default",
+        heading: "Questions before your first visit",
+        faqItems: [
+          {
+            question: "What happens at a first appointment?",
+            answer:
+              "Most first visits include an exam, a conversation about concerns or goals, and a clear review of what comes next.",
+          },
+          {
+            question: "How do I know if I need treatment right away?",
+            answer:
+              "The visit should make it clear what needs attention now, what can be monitored, and what options are available before scheduling more involved care.",
+          },
+        ],
+      },
       contact: {
         variantKey: "default",
         heading: "Schedule your visit",
