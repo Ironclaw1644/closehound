@@ -3,14 +3,19 @@ import test from "node:test";
 
 import { buildBlueCollarPreviewModel } from "@/lib/template-system/blue-collar-preview";
 import { BLUE_COLLAR_SERVICE_FAMILY } from "@/lib/template-system/families/blue-collar-service";
+import { CLINICAL_CARE_FAMILY } from "@/lib/template-system/families/clinical-care";
 import { HEALTH_WELLNESS_FAMILY } from "@/lib/template-system/families/health-wellness";
+import { buildDentalPreviewModel } from "@/lib/template-system/dental-preview";
 import { buildMedSpaPreviewModel } from "@/lib/template-system/med-spa-preview";
+import { DENTAL_NICHE_TEMPLATE } from "@/lib/template-system/niches/dental";
 import { MED_SPA_NICHE_TEMPLATE } from "@/lib/template-system/niches/med-spa";
 import { ROOFING_NICHE_TEMPLATE } from "@/lib/template-system/niches/roofing";
 import { resolveTemplateRender } from "@/lib/template-system/resolver";
+import { DENTAL_SEED_BUSINESS } from "@/lib/template-system/seeds/dental-seed";
 import { MED_SPA_SEED_BUSINESS } from "@/lib/template-system/seeds/med-spa-seed";
 import { ROOFING_SEED_BUSINESS } from "@/lib/template-system/seeds/roofing-seed";
 import { buildTemplateCopyInventory } from "@/lib/template-system/copy-review/inventory";
+import { TEMPLATE_COPY_REVIEW_TEMPLATES } from "@/lib/template-system/copy-review/registry";
 import {
   __resetTemplateCopyReviewStateForTests,
   buildTemplateCopyReviewSummary,
@@ -32,6 +37,23 @@ async function buildRoofingInventory() {
     templateKey: ROOFING_NICHE_TEMPLATE.key,
     familyKey: BLUE_COLLAR_SERVICE_FAMILY.key,
     renderer: "blue-collar",
+    previewModel: preview,
+  });
+}
+
+async function buildDentalInventory() {
+  const render = resolveTemplateRender({
+    family: CLINICAL_CARE_FAMILY,
+    template: DENTAL_NICHE_TEMPLATE,
+    seed: DENTAL_SEED_BUSINESS,
+    sampleMode: "strict",
+  });
+  const preview = buildDentalPreviewModel(render);
+
+  return buildTemplateCopyInventory({
+    templateKey: DENTAL_NICHE_TEMPLATE.key,
+    familyKey: CLINICAL_CARE_FAMILY.key,
+    renderer: "clinical-care",
     previewModel: preview,
   });
 }
@@ -118,6 +140,57 @@ test("copy inventory extracts visible med spa slots in page order", () => {
     ),
     true
   );
+});
+
+test("copy inventory extracts visible dental slots in page order", async () => {
+  const render = resolveTemplateRender({
+    family: CLINICAL_CARE_FAMILY,
+    template: DENTAL_NICHE_TEMPLATE,
+    seed: DENTAL_SEED_BUSINESS,
+    sampleMode: "strict",
+  });
+  const preview = buildDentalPreviewModel(render);
+  const inventory = buildTemplateCopyInventory({
+    templateKey: DENTAL_NICHE_TEMPLATE.key,
+    familyKey: CLINICAL_CARE_FAMILY.key,
+    renderer: "clinical-care",
+    previewModel: preview,
+  });
+
+  assert.equal(inventory[0]?.slotRole, "hero-meta");
+  assert.equal(inventory[1]?.slotRole, "hero-heading");
+  assert.equal(inventory[2]?.slotRole, "hero-body");
+  assert.equal(inventory.some((slot) => slot.slotRole === "primary-cta-label"), true);
+  assert.equal(inventory.some((slot) => slot.slotRole === "section-heading"), true);
+  assert.equal(inventory.some((slot) => slot.slotRole === "card-title"), true);
+  assert.equal(
+    inventory.some((slot) => slot.slotRole === "faq-answer"),
+    (preview.faq?.items.length ?? 0) > 0
+  );
+  assert.equal(
+    inventory.some((slot) => slot.currentText.includes("Harbor Point Dental")),
+    true
+  );
+  assert.equal(
+    inventory.some((slot) =>
+      slot.currentText.includes("General dentistry with clear guidance and comfortable visits")
+    ),
+    true
+  );
+  assert.equal(
+    inventory.some((slot) => slot.currentText.includes("Schedule Visit")),
+    true
+  );
+});
+
+test("template copy review registry exposes dental archetype metadata", () => {
+  const config = TEMPLATE_COPY_REVIEW_TEMPLATES.find(
+    (entry) => entry.templateKey === "dental-v1"
+  );
+
+  assert.equal(config?.familyKey, "clinical-care");
+  assert.equal(config?.label, "Dental");
+  assert.equal(config?.previewPath, "/preview/templates/dental-archetype");
 });
 
 test("copy review state defaults to unreviewed for untouched inventory", async () => {

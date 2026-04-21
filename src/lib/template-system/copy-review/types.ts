@@ -1,4 +1,5 @@
 import type { BlueCollarPreviewModel } from "@/lib/template-system/blue-collar-preview";
+import type { DentalPreviewModel } from "@/lib/template-system/dental-preview";
 import type { HealthWellnessPreviewModel } from "@/lib/template-system/health-wellness-preview";
 import type { SectionKey } from "@/lib/template-system/types";
 
@@ -55,4 +56,10 @@ export type TemplateCopyInventoryInput =
       familyKey: string;
       renderer: "health-wellness";
       previewModel: HealthWellnessPreviewModel;
+    }
+  | {
+      templateKey: string;
+      familyKey: string;
+      renderer: "clinical-care";
+      previewModel: DentalPreviewModel;
     };

@@ -1,4 +1,5 @@
 import type { BlueCollarPreviewModel } from "@/lib/template-system/blue-collar-preview";
+import type { DentalPreviewModel } from "@/lib/template-system/dental-preview";
 import type { HealthWellnessPreviewModel } from "@/lib/template-system/health-wellness-preview";
 import type {
   TemplateCopyInventory,
@@ -286,11 +287,116 @@ function collectHealthWellnessInventory(input: {
   return inventory;
 }
 
+function collectClinicalCareInventory(input: {
+  templateKey: string;
+  familyKey: string;
+  previewModel: DentalPreviewModel;
+}) {
+  const { inventory, pushSlot } = createCollector(input);
+  const model = input.previewModel;
+  const visibleSectionKeys = new Set(model.sectionKeys);
+
+  pushSlot("hero", "hero.meta.service-area", "hero-meta", model.serviceAreaLabel);
+  pushSlot("hero", "hero.heading", "hero-heading", model.hero.heading);
+  pushSlot("hero", "hero.body", "hero-body", model.hero.body);
+  pushSlot(
+    "hero",
+    "hero.cta.primary.label",
+    "primary-cta-label",
+    model.hero.primaryCta.label
+  );
+  pushSlot(
+    "hero",
+    "hero.cta.secondary.label",
+    "secondary-cta-label",
+    model.hero.secondaryCta?.label
+  );
+
+  if (visibleSectionKeys.has("services")) {
+    for (const [index, item] of model.featuredServices.entries()) {
+      pushSlot("services", `services.items.${index}.title`, "card-title", item.title);
+      pushSlot("services", `services.items.${index}.body`, "card-body", item.body);
+    }
+  }
+
+  if (visibleSectionKeys.has("about") && model.about) {
+    pushSlot("about", "about.heading", "section-heading", model.about.heading);
+    pushSlot("about", "about.body", "section-body", model.about.body);
+  }
+
+  if (visibleSectionKeys.has("why-choose-us") && model.whyChooseUs) {
+    pushSlot(
+      "why-choose-us",
+      "why-choose-us.heading",
+      "section-heading",
+      model.whyChooseUs.heading
+    );
+    for (const [index, item] of model.whyChooseUs.items.entries()) {
+      pushSlot(
+        "why-choose-us",
+        `why-choose-us.items.${index}.title`,
+        "card-title",
+        item.title
+      );
+      pushSlot(
+        "why-choose-us",
+        `why-choose-us.items.${index}.body`,
+        "card-body",
+        item.body
+      );
+    }
+  }
+
+  if (visibleSectionKeys.has("process") && model.process) {
+    pushSlot("process", "process.heading", "section-heading", model.process.heading);
+    for (const [index, item] of model.process.items.entries()) {
+      pushSlot("process", `process.items.${index}.title`, "card-title", item.title);
+      pushSlot("process", `process.items.${index}.body`, "card-body", item.body);
+    }
+  }
+
+  if (visibleSectionKeys.has("gallery") && model.gallery) {
+    pushSlot("gallery", "gallery.heading", "section-heading", model.gallery.heading);
+    pushSlot("gallery", "gallery.body", "section-body", model.gallery.body);
+    for (const [index, item] of model.gallery.cards.entries()) {
+      pushSlot("gallery", `gallery.items.${index}.title`, "card-title", item.title);
+      pushSlot("gallery", `gallery.items.${index}.body`, "card-body", item.body);
+    }
+  }
+
+  if (visibleSectionKeys.has("faq") && model.faq) {
+    pushSlot("faq", "faq.heading", "section-heading", model.faq.heading);
+    for (const [index, item] of model.faq.items.entries()) {
+      pushSlot("faq", `faq.items.${index}.question`, "faq-question", item.question);
+      pushSlot("faq", `faq.items.${index}.answer`, "faq-answer", item.answer);
+    }
+  }
+
+  if (visibleSectionKeys.has("contact")) {
+    pushSlot("contact", "contact.heading", "section-heading", model.contact.heading);
+    pushSlot("contact", "contact.body", "section-body", model.contact.body);
+    pushSlot(
+      "contact",
+      "contact.cta.label",
+      "primary-cta-label",
+      model.contact.cta?.label
+    );
+    pushSlot("contact", "contact.phone", "contact-detail", model.contact.phone);
+    pushSlot("contact", "contact.email", "contact-detail", model.contact.email);
+  }
+
+  return inventory;
+}
+
 export function buildTemplateCopyInventory(
   input: TemplateCopyInventoryInput
 ): TemplateCopySlot[] {
   if (input.renderer === "blue-collar") {
     return collectBlueCollarInventory(input);
+  }
+
+  if (input.renderer === "clinical-care") {
+    return collectClinicalCareInventory(input);
   }
 
   return collectHealthWellnessInventory(input);
