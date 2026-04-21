@@ -1,6 +1,8 @@
 import { extractPreviewPath } from "@/lib/preview";
+import { CLINICAL_CARE_FAMILY } from "@/lib/template-system/families/clinical-care";
 import { BLUE_COLLAR_SERVICE_FAMILY } from "@/lib/template-system/families/blue-collar-service";
 import { HEALTH_WELLNESS_FAMILY } from "@/lib/template-system/families/health-wellness";
+import { DENTAL_NICHE_TEMPLATE } from "@/lib/template-system/niches/dental";
 import { HVAC_NICHE_TEMPLATE } from "@/lib/template-system/niches/hvac";
 import { MED_SPA_NICHE_TEMPLATE } from "@/lib/template-system/niches/med-spa";
 import { PLUMBING_NICHE_TEMPLATE } from "@/lib/template-system/niches/plumbing";
@@ -8,6 +10,7 @@ import { ROOFING_NICHE_TEMPLATE } from "@/lib/template-system/niches/roofing";
 import { buildBlueCollarPreviewModel } from "@/lib/template-system/blue-collar-preview";
 import { buildHealthWellnessPreviewModel } from "@/lib/template-system/health-wellness-preview";
 import { resolveTemplateRender } from "@/lib/template-system/resolver";
+import { DENTAL_SEED_BUSINESS } from "@/lib/template-system/seeds/dental-seed";
 import { HVAC_SEED_BUSINESS } from "@/lib/template-system/seeds/hvac-seed";
 import { MED_SPA_SEED_BUSINESS } from "@/lib/template-system/seeds/med-spa-seed";
 import { PLUMBING_SEED_BUSINESS } from "@/lib/template-system/seeds/plumbing-seed";
@@ -15,7 +18,7 @@ import { ROOFING_SEED_BUSINESS } from "@/lib/template-system/seeds/roofing-seed"
 import type { Lead } from "@/types/lead";
 import type { LeadRecord, RenderPackage } from "@/lib/template-system/types";
 
-type SupportedIndustry = "roofing" | "hvac" | "plumbing" | "med-spa";
+type SupportedIndustry = "roofing" | "hvac" | "plumbing" | "med-spa" | "dental";
 
 type SupportedPreviewResult =
   | {
@@ -79,6 +82,15 @@ const MED_SPA_INDUSTRY_ALIASES = new Set([
   "aesthetic med spa",
 ]);
 
+const DENTAL_INDUSTRY_ALIASES = new Set([
+  "dentist",
+  "dental",
+  "general dentist",
+  "family dentist",
+  "family dentistry",
+  "general dentistry",
+]);
+
 function canonicalizeIndustry(value: string): string {
   return value
     .trim()
@@ -102,13 +114,13 @@ function buildLeadRecord(
         ? "Request HVAC Service"
         : industry === "plumbing"
           ? "Call Now"
+          : industry === "dental"
+            ? "Schedule Visit"
           : "Book Consultation";
   const primaryCtaHref =
     industry === "plumbing" && lead.phone?.trim()
       ? `tel:${lead.phone.trim()}`
-      : industry === "med-spa"
-        ? "#contact"
-        : "#contact";
+      : "#contact";
 
   return {
     source: "closehound-lead",
@@ -122,12 +134,16 @@ function buildLeadRecord(
       secondaryCtaLabel:
         industry === "plumbing"
           ? "Request Estimate"
+          : industry === "dental"
+            ? "View Services"
           : industry === "med-spa"
             ? "View Treatments"
             : null,
       secondaryCtaHref:
         industry === "plumbing"
           ? "#contact"
+          : industry === "dental"
+            ? "#services"
           : industry === "med-spa"
             ? "#services"
             : null,
@@ -167,7 +183,9 @@ function resolveSupportedPreview(
         ? HVAC_NICHE_TEMPLATE
         : templateKey === "plumbing"
           ? PLUMBING_NICHE_TEMPLATE
-          : MED_SPA_NICHE_TEMPLATE;
+          : templateKey === "dental"
+            ? DENTAL_NICHE_TEMPLATE
+            : MED_SPA_NICHE_TEMPLATE;
   const seed =
     templateKey === "roofing"
       ? ROOFING_SEED_BUSINESS
@@ -175,9 +193,13 @@ function resolveSupportedPreview(
         ? HVAC_SEED_BUSINESS
         : templateKey === "plumbing"
           ? PLUMBING_SEED_BUSINESS
-          : MED_SPA_SEED_BUSINESS;
+          : templateKey === "dental"
+            ? DENTAL_SEED_BUSINESS
+            : MED_SPA_SEED_BUSINESS;
   const family =
-    templateKey === "med-spa"
+    templateKey === "dental"
+      ? CLINICAL_CARE_FAMILY
+      : templateKey === "med-spa"
       ? HEALTH_WELLNESS_FAMILY
       : BLUE_COLLAR_SERVICE_FAMILY;
 
@@ -229,6 +251,10 @@ export function normalizeSupportedIndustry(
     return "med-spa";
   }
 
+  if (DENTAL_INDUSTRY_ALIASES.has(value)) {
+    return "dental";
+  }
+
   return null;
 }
 
@@ -253,6 +279,10 @@ export function resolveLeadTemplatePreview(
     return resolveSupportedPreview("med-spa", lead);
   }
 
+  if (normalizedIndustry === "dental") {
+    return resolveSupportedPreview("dental", lead);
+  }
+
   return {
     supported: false,
     reason: "UNSUPPORTED_INDUSTRY",
@@ -263,7 +293,7 @@ export function buildLeadPreviewView(
   lead: LeadWithOptionalPreviewFields,
   resolver: (lead: LeadWithOptionalPreviewFields) => SupportedPreviewResult = resolveLeadTemplatePreview
 ) {
-  if (lead.status !== "generated") {
+  if (lead.status === "new") {
     return {
       kind: "legacy" as const,
       reason: "LEAD_NOT_READY" as const,
@@ -289,7 +319,17 @@ export function buildLeadPreviewViewWithResolver(
   }
 
   if (resolvedPreview.familyKey !== BLUE_COLLAR_SERVICE_FAMILY.key) {
-    if (resolvedPreview.familyKey === HEALTH_WELLNESS_FAMILY.key) {
+    if (
+      resolvedPreview.familyKey === HEALTH_WELLNESS_FAMILY.key ||
+      resolvedPreview.familyKey === CLINICAL_CARE_FAMILY.key
+    ) {
+      if (resolvedPreview.familyKey === CLINICAL_CARE_FAMILY.key) {
+        return {
+          kind: "clinical-care" as const,
+          renderPackage: resolvedPreview.renderPackage,
+        };
+      }
+
       return {
         kind: "health-wellness" as const,
         model: buildHealthWellnessPreviewModel(resolvedPreview.renderPackage),

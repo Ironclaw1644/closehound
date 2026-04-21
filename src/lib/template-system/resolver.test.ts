@@ -61,6 +61,7 @@ import { PLUMBING_SEED_BUSINESS } from "@/lib/template-system/seeds/plumbing-see
 import { ROOFING_SEED_BUSINESS } from "@/lib/template-system/seeds/roofing-seed";
 import type { RenderPackage, SampleMode, SectionKey } from "@/lib/template-system/types";
 import { resolveArchetypeBatchSelection } from "@/lib/template-system/images/selection";
+import type { Lead } from "@/types/lead";
 
 async function loadBlueCollarPreviewTemplate() {
   const sourceUrl = new URL(
@@ -765,6 +766,14 @@ test("supported lead preview helper normalizes med spa variants", () => {
   assert.equal(normalizeSupportedIndustry("aesthetic med spa"), "med-spa");
 });
 
+test("supported-industry helper normalizes dental variants", () => {
+  assert.equal(normalizeSupportedIndustry("dentist"), "dental");
+  assert.equal(normalizeSupportedIndustry("General Dentist"), "dental");
+  assert.equal(normalizeSupportedIndustry("general dentistry"), "dental");
+  assert.equal(normalizeSupportedIndustry("family dentist"), "dental");
+  assert.equal(normalizeSupportedIndustry("family dentistry"), "dental");
+});
+
 test("supported-industry helper supports roofing hvac plumbing and med spa", () => {
   const roofing = resolveLeadTemplatePreview({
     id: "lead-1",
@@ -805,15 +814,21 @@ test("supported-industry helper supports roofing hvac plumbing and med spa", () 
     email: "service@steadyflowplumbing.com",
   } as never);
 
-  const medSpa = resolveLeadTemplatePreview({
+  const medSpaLead: Lead = {
     id: "lead-3d",
+    status: "generated",
     industry: "med spa",
     company_name: "North Hills Med Spa",
     city: "Raleigh",
-    state: "NC",
     phone: "(919) 555-0199",
-    email: "hello@northhillsmedspa.com",
-  } as never);
+    contact_email: "hello@northhillsmedspa.com",
+    preview_url: "https://preview.closehound.local/preview/north-hills-med-spa-1",
+    rating: null,
+    has_website: true,
+    created_at: "2026-04-21T00:00:00.000Z",
+  };
+
+  const medSpa = resolveLeadTemplatePreview(medSpaLead);
 
   assert.equal(roofing.supported, true);
   assert.equal(hvac.supported, true);
@@ -825,16 +840,114 @@ test("supported-industry helper supports roofing hvac plumbing and med spa", () 
   });
 });
 
-test("supported lead preview helper resolves med spa leads through template system", () => {
-  const result = resolveLeadTemplatePreview({
-    id: "lead-med-spa-1",
-    industry: "medical spa",
-    company_name: "Sample Med Spa",
+test("supported lead preview maps dental industry variants to dental-v1", () => {
+  const dentalLead: Lead = {
+    id: "lead-1",
+    status: "emailed",
+    industry: "dental",
+    company_name: "Harbor Point Dental",
+    city: "Raleigh",
+    phone: "(919) 555-0133",
+    contact_email: "hello@harborpointdental.com",
+    preview_url: "https://preview.closehound.local/preview/harbor-point-dental-1",
+    rating: null,
+    has_website: true,
+    created_at: "2026-04-21T00:00:00.000Z",
+  };
+
+  const match = resolveLeadTemplatePreview(dentalLead);
+
+  assert.equal(match.supported, true);
+  if (!match.supported) {
+    return;
+  }
+
+  assert.equal(match.templateKey, "dental-v1");
+  assert.equal(match.familyKey, "clinical-care");
+});
+
+test("supported lead preview rejects unsupported dental specialist variants", () => {
+  const match = resolveLeadTemplatePreview({
+    id: "lead-2",
+    industry: "Orthodontist",
+    company_name: "Braces First Orthodontics",
     city: "Raleigh",
     state: "NC",
-    phone: "(919) 555-0199",
-    email: "hello@example.com",
+    phone: "(919) 555-0110",
+    email: "hello@bracesfirstortho.com",
   } as never);
+
+  assert.equal(match.supported, false);
+});
+
+test("lead preview view keeps supported dental leads on the template-system path", () => {
+  const dentalLead: Lead = {
+    id: "lead-dental-view",
+    status: "emailed",
+    industry: "dental",
+    company_name: "Harbor Point Dental",
+    city: "Raleigh",
+    phone: "(919) 555-0133",
+    contact_email: "hello@harborpointdental.com",
+    preview_url: "https://preview.closehound.local/preview/harbor-point-dental-1",
+    rating: null,
+    has_website: true,
+    created_at: "2026-04-21T00:00:00.000Z",
+  };
+
+  const dentalView = buildLeadPreviewView(dentalLead);
+
+  assert.notEqual(dentalView.kind, "legacy");
+  if (dentalView.kind === "legacy") {
+    return;
+  }
+
+  assert.equal(dentalView.kind, "clinical-care");
+  assert.equal(dentalView.renderPackage.templateKey, "dental-v1");
+  assert.equal(dentalView.renderPackage.familyKey, "clinical-care");
+});
+
+test("new dental leads remain blocked before previewable lifecycle states", () => {
+  const dentalLead: Lead = {
+    id: "lead-dental-new",
+    status: "new",
+    industry: "dental",
+    company_name: "Harbor Point Dental",
+    city: "Raleigh",
+    phone: "(919) 555-0133",
+    contact_email: "hello@harborpointdental.com",
+    preview_url: "https://preview.closehound.local/preview/harbor-point-dental-2",
+    rating: null,
+    has_website: true,
+    created_at: "2026-04-21T00:00:00.000Z",
+  };
+
+  const dentalView = buildLeadPreviewView(dentalLead);
+
+  assert.equal(dentalView.kind, "legacy");
+  if (dentalView.kind !== "legacy") {
+    return;
+  }
+
+  assert.equal(dentalView.reason, "LEAD_NOT_READY");
+});
+
+test("supported lead preview helper resolves med spa leads through template system", () => {
+  const medSpaLead: Lead = {
+    id: "lead-med-spa-1",
+    status: "emailed",
+    industry: "med spa",
+    company_name: "Sample Med Spa",
+    city: "Raleigh",
+    phone: "(919) 555-0199",
+    contact_email: "hello@example.com",
+    preview_url: "https://preview.closehound.local/preview/sample-med-spa-1",
+    rating: null,
+    has_website: true,
+    created_at: "2026-04-21T00:00:00.000Z",
+  };
+
+  const result = resolveLeadTemplatePreview(medSpaLead);
 
   assert.equal(result.supported, true);
   if (!result.supported) {
@@ -852,16 +965,21 @@ test("supported lead preview helper resolves med spa leads through template syst
 });
 
 test("lead preview view routes med spa through the health-wellness renderer once supported", () => {
-  const medSpaView = buildLeadPreviewView({
+  const medSpaLead: Lead = {
     id: "lead-med-spa-view",
-    status: "generated",
-    industry: "medical spa",
+    status: "called",
+    industry: "med spa",
     company_name: "Sample Med Spa",
     city: "Raleigh",
     phone: "(919) 555-0199",
     contact_email: "hello@example.com",
     preview_url: "https://preview.closehound.local/preview/sample-med-spa-123",
-  } as never);
+    rating: null,
+    has_website: true,
+    created_at: "2026-04-21T00:00:00.000Z",
+  };
+
+  const medSpaView = buildLeadPreviewView(medSpaLead);
 
   assert.equal(medSpaView.kind, "health-wellness");
   if (medSpaView.kind !== "health-wellness") {

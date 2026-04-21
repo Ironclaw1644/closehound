@@ -12,6 +12,8 @@ export type ClosehoundLeadIndustry =
   | "roofing"
   | "HVAC"
   | "plumbing"
+  | "dental"
+  | "med spa"
   | "junk removal"
   | "mobile detailing"
 

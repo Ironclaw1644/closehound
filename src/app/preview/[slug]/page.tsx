@@ -5,9 +5,11 @@ import { buildBlueCollarPreviewModel } from "@/lib/template-system/blue-collar-p
 import { PALETTE_PRESETS } from "@/lib/palettes";
 import {
   buildLeadPreviewView,
+  resolveLeadTemplatePreview,
 } from "@/lib/template-system/lead-preview";
 import { requirePreviewSiteBySlug, getLeadById } from "@/lib/preview-sites";
 import { TYPOGRAPHY_PAIRINGS } from "@/lib/site-generator/typography";
+import type { RenderPackage } from "@/lib/template-system/types";
 import type { PreviewSite, PreviewSiteSectionContent } from "@/lib/site-generator";
 
 function getPalette(previewSite: PreviewSite) {
@@ -92,6 +94,93 @@ function PreviewSection({
   );
 }
 
+function renderClinicalCarePreview(renderPackage: RenderPackage) {
+  const hero = renderPackage.resolvedSections.hero;
+  const services = renderPackage.resolvedSections.services;
+  const contact = renderPackage.resolvedSections.contact;
+
+  return (
+    <main className="min-h-screen bg-[#f4f7f7] text-[#16333b]">
+      <div className="mx-auto max-w-6xl px-6 py-10 sm:px-10 sm:py-14">
+        <section className="rounded-[40px] border border-[#cfdcdf] bg-white px-8 py-10 shadow-[0_28px_90px_rgba(22,51,59,0.08)] sm:px-12 sm:py-14">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.34em] text-[#5e8d96]">
+            Clinical care preview
+          </p>
+          <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">
+            {hero.heading ?? hero.body ?? "Dental preview"}
+          </h1>
+          {hero.body ? (
+            <p className="mt-5 max-w-3xl text-lg leading-8 text-[#486068]">{hero.body}</p>
+          ) : null}
+          {hero.cta?.label ? (
+            <div className="mt-7">
+              <a
+                href="#contact"
+                className="inline-flex rounded-full bg-[#5e8d96] px-6 py-3 text-sm font-semibold text-white"
+              >
+                {hero.cta.label}
+              </a>
+            </div>
+          ) : null}
+        </section>
+
+        <div className="mt-8 grid gap-8">
+          <section className="rounded-[32px] border border-[#cfdcdf] bg-white p-8 shadow-[0_18px_60px_rgba(22,51,59,0.06)]">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#5e8d96]">
+              Services
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-[#16333b]">
+              {services.heading ?? "Services"}
+            </h2>
+            {services.body ? (
+              <p className="mt-4 max-w-3xl text-base leading-7 text-[#486068]">
+                {services.body}
+              </p>
+            ) : null}
+            {services.items?.length ? (
+              <div className="mt-6 grid gap-4 md:grid-cols-2">
+                {services.items.map((item, index) => (
+                  <article key={`${item.title ?? "service"}-${index}`} className="rounded-[24px] border border-[#dce7e8] bg-[#f8fbfb] p-5">
+                    {item.title ? (
+                      <h3 className="text-base font-semibold text-[#16333b]">{item.title}</h3>
+                    ) : null}
+                    <p className="mt-2 text-sm leading-6 text-[#486068]">{item.body}</p>
+                  </article>
+                ))}
+              </div>
+            ) : null}
+          </section>
+
+          <section
+            id="contact"
+            className="rounded-[32px] border border-[#16333b] bg-[#16333b] p-8 text-white shadow-[0_18px_60px_rgba(22,51,59,0.12)]"
+          >
+            <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-white/55">
+              Contact
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight">
+              {contact.heading ?? "Schedule a visit"}
+            </h2>
+            {contact.body ? (
+              <p className="mt-4 max-w-3xl text-base leading-7 text-white/75">{contact.body}</p>
+            ) : null}
+            {contact.cta?.label ? (
+              <div className="mt-7">
+                <a
+                  href="#contact"
+                  className="inline-flex rounded-full bg-white px-6 py-3 text-sm font-semibold text-[#16333b]"
+                >
+                  {contact.cta.label}
+                </a>
+              </div>
+            ) : null}
+          </section>
+        </div>
+      </div>
+    </main>
+  );
+}
+
 export default async function PreviewPage({
   params,
 }: {
@@ -101,7 +190,7 @@ export default async function PreviewPage({
   const lead = await getLeadById(slug);
 
   if (lead) {
-    const leadPreview = buildLeadPreviewView(lead);
+    const leadPreview = buildLeadPreviewView(lead, resolveLeadTemplatePreview);
 
     if (leadPreview.kind === "blue-collar") {
       return (
@@ -113,6 +202,10 @@ export default async function PreviewPage({
 
     if (leadPreview.kind === "health-wellness") {
       return <HealthWellnessPreviewTemplate model={leadPreview.model} />;
+    }
+
+    if (leadPreview.kind === "clinical-care") {
+      return renderClinicalCarePreview(leadPreview.renderPackage);
     }
 
     if (leadPreview.fallbackSlug) {

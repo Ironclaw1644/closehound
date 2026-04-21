@@ -5,6 +5,8 @@ export const INDUSTRY_OPTIONS = [
   { label: "Roofing", value: "roofing" },
   { label: "HVAC", value: "HVAC" },
   { label: "Plumbing", value: "plumbing" },
+  { label: "Dental", value: "dental" },
+  { label: "Med Spa", value: "med spa" },
   { label: "Junk Removal", value: "junk removal" },
   { label: "Mobile Detailing", value: "mobile detailing" },
 ] as const;
@@ -16,4 +18,13 @@ export const TARGET_INDUSTRIES = INDUSTRY_OPTIONS.filter(
   (option) => option.value !== "all"
 );
 
-export type LeadIndustry = (typeof TARGET_INDUSTRIES)[number]["value"];
+export type LeadIndustry =
+  | "handyman"
+  | "pressure washing"
+  | "roofing"
+  | "HVAC"
+  | "plumbing"
+  | "dental"
+  | "med spa"
+  | "junk removal"
+  | "mobile detailing";
