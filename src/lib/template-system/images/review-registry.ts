@@ -8,12 +8,14 @@ import { MED_SPA_VISUAL_SLOTS } from "@/lib/template-system/visual-slots/med-spa
 import { PLUMBING_VISUAL_SLOTS } from "@/lib/template-system/visual-slots/plumbing";
 import { ROOFING_VISUAL_SLOTS } from "@/lib/template-system/visual-slots/roofing";
 import { DENTAL_VISUAL_SLOTS } from "@/lib/template-system/visual-slots/dental";
+import { JUNK_REMOVAL_VISUAL_SLOTS } from "@/lib/template-system/visual-slots/junk-removal";
 
 export type TemplateImageReviewConfig = {
   templateKey:
     | "roofing-v1"
     | "hvac-v1"
     | "plumbing-v1"
+    | "junk-removal-v1"
     | "med-spa-v1"
     | "dental-v1";
   label: string;
@@ -48,6 +50,12 @@ export const TEMPLATE_IMAGE_REVIEW_TEMPLATES = [
     label: "Plumbing",
     previewPath: "/preview/templates/plumbing-archetype",
     slotDefinitions: toSlotDefinitions(PLUMBING_VISUAL_SLOTS),
+  },
+  {
+    templateKey: "junk-removal-v1",
+    label: "Junk Removal",
+    previewPath: "/preview/templates/junk-removal-archetype",
+    slotDefinitions: toSlotDefinitions(JUNK_REMOVAL_VISUAL_SLOTS),
   },
   {
     templateKey: "med-spa-v1",

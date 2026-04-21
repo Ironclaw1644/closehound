@@ -83,7 +83,7 @@ function collectBlueCollarInventory(input: {
     }
   }
 
-  if (visibleSectionKeys.has("why-choose-us")) {
+  if (visibleSectionKeys.has("why-choose-us") && model.whyChooseUs) {
     pushSlot(
       "why-choose-us",
       "why-choose-us.heading",
@@ -106,7 +106,7 @@ function collectBlueCollarInventory(input: {
     }
   }
 
-  if (visibleSectionKeys.has("process")) {
+  if (visibleSectionKeys.has("process") && model.process) {
     pushSlot("process", "process.heading", "section-heading", model.process.heading);
     for (const [index, item] of model.process.items.entries()) {
       pushSlot("process", `process.items.${index}.title`, "card-title", item.title);
@@ -114,7 +114,7 @@ function collectBlueCollarInventory(input: {
     }
   }
 
-  if (visibleSectionKeys.has("faq")) {
+  if (visibleSectionKeys.has("faq") && model.faq) {
     pushSlot("faq", "faq.heading", "section-heading", model.faq.heading);
     for (const [index, item] of model.faq.items.entries()) {
       pushSlot("faq", `faq.items.${index}.question`, "faq-question", item.question);
@@ -122,7 +122,7 @@ function collectBlueCollarInventory(input: {
     }
   }
 
-  if (visibleSectionKeys.has("service-area")) {
+  if (visibleSectionKeys.has("service-area") && model.serviceArea) {
     pushSlot(
       "service-area",
       "service-area.heading",
@@ -144,7 +144,7 @@ function collectBlueCollarInventory(input: {
       "contact",
       "contact.cta.label",
       "primary-cta-label",
-      model.contact.ctaLabel
+      model.contact.cta?.label
     );
     pushSlot("contact", "contact.phone", "contact-detail", model.contact.phone);
     pushSlot("contact", "contact.email", "contact-detail", model.contact.email);
@@ -262,7 +262,7 @@ function collectHealthWellnessInventory(input: {
       "contact",
       "contact.cta.label",
       "primary-cta-label",
-      model.contact.cta?.label ?? model.primaryCtaLabel
+      model.contact.cta?.label
     );
     pushSlot(
       "contact",

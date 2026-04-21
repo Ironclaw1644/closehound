@@ -8,10 +8,12 @@ import { HEALTH_WELLNESS_FAMILY } from "@/lib/template-system/families/health-we
 import { buildDentalPreviewModel } from "@/lib/template-system/dental-preview";
 import { buildMedSpaPreviewModel } from "@/lib/template-system/med-spa-preview";
 import { DENTAL_NICHE_TEMPLATE } from "@/lib/template-system/niches/dental";
+import { JUNK_REMOVAL_NICHE_TEMPLATE } from "@/lib/template-system/niches/junk-removal";
 import { MED_SPA_NICHE_TEMPLATE } from "@/lib/template-system/niches/med-spa";
 import { ROOFING_NICHE_TEMPLATE } from "@/lib/template-system/niches/roofing";
 import { resolveTemplateRender } from "@/lib/template-system/resolver";
 import { DENTAL_SEED_BUSINESS } from "@/lib/template-system/seeds/dental-seed";
+import { JUNK_REMOVAL_SEED_BUSINESS } from "@/lib/template-system/seeds/junk-removal-seed";
 import { MED_SPA_SEED_BUSINESS } from "@/lib/template-system/seeds/med-spa-seed";
 import { ROOFING_SEED_BUSINESS } from "@/lib/template-system/seeds/roofing-seed";
 import { buildTemplateCopyInventory } from "@/lib/template-system/copy-review/inventory";
@@ -54,6 +56,23 @@ async function buildDentalInventory() {
     templateKey: DENTAL_NICHE_TEMPLATE.key,
     familyKey: CLINICAL_CARE_FAMILY.key,
     renderer: "clinical-care",
+    previewModel: preview,
+  });
+}
+
+async function buildJunkRemovalInventory() {
+  const render = resolveTemplateRender({
+    family: BLUE_COLLAR_SERVICE_FAMILY,
+    template: JUNK_REMOVAL_NICHE_TEMPLATE,
+    seed: JUNK_REMOVAL_SEED_BUSINESS,
+    sampleMode: "strict",
+  });
+  const preview = buildBlueCollarPreviewModel(render);
+
+  return buildTemplateCopyInventory({
+    templateKey: JUNK_REMOVAL_NICHE_TEMPLATE.key,
+    familyKey: BLUE_COLLAR_SERVICE_FAMILY.key,
+    renderer: "blue-collar",
     previewModel: preview,
   });
 }
@@ -191,6 +210,41 @@ test("template copy review registry exposes dental archetype metadata", () => {
   assert.equal(config?.familyKey, "clinical-care");
   assert.equal(config?.label, "Dental");
   assert.equal(config?.previewPath, "/preview/templates/dental-archetype");
+});
+
+test("template copy review registry exposes junk removal archetype metadata", () => {
+  const config = TEMPLATE_COPY_REVIEW_TEMPLATES.find(
+    (entry) => entry.templateKey === "junk-removal-v1"
+  );
+
+  assert.equal(config?.familyKey, "blue-collar-service");
+  assert.equal(config?.label, "Junk Removal");
+  assert.equal(config?.previewPath, "/preview/templates/junk-removal-archetype");
+});
+
+test("copy inventory extracts visible junk removal slots in page order", async () => {
+  const inventory = await buildJunkRemovalInventory();
+
+  assert.equal(inventory[0]?.slotRole, "hero-meta");
+  assert.equal(inventory[1]?.slotRole, "hero-heading");
+  assert.equal(inventory[2]?.slotRole, "hero-body");
+  assert.equal(inventory.some((slot) => slot.slotRole === "primary-cta-label"), true);
+  assert.equal(
+    inventory.some((slot) => slot.currentText.includes("ClearPath Junk Removal")),
+    true
+  );
+  assert.equal(
+    inventory.some((slot) =>
+      slot.currentText.includes("Junk removal for pickups, cleanouts, and haul-away work")
+    ),
+    true
+  );
+  assert.equal(
+    inventory.some((slot) =>
+      slot.currentText.includes("Get a junk removal quote or call now")
+    ),
+    true
+  );
 });
 
 test("copy review state defaults to unreviewed for untouched inventory", async () => {

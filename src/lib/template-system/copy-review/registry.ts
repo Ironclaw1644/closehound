@@ -7,18 +7,26 @@ import { HEALTH_WELLNESS_FAMILY } from "@/lib/template-system/families/health-we
 import { buildHealthWellnessPreviewModel } from "@/lib/template-system/health-wellness-preview";
 import { DENTAL_NICHE_TEMPLATE } from "@/lib/template-system/niches/dental";
 import { HVAC_NICHE_TEMPLATE } from "@/lib/template-system/niches/hvac";
+import { JUNK_REMOVAL_NICHE_TEMPLATE } from "@/lib/template-system/niches/junk-removal";
 import { MED_SPA_NICHE_TEMPLATE } from "@/lib/template-system/niches/med-spa";
 import { PLUMBING_NICHE_TEMPLATE } from "@/lib/template-system/niches/plumbing";
 import { ROOFING_NICHE_TEMPLATE } from "@/lib/template-system/niches/roofing";
 import { resolveTemplateRender } from "@/lib/template-system/resolver";
 import { DENTAL_SEED_BUSINESS } from "@/lib/template-system/seeds/dental-seed";
 import { HVAC_SEED_BUSINESS } from "@/lib/template-system/seeds/hvac-seed";
+import { JUNK_REMOVAL_SEED_BUSINESS } from "@/lib/template-system/seeds/junk-removal-seed";
 import { MED_SPA_SEED_BUSINESS } from "@/lib/template-system/seeds/med-spa-seed";
 import { PLUMBING_SEED_BUSINESS } from "@/lib/template-system/seeds/plumbing-seed";
 import { ROOFING_SEED_BUSINESS } from "@/lib/template-system/seeds/roofing-seed";
 
 export type TemplateCopyReviewConfig = {
-  templateKey: "roofing-v1" | "hvac-v1" | "plumbing-v1" | "med-spa-v1" | "dental-v1";
+  templateKey:
+    | "roofing-v1"
+    | "hvac-v1"
+    | "plumbing-v1"
+    | "junk-removal-v1"
+    | "med-spa-v1"
+    | "dental-v1";
   familyKey: string;
   label: string;
   previewPath: string;
@@ -83,6 +91,27 @@ export const TEMPLATE_COPY_REVIEW_TEMPLATES = [
 
       return buildTemplateCopyInventory({
         templateKey: PLUMBING_NICHE_TEMPLATE.key,
+        familyKey: BLUE_COLLAR_SERVICE_FAMILY.key,
+        renderer: "blue-collar",
+        previewModel: buildBlueCollarPreviewModel(render),
+      });
+    },
+  },
+  {
+    templateKey: "junk-removal-v1",
+    familyKey: BLUE_COLLAR_SERVICE_FAMILY.key,
+    label: "Junk Removal",
+    previewPath: "/preview/templates/junk-removal-archetype",
+    buildInventory: () => {
+      const render = resolveTemplateRender({
+        family: BLUE_COLLAR_SERVICE_FAMILY,
+        template: JUNK_REMOVAL_NICHE_TEMPLATE,
+        seed: JUNK_REMOVAL_SEED_BUSINESS,
+        sampleMode: "strict",
+      });
+
+      return buildTemplateCopyInventory({
+        templateKey: JUNK_REMOVAL_NICHE_TEMPLATE.key,
         familyKey: BLUE_COLLAR_SERVICE_FAMILY.key,
         renderer: "blue-collar",
         previewModel: buildBlueCollarPreviewModel(render),

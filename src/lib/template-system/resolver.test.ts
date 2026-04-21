@@ -23,6 +23,7 @@ import { REASON_CODES } from "@/lib/template-system/reason-codes";
 import { DENTAL_NICHE_TEMPLATE } from "@/lib/template-system/niches/dental";
 import { HVAC_NICHE_TEMPLATE } from "@/lib/template-system/niches/hvac";
 import { MED_SPA_NICHE_TEMPLATE } from "@/lib/template-system/niches/med-spa";
+import { JUNK_REMOVAL_NICHE_TEMPLATE } from "@/lib/template-system/niches/junk-removal";
 import { PLUMBING_NICHE_TEMPLATE } from "@/lib/template-system/niches/plumbing";
 import { ROOFING_NICHE_TEMPLATE } from "@/lib/template-system/niches/roofing";
 import { buildBlueCollarPreviewModel } from "@/lib/template-system/blue-collar-preview";
@@ -42,10 +43,12 @@ import { buildTemplateImageStoragePath } from "@/lib/template-system/images/stor
 import {
   buildRoofingPromptBatch,
   buildDentalPromptBatch,
+  buildJunkRemovalPromptBatch,
   buildMedSpaPromptBatch,
   buildRoofingSlotPrompt,
 } from "@/lib/template-system/images/prompts";
 import { createRoofingGenerationBatch } from "@/lib/template-system/images/generate-roofing";
+import { createJunkRemovalGenerationBatch } from "@/lib/template-system/images/generate-junk-removal";
 import {
   ROOFING_VISUAL_SLOTS,
   getRoofingCandidateCountForSlot,
@@ -60,8 +63,13 @@ import {
   getMedSpaCandidateCountForSlot,
 } from "@/lib/template-system/visual-slots/med-spa";
 import { PLUMBING_VISUAL_SLOTS } from "@/lib/template-system/visual-slots/plumbing";
+import {
+  JUNK_REMOVAL_VISUAL_SLOTS,
+  getJunkRemovalCandidateCountForSlot,
+} from "@/lib/template-system/visual-slots/junk-removal";
 import { HVAC_SEED_BUSINESS } from "@/lib/template-system/seeds/hvac-seed";
 import { DENTAL_SEED_BUSINESS } from "@/lib/template-system/seeds/dental-seed";
+import { JUNK_REMOVAL_SEED_BUSINESS } from "@/lib/template-system/seeds/junk-removal-seed";
 import { MED_SPA_SEED_BUSINESS } from "@/lib/template-system/seeds/med-spa-seed";
 import { PLUMBING_SEED_BUSINESS } from "@/lib/template-system/seeds/plumbing-seed";
 import { ROOFING_SEED_BUSINESS } from "@/lib/template-system/seeds/roofing-seed";
@@ -197,6 +205,17 @@ test("roofing niche matches family and schema version", () => {
   );
 });
 
+test("junk removal niche matches blue-collar family and schema version", () => {
+  assert.equal(
+    JUNK_REMOVAL_NICHE_TEMPLATE.familyKey,
+    BLUE_COLLAR_SERVICE_FAMILY.key
+  );
+  assert.equal(
+    JUNK_REMOVAL_NICHE_TEMPLATE.expectedSchemaVersion,
+    BLUE_COLLAR_SERVICE_FAMILY.schemaVersion
+  );
+});
+
 test("dental niche matches clinical-care family and schema version", () => {
   assert.equal(DENTAL_NICHE_TEMPLATE.familyKey, CLINICAL_CARE_FAMILY.key);
   assert.equal(
@@ -303,6 +322,17 @@ test("dental prompt batch uses 3 hero candidates and 2 for non-hero slots", () =
   assert.equal(batch.filter((item) => item.slot === "service-action").length, 2);
 });
 
+test("junk removal prompt batch uses 3 hero candidates and 2 for non-hero slots", () => {
+  const batch = buildJunkRemovalPromptBatch({
+    familyKey: "blue-collar-service",
+    templateKey: "junk-removal-v1",
+    templateVersion: "1.0.0",
+  });
+
+  assert.equal(batch.filter((item) => item.slot === "hero").length, 3);
+  assert.equal(batch.filter((item) => item.slot === "service-action").length, 2);
+});
+
 test("roofing prompt builder includes slot intent and negative prompt", () => {
   const prompt = buildRoofingSlotPrompt({
     slot: "detail-closeup",
@@ -320,6 +350,18 @@ test("generation batch creation assigns one batch id per run", () => {
   const run = createRoofingGenerationBatch({
     familyKey: "blue-collar-service",
     templateKey: "roofing-v1",
+    templateVersion: "1.0.0",
+    createdBy: "test",
+  });
+
+  assert.equal(typeof run.generationBatchId, "string");
+  assert.equal(new Set(run.items.map((item) => item.generationBatchId)).size, 1);
+});
+
+test("junk removal generation batch creation assigns one batch id per run", () => {
+  const run = createJunkRemovalGenerationBatch({
+    familyKey: "blue-collar-service",
+    templateKey: "junk-removal-v1",
     templateVersion: "1.0.0",
     createdBy: "test",
   });
@@ -740,6 +782,33 @@ test("plumbing visual slot contract matches the roofing slot matrix", () => {
   );
 });
 
+test("junk removal visual slot contract matches the roofing slot matrix", () => {
+  assert.deepEqual(
+    JUNK_REMOVAL_VISUAL_SLOTS.map((slot) => slot.key),
+    ROOFING_VISUAL_SLOTS.map((slot) => slot.key)
+  );
+  assert.deepEqual(
+    JUNK_REMOVAL_VISUAL_SLOTS.filter((slot) => slot.required).map(
+      (slot) => slot.key
+    ),
+    ["hero", "service-action", "detail-closeup"]
+  );
+  assert.deepEqual(
+    JUNK_REMOVAL_VISUAL_SLOTS.map((slot) => ({
+      key: slot.key,
+      candidates: getJunkRemovalCandidateCountForSlot(slot.key),
+    })),
+    [
+      { key: "hero", candidates: 3 },
+      { key: "service-action", candidates: 2 },
+      { key: "detail-closeup", candidates: 2 },
+      { key: "team-or-workmanship", candidates: 2 },
+      { key: "workspace-or-site", candidates: 2 },
+      { key: "gallery-extra", candidates: 2 },
+    ]
+  );
+});
+
 test("med spa visual slot contract matches the archetype slot matrix", () => {
   assert.deepEqual(
     MED_SPA_VISUAL_SLOTS.map((slot) => slot.key),
@@ -826,6 +895,21 @@ test("supported-industry helper normalizes plumbing variants", () => {
   assert.equal(normalizeSupportedIndustry("residential plumbing"), "plumbing");
   assert.equal(normalizeSupportedIndustry("plumbing repair"), "plumbing");
   assert.equal(normalizeSupportedIndustry("water heater service"), "plumbing");
+});
+
+test("supported-industry helper normalizes junk removal variants", () => {
+  assert.equal(normalizeSupportedIndustry("junk removal"), "junk removal");
+  assert.equal(normalizeSupportedIndustry("Junk Hauling"), "junk removal");
+  assert.equal(
+    normalizeSupportedIndustry("junk hauling service"),
+    "junk removal"
+  );
+  assert.equal(normalizeSupportedIndustry("junk pickup"), "junk removal");
+  assert.equal(normalizeSupportedIndustry("haul away"), "junk removal");
+  assert.equal(normalizeSupportedIndustry("cleanout service"), "junk removal");
+  assert.equal(normalizeSupportedIndustry("property cleanout"), "junk removal");
+  assert.equal(normalizeSupportedIndustry("debris removal"), null);
+  assert.equal(normalizeSupportedIndustry("moving company"), null);
 });
 
 test("supported lead preview helper normalizes med spa variants", () => {
@@ -933,6 +1017,26 @@ test("supported lead preview maps dental industry variants to dental-v1", () => 
 
   assert.equal(match.templateKey, "dental-v1");
   assert.equal(match.familyKey, "clinical-care");
+});
+
+test("supported junk removal lead resolves to the blue-collar family and template", () => {
+  const supported = resolveLeadTemplatePreview({
+    id: "lead-jr-1",
+    industry: "junk hauling",
+    company_name: "ClearPath Junk Removal",
+    city: "Raleigh",
+    state: "NC",
+    phone: "(919) 555-0168",
+    email: "quotes@clearpathjunk.com",
+  } as never);
+
+  assert.equal(supported.supported, true);
+  if (!supported.supported) {
+    return;
+  }
+
+  assert.equal(supported.familyKey, BLUE_COLLAR_SERVICE_FAMILY.key);
+  assert.equal(supported.templateKey, JUNK_REMOVAL_NICHE_TEMPLATE.key);
 });
 
 test("supported lead preview rejects unsupported dental specialist variants", () => {
@@ -1102,13 +1206,52 @@ test("lead preview view uses the shared blue-collar path for plumbing leads", ()
     plumbingView.model.hero.heading,
     "Plumbing help for urgent repairs and new installations"
   );
-  assert.equal(plumbingView.model.contact.ctaLabel, "Call Now");
+  assert.deepEqual(plumbingView.model.contact.cta, {
+    label: "Call Now",
+    href: "tel:+16145550189",
+  });
   assert.equal(plumbingView.model.hero.primaryCta.label, "Call Now");
   assert.equal(plumbingView.model.hero.secondaryCta?.label, "Request Estimate");
   assert.equal(plumbingView.model.hero.secondaryCta?.href, "#contact");
   assert.deepEqual(
     plumbingView.model.services.items.map((item) => item.title),
     ["Immediate Needs", "Upgrades & Installations"]
+  );
+});
+
+test("lead preview view uses the shared blue-collar path for junk removal leads", () => {
+  const junkRemovalView = buildLeadPreviewView({
+    id: "lead-jr-2",
+    status: "generated",
+    industry: "junk removal",
+    company_name: "ClearPath Junk Removal",
+    city: "Raleigh",
+    phone: "(919) 555-0168",
+    contact_email: "quotes@clearpathjunk.com",
+  } as never);
+
+  assert.equal(junkRemovalView.kind, "blue-collar");
+  if (junkRemovalView.kind !== "blue-collar") {
+    return;
+  }
+
+  assert.equal(
+    junkRemovalView.model.hero.heading,
+    "Junk removal for pickups, cleanouts, and haul-away work"
+  );
+  assert.equal(junkRemovalView.model.hero.primaryCta.label, "Get a Quote");
+  assert.equal(junkRemovalView.model.hero.secondaryCta?.label, "Call Now");
+  assert.equal(
+    junkRemovalView.model.hero.secondaryCta?.href,
+    "tel:+19195550168"
+  );
+  assert.deepEqual(
+    junkRemovalView.model.services.items.map((item) => item.title),
+    [
+      "Home Pickups",
+      "Garage / Storage Cleanouts",
+      "Move-Out / Property Cleanups",
+    ]
   );
 });
 
@@ -1134,6 +1277,30 @@ test("buildLeadPreviewView falls back to legacy for unsafe plumbing renders", ()
   assert.equal(legacyView.kind, "legacy");
   assert.equal(legacyView.reason, "UNSAFE_RENDER");
   assert.equal(legacyView.fallbackSlug, "steady-flow-plumbing-columbus-123");
+});
+
+test("junk removal leads fall back to legacy when the render is unsafe", () => {
+  const legacyView = buildLeadPreviewView(
+    {
+      id: "lead-jr-3",
+      status: "generated",
+      industry: "junk removal",
+      company_name: "ClearPath Junk Removal",
+      city: "Raleigh",
+      phone: "(919) 555-0168",
+      contact_email: "quotes@clearpathjunk.com",
+      preview_url:
+        "https://preview.closehound.local/preview/clearpath-junk-removal-raleigh-123",
+    } as never,
+    () => ({
+      supported: false,
+      reason: "UNSAFE_RENDER" as const,
+    })
+  );
+
+  assert.equal(legacyView.kind, "legacy");
+  assert.equal(legacyView.reason, "UNSAFE_RENDER");
+  assert.equal(legacyView.fallbackSlug, "clearpath-junk-removal-raleigh-123");
 });
 
 test("lead preview view uses the shared blue-collar path only when render is safe", () => {
@@ -1569,6 +1736,61 @@ test("strict resolver suppresses absent plumbing proof claims", () => {
   );
 });
 
+test("junk removal seed business keeps unsupported proof pending", () => {
+  assert.equal(
+    JUNK_REMOVAL_SEED_BUSINESS.conditionalProof.sameDayPickup?.approvalStatus,
+    "pending"
+  );
+  assert.equal(
+    JUNK_REMOVAL_SEED_BUSINESS.conditionalProof.licensedAndInsured?.approvalStatus,
+    "pending"
+  );
+  assert.equal(
+    JUNK_REMOVAL_SEED_BUSINESS.conditionalProof.ecoFriendlyDisposal?.approvalStatus,
+    "pending"
+  );
+  assert.equal(
+    JUNK_REMOVAL_SEED_BUSINESS.conditionalProof.recyclingFirst?.approvalStatus,
+    "pending"
+  );
+  assert.equal(
+    JUNK_REMOVAL_SEED_BUSINESS.conditionalProof.donationDropOff?.approvalStatus,
+    "pending"
+  );
+  assert.equal(
+    JUNK_REMOVAL_SEED_BUSINESS.conditionalProof.upfrontPricingGuarantee?.approvalStatus,
+    "pending"
+  );
+  assert.equal(
+    JUNK_REMOVAL_SEED_BUSINESS.conditionalProof.sampleTestimonials?.approvalStatus,
+    "pending"
+  );
+});
+
+test("strict resolver suppresses unsupported junk removal proof claims", () => {
+  const render = resolveTemplateRender({
+    family: BLUE_COLLAR_SERVICE_FAMILY,
+    template: JUNK_REMOVAL_NICHE_TEMPLATE,
+    seed: JUNK_REMOVAL_SEED_BUSINESS,
+    sampleMode: "strict",
+  });
+
+  assert.equal(render.status.isPreviewSafe, true);
+  assert.equal(render.status.hasSuppressedClaims, true);
+  assert.deepEqual(
+    render.overrideAudit.suppressed.map((entry) => entry.field),
+    [
+      "sameDayPickup",
+      "licensedAndInsured",
+      "ecoFriendlyDisposal",
+      "recyclingFirst",
+      "donationDropOff",
+      "upfrontPricingGuarantee",
+      "sampleTestimonials",
+    ]
+  );
+});
+
 test("strict resolver suppresses absent med spa proof claims", () => {
   const render = resolveTemplateRender({
     family: HEALTH_WELLNESS_FAMILY,
@@ -1710,14 +1932,19 @@ test("blue-collar niches do not leak internal template language into authored co
       preview.hero.body,
       preview.services.heading,
       ...preview.services.items.map((item) => `${item.title ?? ""} ${item.body}`),
-      preview.whyChooseUs.heading,
-      ...preview.whyChooseUs.items.map((item) => `${item.title ?? ""} ${item.body}`),
-      preview.process.heading,
-      ...preview.process.items.map((item) => `${item.title ?? ""} ${item.body}`),
-      preview.faq.heading,
-      ...preview.faq.items.map((item) => `${item.question} ${item.answer}`),
-      preview.serviceArea.heading,
-      preview.serviceArea.body,
+      preview.whyChooseUs?.heading ?? "",
+      ...(preview.whyChooseUs?.items.map(
+        (item) => `${item.title ?? ""} ${item.body}`
+      ) ?? []),
+      preview.process?.heading ?? "",
+      ...(preview.process?.items.map(
+        (item) => `${item.title ?? ""} ${item.body}`
+      ) ?? []),
+      preview.faq?.heading ?? "",
+      ...(preview.faq?.items.map((item) => `${item.question} ${item.answer}`) ??
+        []),
+      preview.serviceArea?.heading ?? "",
+      preview.serviceArea?.body ?? "",
       preview.contact.heading,
       preview.contact.body,
     ].join(" ");
@@ -1934,13 +2161,52 @@ test("blue-collar preview model exposes roofing and hvac section content", () =>
     "Heating and cooling solutions you can trust"
   );
   assert.equal(
-    roofingModel.contact.ctaLabel,
+    roofingModel.contact.cta?.label,
     "Request a Roofing Quote"
   );
   assert.equal(
-    hvacModel.contact.ctaLabel,
+    hvacModel.contact.cta?.label,
     "Request HVAC Service"
   );
+});
+
+test("blue-collar preview model exposes junk removal icon metadata", () => {
+  const render = resolveTemplateRender({
+    family: BLUE_COLLAR_SERVICE_FAMILY,
+    template: JUNK_REMOVAL_NICHE_TEMPLATE,
+    seed: JUNK_REMOVAL_SEED_BUSINESS,
+    sampleMode: "strict",
+  });
+
+  const model = buildBlueCollarPreviewModel(render);
+
+  assert.equal(model.hero.badgeIcon, "truck-ramp-box");
+  assert.equal(model.hero.badgeLabel, "Local field crew");
+  assert.deepEqual(
+    model.services.items.map((item) => item.icon),
+    ["truck-ramp-box", "couch", "warehouse"]
+  );
+  assert.deepEqual(
+    model.services.items.map((item) => item.iconLabel),
+    ["Fast dispatch", "Scope by job", "Property-ready crews"]
+  );
+  assert.ok(model.whyChooseUs);
+  assert.deepEqual(
+    model.whyChooseUs.items.map((item) => item.icon),
+    ["building", "clipboard-check", "phone"]
+  );
+  assert.ok(model.process);
+  assert.deepEqual(
+    model.process.items.map((item) => item.icon),
+    ["circle-question", "clipboard-check", "truck-ramp-box"]
+  );
+  assert.deepEqual(
+    model.process.items.map((item) => item.iconLabel),
+    ["Review the job", "Quote the scope", "Work gets moving"]
+  );
+  assert.equal(model.serviceArea?.icon, "location-dot");
+  assert.equal(model.contact.phoneIcon, "phone");
+  assert.equal(model.faq?.icon, "circle-question");
 });
 
 test("shared blue-collar preview model surfaces grouped plumbing services", async () => {
@@ -1993,6 +2259,32 @@ test("shared blue-collar preview model surfaces grouped plumbing services", asyn
   );
 });
 
+test("shared blue-collar preview renders junk removal markup without emoji", async () => {
+  const render = resolveTemplateRender({
+    family: BLUE_COLLAR_SERVICE_FAMILY,
+    template: JUNK_REMOVAL_NICHE_TEMPLATE,
+    seed: JUNK_REMOVAL_SEED_BUSINESS,
+    sampleMode: "strict",
+  });
+
+  const model = buildBlueCollarPreviewModel(render);
+  const { BlueCollarPreviewTemplate } = await loadBlueCollarPreviewTemplate();
+  const html = renderToStaticMarkup(
+    createElement(BlueCollarPreviewTemplate, { model })
+  );
+
+  assert.ok(html.includes("Local field crew"));
+  assert.ok(html.includes("Fast dispatch"));
+  assert.ok(html.includes("Scope by job"));
+  assert.ok(html.includes("Property-ready crews"));
+  assert.ok(model.faq);
+  assert.ok(html.includes(model.faq.heading));
+  assert.equal(html.includes("🚚"), false);
+  assert.equal(html.includes("🛋️"), false);
+  assert.equal(html.includes("📍"), false);
+  assert.equal(html.includes("❓"), false);
+});
+
 test("shared blue-collar preview model exposes plumbing secondary CTA", () => {
   const render = resolveTemplateRender({
     family: BLUE_COLLAR_SERVICE_FAMILY,
@@ -2014,6 +2306,106 @@ test("shared blue-collar preview model exposes plumbing secondary CTA", () => {
   assert.equal(model.hero.primaryCta.href, "tel:+16145550189");
   assert.equal(model.hero.secondaryCta?.label, "Request Estimate");
   assert.equal(model.hero.secondaryCta?.href, "#contact");
+  assert.deepEqual(model.contact.cta, {
+    label: "Call Now",
+    href: "tel:+16145550189",
+  });
+});
+
+test("shared blue-collar preview contact CTA keeps call behavior in rendered markup", async () => {
+  const render = resolveTemplateRender({
+    family: BLUE_COLLAR_SERVICE_FAMILY,
+    template: PLUMBING_NICHE_TEMPLATE,
+    seed: PLUMBING_SEED_BUSINESS,
+    sampleMode: "strict",
+  });
+
+  const model = buildBlueCollarPreviewModel(render);
+  const { BlueCollarPreviewTemplate } = await loadBlueCollarPreviewTemplate();
+  const html = renderToStaticMarkup(
+    createElement(BlueCollarPreviewTemplate, { model })
+  );
+
+  assert.equal(model.contact.cta?.href, "tel:+16145550189");
+  assert.ok(html.includes('href="tel:+16145550189"'));
+});
+
+test("shared blue-collar preview hides contact CTA when label is missing", async () => {
+  const render = resolveTemplateRender({
+    family: BLUE_COLLAR_SERVICE_FAMILY,
+    template: ROOFING_NICHE_TEMPLATE,
+    seed: ROOFING_SEED_BUSINESS,
+    sampleMode: "strict",
+  });
+
+  const model = buildBlueCollarPreviewModel({
+    ...render,
+    resolvedSections: {
+      ...render.resolvedSections,
+      contact: {
+        ...render.resolvedSections.contact,
+        cta: undefined,
+      },
+    },
+  });
+  const { BlueCollarPreviewTemplate } = await loadBlueCollarPreviewTemplate();
+  const html = renderToStaticMarkup(
+    createElement(BlueCollarPreviewTemplate, { model })
+  );
+
+  assert.equal(model.contact.cta, null);
+  assert.equal(html.includes("Next step"), true);
+  assert.equal((html.match(/<a\b/g) ?? []).length, 1);
+});
+
+test("shared blue-collar preview model and component keep hidden optional sections hidden", async () => {
+  const render = resolveTemplateRender({
+    family: BLUE_COLLAR_SERVICE_FAMILY,
+    template: ROOFING_NICHE_TEMPLATE,
+    seed: ROOFING_SEED_BUSINESS,
+    sampleMode: "strict",
+  });
+
+  const model = buildBlueCollarPreviewModel({
+    ...render,
+    resolvedSections: {
+      ...render.resolvedSections,
+      "why-choose-us": {
+        ...render.resolvedSections["why-choose-us"],
+        visible: false,
+      },
+      process: {
+        ...render.resolvedSections.process,
+        visible: false,
+      },
+      faq: {
+        ...render.resolvedSections.faq,
+        visible: false,
+      },
+      "service-area": {
+        ...render.resolvedSections["service-area"],
+        visible: false,
+      },
+    },
+  });
+  const { BlueCollarPreviewTemplate } = await loadBlueCollarPreviewTemplate();
+  const html = renderToStaticMarkup(
+    createElement(BlueCollarPreviewTemplate, { model })
+  );
+
+  assert.equal(model.sectionKeys.includes("why-choose-us"), false);
+  assert.equal(model.sectionKeys.includes("process"), false);
+  assert.equal(model.sectionKeys.includes("faq"), false);
+  assert.equal(model.sectionKeys.includes("service-area"), false);
+  assert.equal(model.whyChooseUs, null);
+  assert.equal(model.process, null);
+  assert.equal(model.faq, null);
+  assert.equal(model.serviceArea, null);
+  assert.equal(html.includes("Why crews get hired"), false);
+  assert.equal(html.includes("Crew process"), false);
+  assert.equal(html.includes("Common questions"), false);
+  assert.equal(html.includes("Coverage"), false);
+  assert.equal(html.includes("Route notes"), false);
 });
 
 test("blue-collar preview model surfaces rendered hero image urls", () => {

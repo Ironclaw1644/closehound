@@ -58,7 +58,7 @@ function makeRecord(
 }
 
 test("review registry exposes supported template configs", () => {
-  assert.equal(TEMPLATE_IMAGE_REVIEW_TEMPLATES.length, 5);
+  assert.equal(TEMPLATE_IMAGE_REVIEW_TEMPLATES.length, 6);
   assert.equal(
     getTemplateImageReviewConfig("roofing-v1")?.previewPath,
     "/preview/templates/roofing-archetype"
@@ -70,6 +70,10 @@ test("review registry exposes supported template configs", () => {
   assert.equal(
     getTemplateImageReviewConfig("plumbing-v1")?.previewPath,
     "/preview/templates/plumbing-archetype"
+  );
+  assert.equal(
+    getTemplateImageReviewConfig("junk-removal-v1")?.previewPath,
+    "/preview/templates/junk-removal-archetype"
   );
   assert.equal(
     getTemplateImageReviewConfig("med-spa-v1")?.previewPath,

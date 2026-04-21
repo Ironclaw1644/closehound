@@ -18,6 +18,10 @@ import {
   DENTAL_VISUAL_SLOTS,
   getDentalCandidateCountForSlot,
 } from "@/lib/template-system/visual-slots/dental";
+import {
+  JUNK_REMOVAL_VISUAL_SLOTS,
+  getJunkRemovalCandidateCountForSlot,
+} from "@/lib/template-system/visual-slots/junk-removal";
 import type { ArchetypeVisualSlot } from "@/lib/template-system/images/types";
 
 const PROMPT_VERSION = "1.0.0";
@@ -184,5 +188,18 @@ export function buildDentalPromptBatch(
     ...input,
     slots: DENTAL_VISUAL_SLOTS,
     getCandidateCountForSlot: getDentalCandidateCountForSlot,
+  });
+}
+
+export type JunkRemovalPromptBatchInput = RoofingPromptBatchInput;
+export type JunkRemovalPromptBatchItem = RoofingPromptBatchItem;
+
+export function buildJunkRemovalPromptBatch(
+  input: JunkRemovalPromptBatchInput
+): JunkRemovalPromptBatchItem[] {
+  return buildPromptBatch({
+    ...input,
+    slots: JUNK_REMOVAL_VISUAL_SLOTS,
+    getCandidateCountForSlot: getJunkRemovalCandidateCountForSlot,
   });
 }
