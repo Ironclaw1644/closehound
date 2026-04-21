@@ -13,12 +13,14 @@ import { pathToFileURL } from "node:url";
 import ts from "typescript";
 
 import { BLUE_COLLAR_SERVICE_FAMILY } from "@/lib/template-system/families/blue-collar-service";
+import { CLINICAL_CARE_FAMILY } from "@/lib/template-system/families/clinical-care";
 import { HEALTH_WELLNESS_FAMILY } from "@/lib/template-system/families/health-wellness";
 import {
   normalizeSupportedIndustry,
   resolveLeadTemplatePreview,
 } from "@/lib/template-system/lead-preview";
 import { REASON_CODES } from "@/lib/template-system/reason-codes";
+import { DENTAL_NICHE_TEMPLATE } from "@/lib/template-system/niches/dental";
 import { HVAC_NICHE_TEMPLATE } from "@/lib/template-system/niches/hvac";
 import { MED_SPA_NICHE_TEMPLATE } from "@/lib/template-system/niches/med-spa";
 import { PLUMBING_NICHE_TEMPLATE } from "@/lib/template-system/niches/plumbing";
@@ -53,6 +55,7 @@ import {
 } from "@/lib/template-system/visual-slots/med-spa";
 import { PLUMBING_VISUAL_SLOTS } from "@/lib/template-system/visual-slots/plumbing";
 import { HVAC_SEED_BUSINESS } from "@/lib/template-system/seeds/hvac-seed";
+import { DENTAL_SEED_BUSINESS } from "@/lib/template-system/seeds/dental-seed";
 import { MED_SPA_SEED_BUSINESS } from "@/lib/template-system/seeds/med-spa-seed";
 import { PLUMBING_SEED_BUSINESS } from "@/lib/template-system/seeds/plumbing-seed";
 import { ROOFING_SEED_BUSINESS } from "@/lib/template-system/seeds/roofing-seed";
@@ -157,6 +160,42 @@ test("roofing niche matches family and schema version", () => {
   assert.equal(
     ROOFING_NICHE_TEMPLATE.expectedSchemaVersion,
     BLUE_COLLAR_SERVICE_FAMILY.schemaVersion
+  );
+});
+
+test("dental niche matches clinical-care family and schema version", () => {
+  assert.equal(DENTAL_NICHE_TEMPLATE.familyKey, CLINICAL_CARE_FAMILY.key);
+  assert.equal(
+    DENTAL_NICHE_TEMPLATE.expectedSchemaVersion,
+    CLINICAL_CARE_FAMILY.schemaVersion
+  );
+});
+
+test("clinical-care family keeps dental sample mode policy aligned", () => {
+  assert.deepEqual(CLINICAL_CARE_FAMILY.sampleModePolicy.allowedModes, [
+    "strict",
+    "preview-safe",
+    "seed-only",
+  ]);
+  assert.deepEqual(
+    CLINICAL_CARE_FAMILY.sampleModePolicy.sectionBehaviorByMode.strict,
+    { testimonials: "hide-unapproved", proofBar: "hide-unapproved" }
+  );
+  assert.deepEqual(
+    CLINICAL_CARE_FAMILY.sampleModePolicy.sectionBehaviorByMode["preview-safe"],
+    { testimonials: "hide-unapproved", proofBar: "hide-unapproved" }
+  );
+  assert.deepEqual(
+    CLINICAL_CARE_FAMILY.sampleModePolicy.sectionBehaviorByMode["seed-only"],
+    { testimonials: "allow-seed-labeled", proofBar: "allow-seed-labeled" }
+  );
+  assert.equal(
+    CLINICAL_CARE_FAMILY.sampleModePolicy.claimBehaviorByMode.strict.requiresApprovedEvidence,
+    true
+  );
+  assert.equal(
+    CLINICAL_CARE_FAMILY.sampleModePolicy.visualBehaviorByMode.strict.approvedAssetsOnly,
+    true
   );
 });
 
@@ -1108,6 +1147,21 @@ test("med spa seed business does not pre-approve fabricated proof", () => {
   );
 });
 
+test("dental seed business keeps unsupported proof in pending state", () => {
+  assert.equal(
+    DENTAL_SEED_BUSINESS.conditionalProof.insuranceAccepted?.approvalStatus,
+    "pending"
+  );
+  assert.equal(
+    DENTAL_SEED_BUSINESS.conditionalProof.sedationAvailable?.approvalStatus,
+    "pending"
+  );
+  assert.equal(
+    DENTAL_SEED_BUSINESS.conditionalProof.emergencyAvailability?.approvalStatus,
+    "pending"
+  );
+});
+
 test("plumbing seed business keeps the expected testimonial proof shape", () => {
   assert.equal(
     PLUMBING_SEED_BUSINESS.nicheTemplateKey,
@@ -1216,6 +1270,46 @@ test("strict resolver suppresses absent med spa proof claims", () => {
   );
   assert.equal(render.resolvedSections.hero.cta?.action, "consult");
   assert.equal(render.resolvedSections.contact.cta?.action, "consult");
+});
+
+test("strict resolver suppresses unsupported dental proof claims", () => {
+  const render = resolveTemplateRender({
+    family: CLINICAL_CARE_FAMILY,
+    template: DENTAL_NICHE_TEMPLATE,
+    seed: DENTAL_SEED_BUSINESS,
+    sampleMode: "strict",
+  });
+
+  assert.equal(render.status.isPreviewSafe, true);
+  assert.equal(render.status.hasSuppressedClaims, true);
+  assert.deepEqual(
+    render.overrideAudit.suppressed.map((entry) => entry.field),
+    ["insuranceAccepted", "sedationAvailable", "emergencyAvailability"]
+  );
+});
+
+test("strict dental render populates visible sections", () => {
+  const render = resolveTemplateRender({
+    family: CLINICAL_CARE_FAMILY,
+    template: DENTAL_NICHE_TEMPLATE,
+    seed: DENTAL_SEED_BUSINESS,
+    sampleMode: "strict",
+  });
+
+  assert.equal(render.resolvedSections.hero.visible, true);
+  assert.ok((render.resolvedSections.hero.heading ?? "").trim().length > 0);
+  assert.ok((render.resolvedSections.hero.body ?? "").trim().length > 0);
+  assert.equal(render.resolvedSections.services.visible, true);
+  assert.ok((render.resolvedSections.services.heading ?? "").trim().length > 0);
+  assert.ok((render.resolvedSections.services.items ?? []).length > 0);
+  assert.equal(render.resolvedSections.contact.visible, true);
+  assert.ok((render.resolvedSections.contact.heading ?? "").trim().length > 0);
+  assert.ok((render.resolvedSections.contact.body ?? "").trim().length > 0);
+  assert.ok(render.resolvedSections.contact.cta);
+  assert.equal(
+    render.resolvedFields.primaryPhone,
+    DENTAL_SEED_BUSINESS.businessProfile.primaryPhone
+  );
 });
 
 test("med spa preview model is consultation-led and treatment-curated", () => {
