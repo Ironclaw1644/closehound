@@ -26,6 +26,7 @@ import { MED_SPA_NICHE_TEMPLATE } from "@/lib/template-system/niches/med-spa";
 import { PLUMBING_NICHE_TEMPLATE } from "@/lib/template-system/niches/plumbing";
 import { ROOFING_NICHE_TEMPLATE } from "@/lib/template-system/niches/roofing";
 import { buildBlueCollarPreviewModel } from "@/lib/template-system/blue-collar-preview";
+import { buildDentalPreviewModel } from "@/lib/template-system/dental-preview";
 import { buildMedSpaPreviewModel } from "@/lib/template-system/med-spa-preview";
 import { buildLeadPreviewView } from "@/lib/template-system/lead-preview";
 import { resolveTemplateRender } from "@/lib/template-system/resolver";
@@ -83,6 +84,33 @@ async function loadBlueCollarPreviewTemplate() {
     path.join(process.cwd(), ".tmp-blue-collar-preview-")
   );
   const tempFilePath = path.join(tempDir, "blue-collar-preview.mjs");
+  writeFileSync(tempFilePath, outputText, "utf8");
+
+  try {
+    return await import(pathToFileURL(tempFilePath).href);
+  } finally {
+    rmSync(tempDir, { recursive: true, force: true });
+  }
+}
+
+async function loadDentalPreviewTemplate() {
+  const sourceUrl = new URL(
+    "../../components/site-templates/dental-preview.tsx",
+    import.meta.url
+  );
+  const source = readFileSync(sourceUrl, "utf8");
+  const { outputText } = ts.transpileModule(source, {
+    fileName: "dental-preview.tsx",
+    compilerOptions: {
+      target: ts.ScriptTarget.ES2022,
+      module: ts.ModuleKind.ESNext,
+      jsx: ts.JsxEmit.ReactJSX,
+      esModuleInterop: true,
+    },
+  });
+
+  const tempDir = mkdtempSync(path.join(process.cwd(), ".tmp-dental-preview-"));
+  const tempFilePath = path.join(tempDir, "dental-preview.mjs");
   writeFileSync(tempFilePath, outputText, "utf8");
 
   try {
@@ -1278,6 +1306,151 @@ test("dental seed business keeps unsupported proof in pending state", () => {
     DENTAL_SEED_BUSINESS.conditionalProof.emergencyAvailability?.approvalStatus,
     "pending"
   );
+});
+
+test("dental preview model exposes schedule-first CTA labels", () => {
+  const render = resolveTemplateRender({
+    family: CLINICAL_CARE_FAMILY,
+    template: DENTAL_NICHE_TEMPLATE,
+    seed: DENTAL_SEED_BUSINESS,
+    sampleMode: "strict",
+  });
+
+  const preview = buildDentalPreviewModel(render);
+
+  assert.equal(preview.hero.primaryCta.label, "Schedule Visit");
+  assert.equal(preview.hero.secondaryCta?.label, "View Services");
+  assert.equal(preview.sectionKeys.includes("gallery"), render.resolvedSections.gallery.visible);
+  if (render.resolvedSections.gallery.visible) {
+    assert.equal(
+      preview.gallery?.heading,
+      render.resolvedSections.gallery.heading ?? ""
+    );
+  } else {
+    assert.equal(preview.gallery, null);
+  }
+});
+
+test("dental preview model uses Font Awesome icon ids, not emoji", () => {
+  const render = resolveTemplateRender({
+    family: CLINICAL_CARE_FAMILY,
+    template: DENTAL_NICHE_TEMPLATE,
+    seed: DENTAL_SEED_BUSINESS,
+    sampleMode: "strict",
+  });
+
+  const preview = buildDentalPreviewModel(render);
+
+  assert.equal(preview.hero.badgeIcon, "tooth");
+  assert.equal(preview.featuredServices[0]?.icon, "shield-heart");
+});
+
+test("dental preview component renders clinical-modern sections without emoji", async () => {
+  const render = resolveTemplateRender({
+    family: CLINICAL_CARE_FAMILY,
+    template: DENTAL_NICHE_TEMPLATE,
+    seed: DENTAL_SEED_BUSINESS,
+    sampleMode: "strict",
+  });
+  const model = buildDentalPreviewModel(render);
+  const { DentalPreview } = await loadDentalPreviewTemplate();
+  const html = renderToStaticMarkup(createElement(DentalPreview, { model }));
+
+  assert.ok(html.includes("Schedule Visit"));
+  assert.ok(html.includes("View Services"));
+  assert.ok(html.includes("Dental services for prevention and restorative care"));
+  assert.equal(Boolean(model.faq), render.resolvedSections.faq.visible);
+  if (model.faq) {
+    assert.ok(html.includes(model.faq.heading));
+  }
+  assert.equal(html.includes("🦷"), false);
+});
+
+test("dental preview model and component keep hidden optional sections hidden", async () => {
+  const render = resolveTemplateRender({
+    family: CLINICAL_CARE_FAMILY,
+    template: DENTAL_NICHE_TEMPLATE,
+    seed: DENTAL_SEED_BUSINESS,
+    sampleMode: "strict",
+  });
+
+  const hiddenRender = {
+    ...render,
+    resolvedSections: {
+      ...render.resolvedSections,
+      about: {
+        ...render.resolvedSections.about,
+        visible: false,
+      },
+      "why-choose-us": {
+        ...render.resolvedSections["why-choose-us"],
+        visible: false,
+      },
+      process: {
+        ...render.resolvedSections.process,
+        visible: false,
+      },
+      gallery: {
+        ...render.resolvedSections.gallery,
+        visible: false,
+      },
+      faq: {
+        ...render.resolvedSections.faq,
+        visible: false,
+      },
+    },
+  };
+
+  const model = buildDentalPreviewModel(hiddenRender);
+  const { DentalPreview } = await loadDentalPreviewTemplate();
+  const html = renderToStaticMarkup(createElement(DentalPreview, { model }));
+
+  assert.equal(model.sectionKeys.includes("about"), false);
+  assert.equal(model.sectionKeys.includes("why-choose-us"), false);
+  assert.equal(model.sectionKeys.includes("process"), false);
+  assert.equal(model.sectionKeys.includes("gallery"), false);
+  assert.equal(model.sectionKeys.includes("faq"), false);
+  assert.equal(html.includes("About the office"), false);
+  assert.equal(html.includes("Why choose this practice"), false);
+  assert.equal(html.includes("Visit process"), false);
+  assert.equal(
+    html.includes("A clean, modern office designed for comfortable visits"),
+    false
+  );
+  assert.equal(html.includes("Questions before your first visit"), false);
+});
+
+test("dental contact CTA label and href stay aligned", () => {
+  const render = resolveTemplateRender({
+    family: CLINICAL_CARE_FAMILY,
+    template: DENTAL_NICHE_TEMPLATE,
+    seed: DENTAL_SEED_BUSINESS,
+    sampleMode: "strict",
+  });
+
+  const model = buildDentalPreviewModel({
+    ...render,
+    resolvedFields: {
+      ...render.resolvedFields,
+      primaryCtaLabel: "Schedule Visit",
+      primaryCtaHref: "#contact",
+    },
+    resolvedSections: {
+      ...render.resolvedSections,
+      contact: {
+        ...render.resolvedSections.contact,
+        cta: {
+          label: "Call the Office",
+          action: "call",
+        },
+      },
+    },
+  });
+
+  assert.deepEqual(model.contact.cta, {
+    label: "Call the Office",
+    href: "tel:(919) 555-0133",
+  });
 });
 
 test("plumbing seed business keeps the expected testimonial proof shape", () => {
