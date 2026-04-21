@@ -53,6 +53,27 @@ export type ApprovedCandidateSelection = Record<
   ArchetypeImageCandidateRecord | undefined
 >;
 
+export type TemplateImageBatchSummary = {
+  generationBatchId: string;
+  createdAt: string;
+};
+
+export type TemplateReviewSummary = {
+  templateKey: string;
+  latestBatchId: string | null;
+  requiredApprovedCount: number;
+  requiredTotalCount: number;
+  optionalApprovedCount: number;
+  optionalTotalCount: number;
+  isPreviewSafe: boolean;
+};
+
+export function hasRenderableTemplateImageAsset(
+  record: Pick<ArchetypeImageCandidateRecord, "assetUrl">
+) {
+  return Boolean(record.assetUrl?.trim());
+}
+
 type TemplateImageCandidateRow = {
   id: string;
   generation_batch_id: string;
@@ -88,6 +109,18 @@ export function buildCandidateGroupKey({
   slot,
 }: ArchetypeCandidateGroupKey) {
   return `${templateKey}::${generationBatchId}::${slot}`;
+}
+
+export function sortTemplateBatchesNewestFirst(
+  batches: readonly TemplateImageBatchSummary[]
+) {
+  return [...batches].sort((left, right) => {
+    if (left.createdAt !== right.createdAt) {
+      return right.createdAt.localeCompare(left.createdAt);
+    }
+
+    return right.generationBatchId.localeCompare(left.generationBatchId);
+  });
 }
 
 function mapRecordToInsert(
@@ -154,34 +187,46 @@ export function selectMostRecentlyApprovedTemplateImageBatch(
   records: readonly ArchetypeImageCandidateRecord[],
   templateKey: string
 ) {
-  const latestByBatch = new Map<string, ArchetypeImageCandidateRecord>();
+  const latestByBatch = new Map<
+    string,
+    {
+      batchId: string;
+      recencyKey: string;
+      record: ArchetypeImageCandidateRecord;
+    }
+  >();
 
   for (const record of records) {
     if (record.templateKey !== templateKey || record.status !== "approved") {
       continue;
     }
 
+    const recencyKey = record.approvalUpdatedAt ?? record.createdAt;
     const existing = latestByBatch.get(record.generationBatchId);
 
     if (
       !existing ||
-      record.createdAt > existing.createdAt ||
-      (record.createdAt === existing.createdAt &&
-        record.id.localeCompare(existing.id) > 0)
+      recencyKey > existing.recencyKey ||
+      (recencyKey === existing.recencyKey &&
+        record.id.localeCompare(existing.record.id) > 0)
     ) {
-      latestByBatch.set(record.generationBatchId, record);
+      latestByBatch.set(record.generationBatchId, {
+        batchId: record.generationBatchId,
+        recencyKey,
+        record,
+      });
     }
   }
 
   const latestBatch = Array.from(latestByBatch.values()).sort((left, right) => {
-    if (left.createdAt !== right.createdAt) {
-      return right.createdAt.localeCompare(left.createdAt);
+    if (left.recencyKey !== right.recencyKey) {
+      return right.recencyKey.localeCompare(left.recencyKey);
     }
 
-    return right.id.localeCompare(left.id);
+    return right.record.id.localeCompare(left.record.id);
   })[0];
 
-  return latestBatch?.generationBatchId ?? null;
+  return latestBatch?.batchId ?? null;
 }
 
 export function getApprovedTemplateImageCandidatesFromRecords(
@@ -220,6 +265,192 @@ function pickFirstApprovedCandidate(
   return candidates
     .filter((candidate) => candidate.status === "approved")
     .sort(sortApprovedCandidates)[0];
+}
+
+function sortCurrentApprovedCandidates(
+  left: ArchetypeImageCandidateRecord,
+  right: ArchetypeImageCandidateRecord
+) {
+  const leftKey = left.approvalUpdatedAt ?? left.createdAt;
+  const rightKey = right.approvalUpdatedAt ?? right.createdAt;
+
+  if (leftKey !== rightKey) {
+    return rightKey.localeCompare(leftKey);
+  }
+
+  if (left.candidateIndex !== right.candidateIndex) {
+    return left.candidateIndex - right.candidateIndex;
+  }
+
+  return right.id.localeCompare(left.id);
+}
+
+export function getCurrentApprovedTemplateImageCandidatesFromRecords(input: {
+  templateKey: string;
+  slotDefinitions: readonly ArchetypeImageSlotDefinition[];
+  records: readonly ArchetypeImageCandidateRecord[];
+}) {
+  const scopedRecords = input.records.filter(
+    (record) =>
+      record.templateKey === input.templateKey &&
+      record.status === "approved" &&
+      hasRenderableTemplateImageAsset(record)
+  );
+
+  const slotKeys =
+    input.slotDefinitions.map((slot) => slot.key) ??
+    Array.from(new Set(scopedRecords.map((record) => record.slot)));
+
+  const approvedBySlot: ApprovedCandidateSelection = {};
+
+  for (const slotKey of slotKeys) {
+    const approvedCandidate = scopedRecords
+      .filter((record) => record.slot === slotKey)
+      .sort(sortCurrentApprovedCandidates)[0];
+
+    if (approvedCandidate) {
+      approvedBySlot[slotKey] = approvedCandidate;
+    }
+  }
+
+  return approvedBySlot;
+}
+
+export function buildTemplateReviewSummaryFromRecords(input: {
+  templateKey: string;
+  slotDefinitions: readonly ArchetypeImageSlotDefinition[];
+  records: readonly ArchetypeImageCandidateRecord[];
+}): TemplateReviewSummary {
+  const approvedRecords = input.records.filter(
+    (record) =>
+      record.templateKey === input.templateKey &&
+      record.status === "approved" &&
+      hasRenderableTemplateImageAsset(record)
+  );
+
+  const latestBatchId = selectMostRecentlyApprovedTemplateImageBatch(
+    approvedRecords,
+    input.templateKey
+  );
+  const approvedSlots = new Set(approvedRecords.map((record) => record.slot));
+
+  let requiredApprovedCount = 0;
+  let optionalApprovedCount = 0;
+  let requiredTotalCount = 0;
+  let optionalTotalCount = 0;
+
+  for (const slot of input.slotDefinitions) {
+    const hasApproved = approvedSlots.has(slot.key);
+
+    if (slot.required) {
+      requiredTotalCount += 1;
+      if (hasApproved) {
+        requiredApprovedCount += 1;
+      }
+    } else {
+      optionalTotalCount += 1;
+      if (hasApproved) {
+        optionalApprovedCount += 1;
+      }
+    }
+  }
+
+  return {
+    templateKey: input.templateKey,
+    latestBatchId,
+    requiredApprovedCount,
+    requiredTotalCount,
+    optionalApprovedCount,
+    optionalTotalCount,
+    isPreviewSafe:
+      requiredTotalCount === 0 || requiredApprovedCount === requiredTotalCount,
+  };
+}
+
+export function applyApprovalMutation(
+  records: readonly ArchetypeImageCandidateRecord[],
+  input: { candidateId: string; approvedBy: string; approvedAt?: string }
+) {
+  const approvedAt = input.approvedAt ?? new Date().toISOString();
+  const target = records.find((record) => record.id === input.candidateId);
+
+  if (!target) {
+    throw new Error(`Unknown candidate id: ${input.candidateId}`);
+  }
+
+  if (!hasRenderableTemplateImageAsset(target)) {
+    throw new Error(
+      `Cannot approve candidate without a renderable asset URL: ${input.candidateId}`
+    );
+  }
+
+  return records.map((record) => {
+    if (record.id === target.id) {
+      return {
+        ...record,
+        status: "approved" as const,
+        approvalUpdatedAt: approvedAt,
+        approvalUpdatedBy: input.approvedBy,
+      };
+    }
+
+    if (
+      record.templateKey === target.templateKey &&
+      record.slot === target.slot &&
+      record.status === "approved"
+    ) {
+      return {
+        ...record,
+        status: "generated" as const,
+        approvalUpdatedAt: approvedAt,
+        approvalUpdatedBy: input.approvedBy,
+      };
+    }
+
+    return record;
+  });
+}
+
+export function applyRejectMutation(
+  records: readonly ArchetypeImageCandidateRecord[],
+  input: { candidateId: string; rejectedAt?: string; rejectedBy?: string }
+) {
+  const rejectedAt = input.rejectedAt ?? new Date().toISOString();
+  const target = records.find((record) => record.id === input.candidateId);
+
+  if (!target) {
+    throw new Error(`Unknown candidate id: ${input.candidateId}`);
+  }
+
+  const rejectedBy =
+    input.rejectedBy ?? target.approvalUpdatedBy ?? "internal-review";
+
+  return records.map((record) => {
+    if (record.id === target.id) {
+      return {
+        ...record,
+        status: "rejected" as const,
+        approvalUpdatedAt: rejectedAt,
+        approvalUpdatedBy: rejectedBy,
+      };
+    }
+
+    if (
+      target.status === "approved" &&
+      record.templateKey === target.templateKey &&
+      record.slot === target.slot &&
+      record.status === "approved"
+    ) {
+      return {
+        ...record,
+        status: "generated" as const,
+        approvalUpdatedAt: rejectedAt,
+        approvalUpdatedBy: rejectedBy,
+      };
+    }
+
+    return record;
+  });
 }
 
 export function pickApprovedCandidateBySlot(
@@ -319,6 +550,77 @@ export async function getMostRecentlyApprovedTemplateImageBatch(
   );
 }
 
+export async function listTemplateImageCandidatesByTemplate(
+  templateKey: string
+) {
+  if (!hasSupabaseAdminEnv()) {
+    return [];
+  }
+
+  const closehound = getSupabaseAdminClient().schema("closehound") as any;
+  const { data, error } = await closehound
+    .from("template_image_candidates")
+    .select("*")
+    .eq("template_key", templateKey)
+    .order("created_at", { ascending: false })
+    .order("candidate_index", { ascending: true });
+
+  if (error) {
+    throw new Error(`Failed to list template image candidates: ${error.message}`);
+  }
+
+  return ((data ?? []) as TemplateImageCandidateRow[]).map(
+    mapTemplateImageCandidateRow
+  );
+}
+
+export async function listTemplateImageBatchSummaries(templateKey: string) {
+  const records = await listTemplateImageCandidatesByTemplate(templateKey);
+  const byBatch = new Map<string, TemplateImageBatchSummary>();
+
+  for (const record of records) {
+    const existing = byBatch.get(record.generationBatchId);
+
+    if (!existing || record.createdAt > existing.createdAt) {
+      byBatch.set(record.generationBatchId, {
+        generationBatchId: record.generationBatchId,
+        createdAt: record.createdAt,
+      });
+    }
+  }
+
+  return sortTemplateBatchesNewestFirst(Array.from(byBatch.values()));
+}
+
+export async function listTemplateImageCandidatesForBatch(input: {
+  templateKey: string;
+  generationBatchId: string;
+}) {
+  const records = await listTemplateImageCandidatesByTemplate(input.templateKey);
+  return records.filter(
+    (record) => record.generationBatchId === input.generationBatchId
+  );
+}
+
+export async function listApprovedTemplateImageCandidates(templateKey: string) {
+  const records = await listTemplateImageCandidatesByTemplate(templateKey);
+  return records.filter(
+    (record) => record.status === "approved" && hasRenderableTemplateImageAsset(record)
+  );
+}
+
+export async function getCurrentApprovedTemplateImageCandidates(selection: {
+  templateKey: string;
+  slotDefinitions: readonly ArchetypeImageSlotDefinition[];
+}) {
+  const records = await listApprovedTemplateImageCandidates(selection.templateKey);
+  return getCurrentApprovedTemplateImageCandidatesFromRecords({
+    templateKey: selection.templateKey,
+    slotDefinitions: selection.slotDefinitions,
+    records,
+  });
+}
+
 export async function getApprovedTemplateImageCandidates(selection: {
   templateKey: string;
   generationBatchId: string;
@@ -400,55 +702,58 @@ export async function approveTemplateImageCandidate(input: {
   candidateId: string;
   approvedBy: string;
 }) {
-  const closehound = getSupabaseAdminClient().schema("closehound") as any;
-  const { data: found, error: findError } = await closehound
-    .from("template_image_candidates")
-    .select("*")
-    .eq("id", input.candidateId)
-    .limit(1)
-    .maybeSingle();
-
-  if (findError) {
-    throw findError;
+  if (!hasSupabaseAdminEnv()) {
+    throw new Error("Supabase admin environment is not configured.");
   }
 
-  if (!found) {
+  const closehound = getSupabaseAdminClient().schema("closehound") as any;
+  const { data, error } = await closehound.rpc(
+    "approve_template_image_candidate",
+    {
+      input_candidate_id: input.candidateId,
+      input_approved_by: input.approvedBy,
+    }
+  );
+
+  if (error) {
+    throw error;
+  }
+
+  const approved = Array.isArray(data) ? data[0] : data;
+
+  if (!approved) {
     throw new Error(`Template image candidate not found: ${input.candidateId}`);
   }
 
-  const approvalUpdatedAt = new Date().toISOString();
-
-  const { error: demoteError } = await closehound
-    .from("template_image_candidates")
-    .update({
-      status: "unused",
-      approval_updated_at: approvalUpdatedAt,
-      approval_updated_by: input.approvedBy,
-    })
-    .eq("template_key", found.template_key)
-    .eq("generation_batch_id", found.generation_batch_id)
-    .eq("slot", found.slot)
-    .eq("status", "approved");
-
-  if (demoteError) {
-    throw demoteError;
-  }
-
-  const { data: approved, error: approveError } = await closehound
-    .from("template_image_candidates")
-    .update({
-      status: "approved",
-      approval_updated_at: approvalUpdatedAt,
-      approval_updated_by: input.approvedBy,
-    })
-    .eq("id", input.candidateId)
-    .select("*")
-    .limit(1)
-    .single();
-
-  if (approveError) {
-    throw approveError;
-  }
-
   return mapTemplateImageCandidateRow(approved as TemplateImageCandidateRow);
+}
+
+export async function rejectTemplateImageCandidate(input: {
+  candidateId: string;
+  rejectedBy: string;
+}) {
+  if (!hasSupabaseAdminEnv()) {
+    throw new Error("Supabase admin environment is not configured.");
+  }
+
+  const closehound = getSupabaseAdminClient().schema("closehound") as any;
+  const { data, error } = await closehound.rpc(
+    "reject_template_image_candidate",
+    {
+      input_candidate_id: input.candidateId,
+      input_rejected_by: input.rejectedBy,
+    }
+  );
+
+  if (error) {
+    throw error;
+  }
+
+  const rejected = Array.isArray(data) ? data[0] : data;
+
+  if (!rejected) {
+    throw new Error(`Template image candidate not found: ${input.candidateId}`);
+  }
+
+  return mapTemplateImageCandidateRow(rejected as TemplateImageCandidateRow);
 }

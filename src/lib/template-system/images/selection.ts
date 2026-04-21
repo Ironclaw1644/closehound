@@ -1,6 +1,8 @@
 import {
   getApprovedTemplateImageCandidates,
+  getCurrentApprovedTemplateImageCandidates,
   getMostRecentlyApprovedTemplateImageBatch,
+  hasRenderableTemplateImageAsset,
 } from "@/lib/template-system/images/repository";
 import type { ArchetypeVisualSlot } from "@/lib/template-system/images/types";
 
@@ -29,17 +31,23 @@ export async function resolveApprovedArchetypeImageCandidates(input: {
       getMostRecentlyApprovedTemplateImageBatch(input.templateKey),
   });
 
-  const approvedImageCandidates = generationBatchId
-    ? await getApprovedTemplateImageCandidates({
+  const approvedImageCandidates = input.hasRequestedBatch
+    ? generationBatchId
+      ? await getApprovedTemplateImageCandidates({
+          templateKey: input.templateKey,
+          generationBatchId,
+          slotDefinitions: input.slotDefinitions,
+        })
+      : {}
+    : await getCurrentApprovedTemplateImageCandidates({
         templateKey: input.templateKey,
-        generationBatchId,
         slotDefinitions: input.slotDefinitions,
-      })
-    : {};
+      });
 
   const approvedImageCandidatesForRender = Object.fromEntries(
     Object.entries(approvedImageCandidates).filter(
-      ([, candidate]) => candidate !== undefined
+      ([, candidate]) =>
+        candidate !== undefined && hasRenderableTemplateImageAsset(candidate)
     )
   ) as Record<
     string,
