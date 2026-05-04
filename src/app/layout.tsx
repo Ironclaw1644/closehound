@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "CloseHound",
-  description: "Lead generation dashboard for preview sites and outreach tracking.",
+  description: "Operator console for LeadHound and WalkPerro outreach.",
 };
 
 export default function RootLayout({

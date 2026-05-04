@@ -1,4 +1,4 @@
 import { register } from "node:module";
 import { pathToFileURL } from "node:url";
 
-register("./scripts/ts-path-loader.mjs", pathToFileURL("./"));
+register("./ts-path-loader.mjs", pathToFileURL(import.meta.url));
