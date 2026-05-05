@@ -133,6 +133,8 @@ const INDUSTRY_COPY: Record<LeadIndustry, IndustryCopy> = {
         `${company} brings the curb appeal back, in one afternoon.`,
       subheadline: (_company, city) =>
         `Soft-wash for siding, surface-clean for driveways, and a careful job around windows and landscaping. Your house will look painted from the street.`,
+      primaryCtaLabel: "Call now",
+      secondaryCtaLabel: "Get a free estimate",
     },
     services: {
       heading: "What we clean",

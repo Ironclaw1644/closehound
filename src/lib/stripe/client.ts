@@ -10,7 +10,7 @@ export function getStripeClient(): Stripe {
   if (!key) {
     throw new Error("STRIPE_SECRET_KEY is not configured.");
   }
-  cached = new Stripe(key, { apiVersion: "2025-09-30.clover" });
+  cached = new Stripe(key, { apiVersion: "2025-08-27.basil" });
   return cached;
 }
 
