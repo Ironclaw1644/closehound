@@ -63,17 +63,23 @@ async function findLeadBySlug(slug: string): Promise<Lead | null> {
     return null;
   }
 
+  // PostgREST doesn't support ILIKE on UUID columns (the column is `uuid`,
+  // not text), so we can't filter by the trailing-id-fragment server-side.
+  // Instead we fetch a recent slice of leads and JS-filter — fine while the
+  // table is < 1k rows. Revisit (add a generated `slug` column or a tail
+  // index) once lead volume passes ~10k.
   const { data, error } = await reader
     .from("leads")
     .select("*")
-    .ilike("id", `%${tail}`)
-    .limit(25);
+    .order("created_at", { ascending: false })
+    .limit(1000);
 
   if (error || !data) {
     return null;
   }
 
   for (const row of data as Lead[]) {
+    if (!row.id.toLowerCase().endsWith(tail)) continue;
     const candidateSlug = buildPreviewSlug({
       companyName: row.company_name,
       city: row.city,
