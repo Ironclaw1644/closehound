@@ -34,7 +34,17 @@ export type PreviewIcon =
   | "handshake"
   | "star"
   | "calendar-check"
-  | "circle-check";
+  | "circle-check"
+  | "tree"
+  | "scissors"
+  | "paint-roller"
+  | "paintbrush"
+  | "plug"
+  | "lightbulb"
+  | "oil-can"
+  | "gauge"
+  | "bug"
+  | "spray-can-sparkles";
 
 export type PreviewReview = {
   quote: string;
@@ -56,6 +66,10 @@ export type PreviewModel = {
     rating: number | null;
     reviewCount: number | null;
     yearsInBusiness: number | null;
+    // Buyer-overridable fields. Set by mergeBuyerOverrides() when present
+    // in walkperro.preview_sites.preview_payload.basics.
+    email?: string | null;
+    hours?: string | null;
   };
 
   hero: {
@@ -76,6 +90,9 @@ export type PreviewModel = {
   serviceArea: {
     heading: string;
     body: string;
+    // Buyer override: explicit list of cities served (replaces auto-derived
+    // neighbors when present).
+    cities?: string[];
   };
 
   whyUs: {
@@ -93,9 +110,23 @@ export type PreviewModel = {
     body: string;
   };
 
+  // Buyer-overridable About block. When present, About page renders these
+  // values; otherwise falls back to per-industry static `getAboutForIndustry`.
+  about?: {
+    tagline?: string | null;
+    story?: string | null;
+  };
+
+  // Buyer-overridable brand accent — when set, this overrides palette.accent
+  // for inline-style accents in industry components and shared multipage UI.
+  brand?: {
+    accent?: string | null;
+  };
+
   assets: {
     logoUrl: string | null;
     heroUrl: string | null;
+    galleryUrls: string[];
   };
 
   buy: {

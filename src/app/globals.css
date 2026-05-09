@@ -26,6 +26,63 @@
 
 html {
   background: var(--op-bg);
+  scroll-behavior: smooth;
+  scroll-padding-top: 32px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Subtle drift animation for hero photos (preview templates). */
+@keyframes preview-hero-drift {
+  0% { transform: scale(1.04) translate3d(0, 0, 0); }
+  50% { transform: scale(1.06) translate3d(-1%, -1.5%, 0); }
+  100% { transform: scale(1.04) translate3d(0, 0, 0); }
+}
+
+.preview-hero-drift {
+  animation: preview-hero-drift 18s ease-in-out infinite;
+}
+
+/* Marquee for ticker strips. */
+@keyframes preview-marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.preview-marquee {
+  animation: preview-marquee 32s linear infinite;
+}
+
+/* Soft pulse for live status dots. */
+@keyframes preview-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(0.92); }
+}
+
+.preview-pulse {
+  animation: preview-pulse 2.4s ease-in-out infinite;
+}
+
+/* Number tick — subtle vertical scroll loop for stats. */
+@keyframes preview-tick {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+.preview-tick {
+  animation: preview-tick 4s ease-in-out infinite;
 }
 
 body {

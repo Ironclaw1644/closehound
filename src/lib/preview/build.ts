@@ -1,6 +1,7 @@
 import type { LeadIndustry } from "@/lib/industries";
 import { getCopyForIndustry } from "@/lib/preview/copy";
 import { getPaletteForIndustry } from "@/lib/preview/palettes";
+import { getStockImagesForIndustry } from "@/lib/images/industry-stock.generated";
 import type { PreviewModel, PreviewReview } from "@/lib/preview/types";
 import { buildPreviewSlug } from "@/lib/preview";
 import type { Lead } from "@/types/lead";
@@ -107,10 +108,14 @@ export function buildPreviewModel(
       heading: copy.contact.heading(lead.company_name),
       body: copy.contact.body(lead.company_name, lead.city),
     },
-    assets: {
-      logoUrl: options.logoUrl ?? null,
-      heroUrl: options.heroUrl ?? null,
-    },
+    assets: (() => {
+      const stock = getStockImagesForIndustry(industry);
+      return {
+        logoUrl: options.logoUrl ?? null,
+        heroUrl: options.heroUrl ?? stock.hero ?? null,
+        galleryUrls: stock.gallery,
+      };
+    })(),
     buy: {
       headline: BUY_HEADLINE,
       subhead: BUY_SUBHEAD,

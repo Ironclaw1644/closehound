@@ -15,7 +15,12 @@ export type ClosehoundLeadIndustry =
   | "dental"
   | "med spa"
   | "junk removal"
-  | "mobile detailing";
+  | "mobile detailing"
+  | "landscaping"
+  | "painting"
+  | "electrical"
+  | "auto repair"
+  | "pest control";
 
 export type Database = {
   __InternalSupabase: {

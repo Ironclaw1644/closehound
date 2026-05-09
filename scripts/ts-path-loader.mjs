@@ -34,5 +34,12 @@ export async function resolve(specifier, context, nextResolve) {
     return nextResolve(fileUrl, context);
   }
 
+  if (specifier === "server-only") {
+    return {
+      url: "data:text/javascript,export%20%7B%7D%3B",
+      shortCircuit: true,
+    };
+  }
+
   return nextResolve(specifier, context);
 }

@@ -3,10 +3,13 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import type { PreviewModel } from "@/lib/preview/types";
-import { getPaletteByKey } from "@/lib/preview/palettes";
+import { getPaletteForModel } from "@/lib/preview/palettes";
 
 export function BuyBar({ model }: { model: PreviewModel }) {
-  const palette = getPaletteByKey(model.paletteKey);
+  // Honor the buyer's brand.accent override (set in the editor's Brand tab) on
+  // top of the per-industry palette. Falls back to the industry default when
+  // the buyer hasn't picked a custom accent.
+  const palette = getPaletteForModel(model);
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[#0a0d12]/95 px-4 py-3 backdrop-blur-md sm:px-6">

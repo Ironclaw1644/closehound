@@ -9,6 +9,11 @@ export const INDUSTRY_OPTIONS = [
   { label: "Med Spa", value: "med spa" },
   { label: "Junk Removal", value: "junk removal" },
   { label: "Mobile Detailing", value: "mobile detailing" },
+  { label: "Landscaping", value: "landscaping" },
+  { label: "Painting", value: "painting" },
+  { label: "Electrical", value: "electrical" },
+  { label: "Auto Repair", value: "auto repair" },
+  { label: "Pest Control", value: "pest control" },
 ] as const;
 
 export type IndustryOption = (typeof INDUSTRY_OPTIONS)[number];
@@ -27,4 +32,9 @@ export type LeadIndustry =
   | "dental"
   | "med spa"
   | "junk removal"
-  | "mobile detailing";
+  | "mobile detailing"
+  | "landscaping"
+  | "painting"
+  | "electrical"
+  | "auto repair"
+  | "pest control";

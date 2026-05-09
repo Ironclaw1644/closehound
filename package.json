@@ -10,17 +10,24 @@
     "typecheck": "tsc --noEmit",
     "worker": "node --env-file=.env.local --experimental-strip-types --import ./scripts/register-ts-path-loader.mjs ./scripts/run-operator-worker.ts",
     "leadhound:queue": "node --env-file=.env.local --experimental-strip-types --import ./scripts/register-ts-path-loader.mjs ./scripts/queue-leadhound.ts",
+    "images:stock": "node --env-file=.env.local --experimental-strip-types --import ./scripts/register-ts-path-loader.mjs ./scripts/generate-stock-images.ts",
+    "images:walkperro-og": "node --env-file=.env.local --experimental-strip-types --import ./scripts/register-ts-path-loader.mjs ./scripts/generate-walkperro-og.ts",
+    "leadhound:fetch": "node --env-file=.env.local --experimental-strip-types --import ./scripts/register-ts-path-loader.mjs ./scripts/leadhound-fetch.ts",
+    "email:walkperro-og": "node --env-file=.env.local --experimental-strip-types --import ./scripts/register-ts-path-loader.mjs ./scripts/email-walkperro-og.ts",
+    "leadhound:pull-to-json": "node --env-file=.env.local --experimental-strip-types --import ./scripts/register-ts-path-loader.mjs ./scripts/leadhound-pull-to-json.ts",
     "operator:worker": "npm run worker"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.2.0",
     "@fortawesome/free-solid-svg-icons": "^7.2.0",
     "@fortawesome/react-fontawesome": "^3.3.1",
-    "@supabase/supabase-js": "^2.49.4",
+    "@supabase/supabase-js": "^2.105.3",
+    "jose": "^6.2.3",
     "next": "^15.3.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "resend": "^6.10.0",
+    "server-only": "^0.0.1",
     "stripe": "^18.3.0"
   },
   "devDependencies": {

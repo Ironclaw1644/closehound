@@ -125,6 +125,84 @@ const PALETTES: Record<string, PalettePreset> = {
     inkBg: "#0a0f15",
     inkText: "#e6f5fa",
   },
+  // Junk removal: poster-loud mustard + ink black on cream.
+  mustard_black: {
+    key: "mustard_black",
+    background: "#fff8d6",
+    surface: "#ffffff",
+    text: "#0a0a0a",
+    textMuted: "#3a3a3a",
+    accent: "#fcd935",
+    accentInk: "#0a0a0a",
+    border: "#0a0a0a",
+    inkBg: "#0a0a0a",
+    inkText: "#fff8d6",
+  },
+  // Landscaping: lush moss + cream + warm earth. Outdoor scenic, lived-in.
+  moss_earth: {
+    key: "moss_earth",
+    background: "#f4efe4",
+    surface: "#ffffff",
+    text: "#1c2418",
+    textMuted: "#56624c",
+    accent: "#3d5a2a",
+    accentInk: "#f6f8ec",
+    border: "#dcd5c2",
+    inkBg: "#1c2418",
+    inkText: "#f4efe4",
+  },
+  // Painting: charcoal + paint-strip color blocks. Designer studio.
+  charcoal_swatch: {
+    key: "charcoal_swatch",
+    background: "#f5f3ef",
+    surface: "#ffffff",
+    text: "#181818",
+    textMuted: "#5a5a5a",
+    accent: "#c33a3a",
+    accentInk: "#fff6f0",
+    border: "#e0ddd6",
+    inkBg: "#181818",
+    inkText: "#f5f3ef",
+  },
+  // Electrical: jet black + safety yellow + slate steel. Schematic, technical.
+  voltage_yellow: {
+    key: "voltage_yellow",
+    background: "#eef0f2",
+    surface: "#ffffff",
+    text: "#0c0e10",
+    textMuted: "#4a525c",
+    accent: "#ffd400",
+    accentInk: "#0c0e10",
+    border: "#d4d8de",
+    inkBg: "#0c0e10",
+    inkText: "#fff7c8",
+  },
+  // Auto repair: shop-floor cement + safety orange + black. Industrial blueprint.
+  shop_orange: {
+    key: "shop_orange",
+    background: "#ecedef",
+    surface: "#ffffff",
+    text: "#101113",
+    textMuted: "#4d525a",
+    accent: "#ff5b14",
+    accentInk: "#0c0d0f",
+    border: "#d2d5db",
+    inkBg: "#0c0d0f",
+    inkText: "#f0eeea",
+  },
+  // Pest control: hygiene white + safety green + protective navy. Clean / clinical.
+  shield_green: {
+    key: "shield_green",
+    background: "#f0f4f1",
+    surface: "#ffffff",
+    text: "#0e1d22",
+    textMuted: "#4a5760",
+    accent: "#0fa45a",
+    accentInk: "#f4faf6",
+    border: "#d8e0d9",
+    inkBg: "#0e1d22",
+    inkText: "#eef4f0",
+  },
 };
 
 const INDUSTRY_PALETTE: Record<LeadIndustry, string> = {
@@ -135,8 +213,13 @@ const INDUSTRY_PALETTE: Record<LeadIndustry, string> = {
   plumbing: "navy_copper",
   dental: "mint_clinical",
   "med spa": "sand_rose",
-  "junk removal": "cream_teal",
+  "junk removal": "mustard_black",
   "mobile detailing": "obsidian_cyan",
+  landscaping: "moss_earth",
+  painting: "charcoal_swatch",
+  electrical: "voltage_yellow",
+  "auto repair": "shop_orange",
+  "pest control": "shield_green",
 };
 
 export function getPaletteForIndustry(industry: LeadIndustry): PalettePreset {
@@ -149,4 +232,23 @@ export function getPaletteByKey(key: string | null | undefined): PalettePreset {
     return PALETTES.graphite_orange;
   }
   return PALETTES[key] ?? PALETTES.graphite_orange;
+}
+
+// Thin wrapper that applies a buyer-supplied brand.accent override on top of
+// the per-industry palette. Used by the multi-page route components so a
+// buyer's accent pick (Brand tab in the editor) re-colors CTAs, links, and
+// accents across services / service-area / about / contact pages.
+//
+// Pass any object with `industry` and optional `brand.accent`. Empty / missing
+// override falls through to the base palette unchanged.
+export function getPaletteForModel(model: {
+  industry: LeadIndustry;
+  brand?: { accent?: string | null };
+}): PalettePreset {
+  const base = getPaletteForIndustry(model.industry);
+  const accent = model.brand?.accent;
+  if (typeof accent === "string" && /^#[0-9a-fA-F]{6}$/.test(accent.trim())) {
+    return { ...base, accent: accent.trim() };
+  }
+  return base;
 }

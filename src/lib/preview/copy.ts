@@ -46,8 +46,8 @@ const INDUSTRY_COPY: Record<LeadIndustry, IndustryCopy> = {
     templateKey: "handyman_v1",
     hero: {
       eyebrow: (city) => `${cityOrArea(city)} handyman`,
-      headline: (company) =>
-        `${company}: the small repairs you've been putting off, finally done.`,
+      headline: () =>
+        `The list, finally crossed off.`,
       subheadline: (_company, city) =>
         `Drywall patches, leaky faucets, ceiling fans, picture hanging, and the random list taped to the fridge. One trip, one bill, one less weekend lost in ${cityOrArea(city)}.`,
       primaryCtaLabel: "Call now",
@@ -129,8 +129,8 @@ const INDUSTRY_COPY: Record<LeadIndustry, IndustryCopy> = {
     templateKey: "pressure_washing_v1",
     hero: {
       eyebrow: (city) => `${cityOrArea(city)} pressure washing`,
-      headline: (company) =>
-        `${company} brings the curb appeal back, in one afternoon.`,
+      headline: () =>
+        `Make the house look painted again.`,
       subheadline: (_company, city) =>
         `Soft-wash for siding, surface-clean for driveways, and a careful job around windows and landscaping. Your house will look painted from the street.`,
       primaryCtaLabel: "Call now",
@@ -212,8 +212,8 @@ const INDUSTRY_COPY: Record<LeadIndustry, IndustryCopy> = {
     templateKey: "roofing_v1",
     hero: {
       eyebrow: (city) => `${cityOrArea(city)} roofing`,
-      headline: (company) =>
-        `${company}: the roof done right, by people who'll still be here in five years.`,
+      headline: () =>
+        `Roofs that outlast the warranty.`,
       subheadline: (_company, _city) =>
         `Repairs, full replacements, and honest inspections. We climb up, take photos, and explain what we found in plain English. No high-pressure sit-down sales.`,
       primaryCtaLabel: "Schedule a free inspection",
@@ -296,8 +296,8 @@ const INDUSTRY_COPY: Record<LeadIndustry, IndustryCopy> = {
     templateKey: "hvac_v1",
     hero: {
       eyebrow: (city) => `${cityOrArea(city)} heating & cooling`,
-      headline: (company) =>
-        `${company}: comfort restored today, not next Tuesday.`,
+      headline: () =>
+        `Comfort, same day.`,
       subheadline: (_company, city) =>
         `Same-day service for AC and heat, fair flat-rate pricing, and technicians who actually explain what's wrong. Serving ${cityOrArea(city)} since the trucks rolled out.`,
       primaryCtaLabel: "Call for same-day service",
@@ -380,8 +380,8 @@ const INDUSTRY_COPY: Record<LeadIndustry, IndustryCopy> = {
     templateKey: "plumbing_v1",
     hero: {
       eyebrow: (city) => `${cityOrArea(city)} plumbing`,
-      headline: (company) =>
-        `${company}: licensed plumbers who pick up the phone, even at 9pm.`,
+      headline: () =>
+        `We answer at 9pm.`,
       subheadline: (_company, _city) =>
         `Leaks, water heaters, drains, repipes, and the slow toilet that's been ignoring everyone in the house. Flat-rate pricing, photos of the work, and a clean kitchen when we leave.`,
       primaryCtaLabel: "Call now",
@@ -463,8 +463,8 @@ const INDUSTRY_COPY: Record<LeadIndustry, IndustryCopy> = {
     templateKey: "dental_v1",
     hero: {
       eyebrow: (city) => `${cityOrArea(city)} dentist`,
-      headline: (company) =>
-        `${company}: a dentist office that runs on time and explains the bill before they treat.`,
+      headline: () =>
+        `On time. No surprises.`,
       subheadline: (_company, city) =>
         `Cleanings, crowns, Invisalign, and emergency visits. Modern equipment, gentle cleanings, and a front desk that calls your insurance for you. Welcoming new patients across ${cityOrArea(city)}.`,
       primaryCtaLabel: "Book a new-patient visit",
@@ -546,8 +546,8 @@ const INDUSTRY_COPY: Record<LeadIndustry, IndustryCopy> = {
     templateKey: "med_spa_v1",
     hero: {
       eyebrow: (city) => `${cityOrArea(city)} med spa`,
-      headline: (company) =>
-        `${company}: results-first treatments, delivered by a clinical team that doesn't oversell.`,
+      headline: () =>
+        `Subtle, on purpose.`,
       subheadline: (_company, _city) =>
         `Botox, fillers, laser, microneedling, and skincare plans built around your face — not a brochure. Free consultations, transparent pricing, and a calm space.`,
       primaryCtaLabel: "Book a free consultation",
@@ -630,8 +630,8 @@ const INDUSTRY_COPY: Record<LeadIndustry, IndustryCopy> = {
     templateKey: "junk_removal_v1",
     hero: {
       eyebrow: (city) => `${cityOrArea(city)} junk removal`,
-      headline: (company) =>
-        `${company}: garage cleared by lunch, paid by the truckload, not the headache.`,
+      headline: () =>
+        `Gone by lunch.`,
       subheadline: (_company, city) =>
         `Garage cleanouts, furniture haul-away, estate clear-outs, and post-renovation debris. Two-person crew, big truck, fixed price before we lift anything in ${cityOrArea(city)}.`,
       primaryCtaLabel: "Get a same-day quote",
@@ -714,8 +714,8 @@ const INDUSTRY_COPY: Record<LeadIndustry, IndustryCopy> = {
     templateKey: "mobile_detailing_v1",
     hero: {
       eyebrow: (city) => `${cityOrArea(city)} mobile detailing`,
-      headline: (company) =>
-        `${company}: the detail comes to your driveway, your car looks new.`,
+      headline: () =>
+        `We bring the shop to your driveway.`,
       subheadline: (_company, city) =>
         `We pull up with water, power, and a full kit. You stay inside. Two to four hours later your car looks like the dealer demo. Serving ${cityOrArea(city)} weekly.`,
       primaryCtaLabel: "Book a detail",
@@ -790,6 +790,426 @@ const INDUSTRY_COPY: Record<LeadIndustry, IndustryCopy> = {
       heading: (company) => `Book ${company}`,
       body: (_company, _city) =>
         `Pick a day, send your address, and tell us a little about the car. Confirmation back the same day.`,
+    },
+  },
+
+  // ────────────────────── LANDSCAPING ──────────────────────
+  landscaping: {
+    templateKey: "landscaping_v1",
+    hero: {
+      eyebrow: (city) => `${cityOrArea(city)} landscaping`,
+      headline: () =>
+        `The best yard on the block.`,
+      subheadline: (_company, city) =>
+        `Weekly mows that hit every edge, beds that hold their shape, and a hedge line you can read across the street. ${cityOrArea(city)} crews who treat your lawn like it's the model home on the block.`,
+      primaryCtaLabel: "Get a free quote",
+      secondaryCtaLabel: "See our work",
+    },
+    services: {
+      heading: "What our crews handle",
+      items: [
+        {
+          title: "Weekly mow & maintenance",
+          body: "Cut, trim, edge, blow. Same crew, same day each week, so your yard looks dialed in instead of just freshly cut.",
+          icon: "leaf",
+        },
+        {
+          title: "Bed care & seasonal color",
+          body: "Mulch refresh, weed pulls, pre-emergent, and seasonal flowers swapped in twice a year. Beds that frame the house instead of disappearing into it.",
+          icon: "tree",
+        },
+        {
+          title: "Hedges, shaping, and pruning",
+          body: "Boxwoods, hollies, crepe myrtles, and the back-fence privacy line. We shape for the species, not with a single template.",
+          icon: "scissors",
+        },
+      ],
+    },
+    serviceArea: {
+      heading: "Routes already on your street",
+      body: (company, city) =>
+        `${company} runs ${cityOrArea(city)} on a fixed weekly schedule. Tuesdays in the north end, Thursdays south, Fridays for monthly clients. Get on the route and the price holds for the season.`,
+    },
+    whyUs: {
+      heading: "Why neighbors switch to us mid-season",
+      bullets: [
+        {
+          title: "The same crew every week",
+          body: "Two-person team that knows your gates, your dog, the bed where the sprinkler heads hide. No rotating subcontractors.",
+          icon: "handshake",
+        },
+        {
+          title: "Edges and detail you'll notice",
+          body: "Stick-edged driveways, blown sidewalks, and the line at the curb sharpened every visit. The boring stuff that sells the cut.",
+          icon: "circle-check",
+        },
+        {
+          title: "Drought-aware and water-wise",
+          body: "We mow taller in summer, time the irrigation to your zone, and mulch deep so your beds aren't drinking through the August heat.",
+          icon: "droplet",
+        },
+      ],
+    },
+    faq: {
+      heading: "Common questions",
+      items: () => [
+        {
+          question: "Do I sign a contract?",
+          answer:
+            "Month-to-month. Cancel anytime with two weeks' notice. We'd rather earn next month than lock you in.",
+        },
+        {
+          question: "What's included in a weekly mow?",
+          answer:
+            "Mow, line-trim around all obstacles, edged hard surfaces, and a full blow-off of driveways, walks, and patio. Beds and pruning are billed separately.",
+        },
+        {
+          question: "Are you licensed and insured?",
+          answer:
+            "Yes — general liability and workers' comp on every employee. Certificate sent before the first visit on request.",
+        },
+      ],
+    },
+    contact: {
+      heading: (company) => `Get on the route with ${company}`,
+      body: (_company, city) =>
+        `Send your address and a couple photos of the yard. We'll have a price and a start date back the same day in ${cityOrArea(city)}.`,
+    },
+  },
+
+  // ────────────────────── PAINTING ──────────────────────
+  painting: {
+    templateKey: "painting_v1",
+    hero: {
+      eyebrow: (city) => `${cityOrArea(city)} painting`,
+      headline: () =>
+        `Walls done right.`,
+      subheadline: (_company, city) =>
+        `Interior repaints, full exterior packages, and the tricky stairwells most crews skip. Clean lines, full coverage, and a job site you'd let a designer walk through. Working across ${cityOrArea(city)}.`,
+      primaryCtaLabel: "Book your color consult",
+      secondaryCtaLabel: "Get a free estimate",
+    },
+    services: {
+      heading: "What we paint",
+      items: [
+        {
+          title: "Interior repaint",
+          body: "Walls, ceilings, trim, doors. Furniture moved and protected, cuts hand-rolled where it matters, and floors covered before a brush comes out.",
+          icon: "paint-roller",
+        },
+        {
+          title: "Full exterior package",
+          body: "Pressure wash, scrape, prime, and two coats of premium paint. Caulked joints and warrantied for the life of the paint manufacturer's coverage.",
+          icon: "house-chimney",
+        },
+        {
+          title: "Cabinets & trim refinish",
+          body: "Doors pulled, sprayed in a controlled environment, and re-hung with new hardware. Gives a kitchen a $30k feel for a fraction.",
+          icon: "paintbrush",
+        },
+      ],
+    },
+    serviceArea: {
+      heading: "Local crew, local references",
+      body: (company, city) =>
+        `${company} works ${cityOrArea(city)} and the surrounding neighborhoods. Most of our jobs come from a neighbor pointing at a house and asking who painted it.`,
+    },
+    whyUs: {
+      heading: "Why our walls hold up",
+      bullets: [
+        {
+          title: "Prep is half the price",
+          body: "Most failed paint jobs failed at prep. We sand, fill, prime, and sand again. The paint is the easy part.",
+          icon: "shield-halved",
+        },
+        {
+          title: "Premium product, no upcharge",
+          body: "Sherwin-Williams Emerald or Benjamin Moore Aura on every job, included. We don't bait-and-switch with builder-grade paint at the back of the truck.",
+          icon: "star",
+        },
+        {
+          title: "Daily clean site, end-of-day reset",
+          body: "Drop cloths down, rooms reset before we leave, and a punch-list walk on the last day so nothing slips.",
+          icon: "broom",
+        },
+      ],
+    },
+    faq: {
+      heading: "Common questions",
+      items: () => [
+        {
+          question: "How long until I can use the room?",
+          answer:
+            "Walls dry in 2-4 hours. Most rooms are back in service the same evening. Cabinet doors take 5-7 days to fully cure before stacking dishes.",
+        },
+        {
+          question: "How do you handle color choice?",
+          answer:
+            "Free consult with samples on your wall before the start date. We'll bring the most popular trim and ceiling whites and three options in your accent color.",
+        },
+        {
+          question: "Do you fix the wall before painting?",
+          answer:
+            "Holes, cracks, and old caulk lines are included. Major drywall replacement is a separate line item, but we'll handle it if you want one crew start to finish.",
+        },
+      ],
+    },
+    contact: {
+      heading: (company) => `Walk through with ${company}`,
+      body: (_company, city) =>
+        `Send a few photos of the rooms or the exterior. We'll bring color samples and a written quote to your door in ${cityOrArea(city)} within the week.`,
+    },
+  },
+
+  // ────────────────────── ELECTRICAL ──────────────────────
+  electrical: {
+    templateKey: "electrical_v1",
+    hero: {
+      eyebrow: (city) => `${cityOrArea(city)} licensed electrician`,
+      headline: () =>
+        `Licensed. Permitted. On site this week.`,
+      subheadline: (_company, city) =>
+        `Panel upgrades, EV chargers, generator hookups, and the buzzing outlet in the kitchen you've been ignoring. Master-electrician-led crews working ${cityOrArea(city)} on safety-first jobs.`,
+      primaryCtaLabel: "Book a service call",
+      secondaryCtaLabel: "Get a quote",
+    },
+    services: {
+      heading: "What we wire",
+      items: [
+        {
+          title: "Panel upgrades & service changes",
+          body: "100A to 200A or 200A to 400A swaps, permitted and inspected. We coordinate with the utility so the power-off window is hours, not days.",
+          icon: "bolt",
+        },
+        {
+          title: "EV chargers & generators",
+          body: "Level 2 home chargers wired to a dedicated 240V circuit. Whole-house generator hookups with automatic transfer switch. Done to manufacturer spec.",
+          icon: "plug",
+        },
+        {
+          title: "Lighting, outlets, troubleshooting",
+          body: "Recessed lighting, smart switches, GFCI/AFCI retrofit, and the mystery breaker that trips when the microwave runs. Rooted out at the source.",
+          icon: "lightbulb",
+        },
+      ],
+    },
+    serviceArea: {
+      heading: "Same-week service across the metro",
+      body: (company, city) =>
+        `${company} dispatches across ${cityOrArea(city)} and surrounding counties. Service calls book inside three business days. Emergencies — sparking, smoke, dead panel — get same-day priority.`,
+    },
+    whyUs: {
+      heading: "Why our work passes inspection the first time",
+      bullets: [
+        {
+          title: "Master electrician on every job",
+          body: "Not a salesperson, not a junior tech. The licensed master pulls the permit, scopes the work, and stamps the inspection.",
+          icon: "shield-halved",
+        },
+        {
+          title: "NEC-current, every install",
+          body: "We pull permits even when the homeowner doesn't ask. Means your insurance, resale, and inspection records all line up the day you sell.",
+          icon: "circle-check",
+        },
+        {
+          title: "Clean panel, labeled circuits",
+          body: "Every breaker labeled, neutral and grounds dressed flat, and a photo of the finished panel sent to you. The next electrician will thank us.",
+          icon: "gauge",
+        },
+      ],
+    },
+    faq: {
+      heading: "Common questions",
+      items: () => [
+        {
+          question: "Are you licensed and insured?",
+          answer:
+            "Yes — state-licensed master electrician, $2M general liability, and full workers' comp. License and insurance certificate sent on request.",
+        },
+        {
+          question: "Do you handle the permit?",
+          answer:
+            "On any work that requires one, yes — pulled in our name, inspected with the AHJ, and the closed permit emailed to you when complete.",
+        },
+        {
+          question: "Do you provide written estimates?",
+          answer:
+            "Always. Service calls have a flat trip fee, and any work over that gets a written, signed estimate before we touch a wire.",
+        },
+      ],
+    },
+    contact: {
+      heading: (company) => `Schedule with ${company}`,
+      body: (_company, city) =>
+        `Tell us what's going on — sparking outlet, full panel, EV install — and we'll quote it or book a service window in ${cityOrArea(city)} the same day you call.`,
+    },
+  },
+
+  // ────────────────────── AUTO REPAIR ──────────────────────
+  "auto repair": {
+    templateKey: "auto_repair_v1",
+    hero: {
+      eyebrow: (city) => `${cityOrArea(city)} auto repair`,
+      headline: () =>
+        `Dealer work. Independent price.`,
+      subheadline: (_company, city) =>
+        `Diagnostics that actually find the problem, repairs done with OEM-grade parts, and a quote in writing before we lift a wrench. ASE-certified techs on the floor in ${cityOrArea(city)}.`,
+      primaryCtaLabel: "Book a service",
+      secondaryCtaLabel: "Get a quote",
+    },
+    services: {
+      heading: "What we work on",
+      items: [
+        {
+          title: "Diagnostics & check-engine",
+          body: "Code pull plus full systems scan, road test, and a written diagnosis with photos of what we found. No guessing, no parts-shotgun repairs.",
+          icon: "gauge",
+        },
+        {
+          title: "Brakes, suspension, and steering",
+          body: "Rotors, pads, struts, control arms, and alignments. Done on a four-corner rack with calibrated equipment, then road-tested before pickup.",
+          icon: "car",
+        },
+        {
+          title: "Maintenance & fluids",
+          body: "Oil services, transmission flushes, coolant exchanges, brake fluid bleeds. We follow your manufacturer's interval — not a generic chain script.",
+          icon: "oil-can",
+        },
+      ],
+    },
+    serviceArea: {
+      heading: "One shop, the whole metro",
+      body: (company, city) =>
+        `${company} serves ${cityOrArea(city)} and the surrounding suburbs. Free local pickup and drop-off inside a ten-mile radius. Loaner cars on multi-day jobs.`,
+    },
+    whyUs: {
+      heading: "Why drivers leave the dealer for us",
+      bullets: [
+        {
+          title: "ASE-certified on the floor",
+          body: "Every tech holds at least one ASE cert in the system they're working on. Most hold five-plus. We invest in training quarterly.",
+          icon: "wrench",
+        },
+        {
+          title: "Photos, video, written quote",
+          body: "Digital inspection texted to your phone with photos of the worn part and a written quote before we start work. You decide what gets fixed.",
+          icon: "circle-check",
+        },
+        {
+          title: "Two-year, 24K-mile warranty",
+          body: "Doubled the industry-standard warranty on parts and labor. If something we touched fails, you don't pay twice.",
+          icon: "shield-halved",
+        },
+      ],
+    },
+    faq: {
+      heading: "Common questions",
+      items: () => [
+        {
+          question: "Do I need an appointment?",
+          answer:
+            "Yes — we book the bay so your car isn't sitting all day. Drop-offs the day before are welcome with a key drop.",
+        },
+        {
+          question: "Do you work on European cars?",
+          answer:
+            "BMW, Mercedes, Audi, VW, Volvo, and Mini. We have the OEM scan tools and tech support contracts for the major European platforms.",
+        },
+        {
+          question: "Do you handle insurance and warranty work?",
+          answer:
+            "Yes on most extended warranty platforms. We'll call the carrier from the shop, get authorization, and bill them direct.",
+        },
+      ],
+    },
+    contact: {
+      heading: (company) => `Book a bay at ${company}`,
+      body: (_company, city) =>
+        `Tell us what your car is doing, when it's available, and your year/make/model. We'll text back a service window in ${cityOrArea(city)} same day.`,
+    },
+  },
+
+  // ────────────────────── PEST CONTROL ──────────────────────
+  "pest control": {
+    templateKey: "pest_control_v1",
+    hero: {
+      eyebrow: (city) => `${cityOrArea(city)} pest control`,
+      headline: () =>
+        `Out. And gone for good.`,
+      subheadline: (_company, city) =>
+        `Quarterly perimeter treatment, targeted interior care, and the weird seasonal stuff — German roaches, fire ants, fall mice, summer wasps. Family-and-pet-safe products in ${cityOrArea(city)} homes.`,
+      primaryCtaLabel: "Get a free inspection",
+      secondaryCtaLabel: "Book a service",
+    },
+    services: {
+      heading: "What we treat",
+      items: [
+        {
+          title: "Quarterly perimeter program",
+          body: "Four scheduled visits a year that keep ants, spiders, roaches, and rodents from making it inside. We swap product seasonally so resistance can't build.",
+          icon: "shield-halved",
+        },
+        {
+          title: "Targeted interior treatment",
+          body: "Gel baits, IGRs, and non-repellent perimeters in kitchens, baths, and laundries. Safe for kids and pets the moment we leave.",
+          icon: "spray-can-sparkles",
+        },
+        {
+          title: "Termite & rodent exclusion",
+          body: "Liquid termite barriers, bait stations, and full-home rodent exclusion that seals every entry point we find. Annual inspection included.",
+          icon: "bug",
+        },
+      ],
+    },
+    serviceArea: {
+      heading: "On a route through your neighborhood",
+      body: (company, city) =>
+        `${company} runs a fixed quarterly route through ${cityOrArea(city)} and the surrounding counties. Same tech every visit, same arrival window, same time of year.`,
+    },
+    whyUs: {
+      heading: "Why our treatments hold",
+      bullets: [
+        {
+          title: "Family-and-pet safe products",
+          body: "We use the same low-impact formulations licensed for daycares and food-service kitchens. No 'stay out four hours' warning sheets.",
+          icon: "leaf",
+        },
+        {
+          title: "State-licensed applicators",
+          body: "Every tech holds a state pest-control license and recertifies annually. We never send untrained help to handle pesticides on your property.",
+          icon: "circle-check",
+        },
+        {
+          title: "Free re-treats between visits",
+          body: "If something pops up between your quarterly visits, we come back free. The program isn't quarterly results, it's coverage.",
+          icon: "handshake",
+        },
+      ],
+    },
+    faq: {
+      heading: "Common questions",
+      items: () => [
+        {
+          question: "Is the treatment safe for my kids and dogs?",
+          answer:
+            "Yes — products dry within 30 minutes and are safe to walk on after that. We'll tell you up front when a treatment needs a longer reentry window.",
+        },
+        {
+          question: "How fast will the bugs go away?",
+          answer:
+            "Most homeowners see the activity drop sharply inside seven days and resolve fully inside 30. Heavy roach or rodent issues sometimes need a follow-up at no charge.",
+        },
+        {
+          question: "Do I have to sign a contract?",
+          answer:
+            "Quarterly service is month-to-month with a 30-day cancel. One-time and emergency visits have no commitment at all.",
+        },
+      ],
+    },
+    contact: {
+      heading: (company) => `Book an inspection with ${company}`,
+      body: (_company, city) =>
+        `Tell us what you're seeing — and where — and we'll book a free inspection in ${cityOrArea(city)} the same week. Quote and treatment plan handed to you on site.`,
     },
   },
 };

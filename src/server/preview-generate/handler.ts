@@ -4,7 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { buildPreviewModel } from "@/lib/preview/build";
 import { buildPreviewSlug, buildPreviewUrl } from "@/lib/preview";
 import { generateGeminiImage } from "@/lib/images/gemini";
-import { buildHeroPrompt, buildLogoPrompt } from "@/lib/images/prompts";
+import { buildLogoPrompt } from "@/lib/images/prompts";
 import { uploadPreviewAsset } from "@/lib/images/storage";
 import type { Database, Json } from "@/types/supabase";
 import type { Lead } from "@/types/lead";
@@ -89,23 +89,20 @@ export async function runPreviewGenerateJob(
     leadId: lead.id,
   });
 
-  const [logoImage, heroImage] = await Promise.all([
-    safeGenerateImage(
-      buildLogoPrompt({
-        businessName: lead.company_name,
-        industry: lead.industry,
-        city: lead.city,
-      }),
-      logger,
-      "Logo"
-    ),
-    safeGenerateImage(buildHeroPrompt(lead.industry, lead.company_name), logger, "Hero"),
-  ]);
-
-  const [logoUrl, heroUrl] = await Promise.all([
-    safeUpload(lead.id, "logo", logoImage, logger),
-    safeUpload(lead.id, "hero", heroImage, logger),
-  ]);
+  // Hero/gallery photos come from the per-industry stock library so we don't
+  // burn a Gemini call on every cold-outreach lead. Per-lead generation is just
+  // the company logo — that's the one asset that genuinely has to be unique.
+  const logoImage = await safeGenerateImage(
+    buildLogoPrompt({
+      businessName: lead.company_name,
+      industry: lead.industry,
+      city: lead.city,
+    }),
+    logger,
+    "Logo"
+  );
+  const logoUrl = await safeUpload(lead.id, "logo", logoImage, logger);
+  const heroUrl: string | null = null;
 
   const model = buildPreviewModel(lead, { logoUrl, heroUrl });
   const previewUrl = buildPreviewUrl(slug);

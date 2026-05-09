@@ -55,9 +55,16 @@ export type PlaceDetails = PlaceSummary & {
 };
 
 function getApiKey(): string {
-  const key = process.env.GOOGLE_PLACES_API_KEY?.trim();
+  // Prefer a Places-specific key if set, but fall back to the project-wide
+  // Google API key (which works fine if Places API is enabled on the same GCP project).
+  const key =
+    process.env.GOOGLE_PLACES_API_KEY?.trim() ||
+    process.env.GOOGLE_API_KEY?.trim() ||
+    "";
   if (!key) {
-    throw new Error("GOOGLE_PLACES_API_KEY is not configured.");
+    throw new Error(
+      "GOOGLE_PLACES_API_KEY (or GOOGLE_API_KEY with Places enabled) is not configured."
+    );
   }
   return key;
 }

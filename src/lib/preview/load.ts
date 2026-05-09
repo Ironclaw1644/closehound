@@ -9,6 +9,11 @@ import {
 } from "@/lib/supabase";
 import type { Lead } from "@/types/lead";
 import type { PreviewModel } from "@/lib/preview/types";
+import {
+  mergeBuyerOverrides,
+  isBuyerOverrides,
+  type BuyerOverrides,
+} from "@/lib/preview/merge";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -104,6 +109,59 @@ async function findCachedPreviewBySlug(slug: string): Promise<CachedPreview | nu
   return data as CachedPreview;
 }
 
+/**
+ * Fetch buyer overrides from walkperro.preview_sites for the slug.
+ * The walkperro schema isn't typed in `Database`, so we cast through `any`.
+ * Returns null if the row doesn't exist OR if the payload is empty/garbage.
+ */
+async function findBuyerOverridesBySlug(
+  slug: string
+): Promise<BuyerOverrides | null> {
+  if (!hasSupabaseAdminEnv()) return null;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const walkperro: any = (
+      getSupabaseAdminClient() as unknown as { schema: (s: string) => unknown }
+    ).schema("walkperro");
+    const { data, error } = await walkperro
+      .from("preview_sites")
+      .select("preview_payload, logo_url, hero_url")
+      .eq("slug", slug)
+      .maybeSingle();
+    if (error || !data) return null;
+    const payload = data.preview_payload as unknown;
+    if (!isBuyerOverrides(payload)) return null;
+    // Surface the column-level logo/hero overrides into the payload's assets
+    // bucket so they get applied through the same merge path.
+    const merged: BuyerOverrides = { ...(payload as BuyerOverrides) };
+    const logo = data.logo_url as string | null;
+    const hero = data.hero_url as string | null;
+    if (logo || hero) {
+      merged.assets = {
+        ...(merged.assets ?? {}),
+        ...(logo ? { logoUrl: logo } : {}),
+        ...(hero ? { heroUrl: hero } : {}),
+      };
+    }
+    return merged;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Apply buyer overrides if any exist for this slug. If no overrides,
+ * returns the base model untouched.
+ */
+async function withBuyerOverrides(
+  slug: string,
+  base: PreviewModel
+): Promise<PreviewModel> {
+  const overrides = await findBuyerOverridesBySlug(slug);
+  if (!overrides) return base;
+  return mergeBuyerOverrides(base, overrides);
+}
+
 function isPreviewModelShape(value: unknown): value is PreviewModel {
   if (!value || typeof value !== "object") {
     return false;
@@ -124,17 +182,17 @@ export async function loadPreviewBySlug(slug: string): Promise<PreviewModel> {
   if (isUuid(slug)) {
     const lead = await findLeadById(slug);
     if (lead) {
-      const cached = await findCachedPreviewBySlug(
-        buildPreviewSlug({
-          companyName: lead.company_name,
-          city: lead.city,
-          leadId: lead.id,
-        })
-      );
-      return buildPreviewModel(lead, {
+      const builtSlug = buildPreviewSlug({
+        companyName: lead.company_name,
+        city: lead.city,
+        leadId: lead.id,
+      });
+      const cached = await findCachedPreviewBySlug(builtSlug);
+      const base = buildPreviewModel(lead, {
         logoUrl: cached?.logo_url ?? null,
         heroUrl: cached?.hero_url ?? null,
       });
+      return withBuyerOverrides(builtSlug, base);
     }
   }
 
@@ -142,22 +200,25 @@ export async function loadPreviewBySlug(slug: string): Promise<PreviewModel> {
   const cached = await findCachedPreviewBySlug(slug);
   if (cached && isPreviewModelShape(cached.preview_payload)) {
     const model = cached.preview_payload as PreviewModel;
-    return {
+    const base: PreviewModel = {
       ...model,
       assets: {
         logoUrl: cached.logo_url ?? model.assets?.logoUrl ?? null,
         heroUrl: cached.hero_url ?? model.assets?.heroUrl ?? null,
+        galleryUrls: model.assets?.galleryUrls ?? [],
       },
     };
+    return withBuyerOverrides(slug, base);
   }
 
   // 3. Fall back to rebuilding from the lead row by slug.
   const lead = await findLeadBySlug(slug);
   if (lead) {
-    return buildPreviewModel(lead, {
+    const base = buildPreviewModel(lead, {
       logoUrl: cached?.logo_url ?? null,
       heroUrl: cached?.hero_url ?? null,
     });
+    return withBuyerOverrides(slug, base);
   }
 
   notFound();

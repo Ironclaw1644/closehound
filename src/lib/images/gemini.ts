@@ -24,16 +24,40 @@ function getApiKey(): string {
   return key;
 }
 
+export type GeminiReferenceImage = {
+  base64: string;
+  mimeType: string;
+};
+
 export async function generateGeminiImage(opts: {
   prompt: string;
   model?: string;
   timeoutMs?: number;
+  // Optional image-to-image refinement: pass one or more reference images
+  // and the prompt is interpreted as instructions to refine/transform them.
+  referenceImages?: GeminiReferenceImage[];
 }): Promise<GeminiImage> {
   const apiKey = getApiKey();
   const model = opts.model ?? process.env.GEMINI_IMAGE_MODEL ?? DEFAULT_MODEL;
   const url =
     ENDPOINT_TEMPLATE.replace("{model}", encodeURIComponent(model)) +
     `?key=${encodeURIComponent(apiKey)}`;
+
+  // Compose the parts array. Order matters for Gemini: reference images first,
+  // then the textual instruction. This produces noticeably stronger
+  // image-to-image fidelity than text-then-image.
+  type Part =
+    | { text: string }
+    | { inlineData: { mimeType: string; data: string } };
+  const parts: Part[] = [];
+  if (opts.referenceImages && opts.referenceImages.length > 0) {
+    for (const ref of opts.referenceImages) {
+      parts.push({
+        inlineData: { mimeType: ref.mimeType, data: ref.base64 },
+      });
+    }
+  }
+  parts.push({ text: opts.prompt });
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), opts.timeoutMs ?? 90_000);
@@ -46,7 +70,7 @@ export async function generateGeminiImage(opts: {
         contents: [
           {
             role: "user",
-            parts: [{ text: opts.prompt }],
+            parts,
           },
         ],
         generationConfig: {
@@ -69,8 +93,8 @@ export async function generateGeminiImage(opts: {
       }[];
     };
 
-    const parts = body.candidates?.[0]?.content?.parts ?? [];
-    for (const part of parts) {
+    const respParts = body.candidates?.[0]?.content?.parts ?? [];
+    for (const part of respParts) {
       if (part.inlineData?.data) {
         return {
           base64: part.inlineData.data,

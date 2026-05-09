@@ -19,6 +19,16 @@ const HERO_INSTRUCTIONS_BY_INDUSTRY: Record<LeadIndustry, string> = {
     "Editorial photograph of two friendly workers in matching plain T-shirts loading a cleanout pile from a garage into a large white box truck on an American suburban driveway, daylight, no text or logos visible on truck or shirts.",
   "mobile detailing":
     "Editorial photograph of a mobile auto-detailing setup in a residential American driveway, fresh foam on a clean dark sedan, microfiber towels, water tank visible on the truck, no people on camera, no text or logos.",
+  landscaping:
+    "Editorial photograph of a freshly mowed and edged American suburban front yard at golden hour, neat boxwood hedges, mulched flower beds with seasonal annuals, deep green grass with mow stripes, no people, no text or logos.",
+  painting:
+    "Editorial photograph of a painter in clean white overalls cutting a crisp ceiling line in a bright American living room, drop cloths down, taped baseboards, soft daylight, neutral palette, no text or logos.",
+  electrical:
+    "Editorial photograph of a master electrician working at an open residential electrical panel in a suburban American basement, neatly dressed wires, breakers labeled clearly, headlamp on, no text or logos.",
+  "auto repair":
+    "Editorial photograph of a clean professional American auto-repair shop interior, polished epoxy floor, a sedan up on a four-post lift, technician working on the front suspension, organized tool boxes, daylight through bay windows, no text or logos.",
+  "pest control":
+    "Editorial photograph of a licensed pest-control technician treating the perimeter of a suburban American home with a backpack sprayer, golden afternoon sun, neat landscaping, no people in the foreground beyond the tech, no text or logos.",
 };
 
 export function buildHeroPrompt(industry: LeadIndustry, businessName: string): string {
@@ -62,6 +72,16 @@ export function buildLogoPrompt(opts: {
         return "a clean iconic mark of a stylized box-truck silhouette";
       case "mobile detailing":
         return "a clean iconic mark of a stylized car with a polish swoosh";
+      case "landscaping":
+        return "a clean iconic mark of a stylized leaf and tree silhouette";
+      case "painting":
+        return "a clean iconic mark of a stylized paint roller leaving a clean stripe";
+      case "electrical":
+        return "a clean iconic mark of a stylized lightning bolt inside a hexagon";
+      case "auto repair":
+        return "a clean iconic mark of a stylized gear with a wrench";
+      case "pest control":
+        return "a clean iconic mark of a stylized shield with a small leaf inside";
       default:
         return "a clean iconic mark suitable for a local service business";
     }
