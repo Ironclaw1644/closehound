@@ -132,10 +132,20 @@ export function CustomersConsole({ initial }: { initial: CustomerRow[] }) {
 
       <main className="flex-1 overflow-auto">
         {filtered.length === 0 ? (
-          <div className="mx-auto mt-24 max-w-md rounded-2xl border border-[color:var(--op-border)] bg-[color:var(--op-panel)] p-6 text-center">
-            <p className="text-sm font-semibold">No customers yet</p>
+          <div className="mx-auto mt-24 max-w-md rounded-2xl border border-[color:var(--op-border)] bg-[color:var(--op-panel)] p-8 text-center">
+            <span
+              className="mx-auto mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--op-panel-soft)] text-[color:var(--op-text-subtle)]"
+              aria-hidden
+            >
+              <FontAwesomeIcon icon={faCircleCheck} className="h-5 w-5" />
+            </span>
+            <p className="text-base font-semibold text-[color:var(--op-text)]">
+              {search ? "No matching customers" : "No customers yet"}
+            </p>
             <p className="mt-2 text-xs leading-5 text-[color:var(--op-text-muted)]">
-              A row appears here once Stripe fires its first paid checkout webhook.
+              {search
+                ? "Try a different search term."
+                : "A row appears here once Stripe fires its first paid checkout webhook."}
             </p>
           </div>
         ) : (

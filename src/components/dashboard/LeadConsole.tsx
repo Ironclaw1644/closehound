@@ -803,8 +803,14 @@ function WorkerPill({ status, jobs }: { status: WorkerStatus; jobs: Job[] }) {
 
 function EmptyState({ title, body }: { title: string; body: string }) {
   return (
-    <div className="mx-auto mt-24 max-w-md rounded-2xl border border-[color:var(--op-border)] bg-[color:var(--op-panel)] p-6 text-center">
-      <p className="text-sm font-semibold">{title}</p>
+    <div className="mx-auto mt-24 max-w-md rounded-2xl border border-[color:var(--op-border)] bg-[color:var(--op-panel)] p-8 text-center">
+      <span
+        className="mx-auto mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--op-panel-soft)] text-[color:var(--op-text-subtle)]"
+        aria-hidden
+      >
+        <FontAwesomeIcon icon={faMagnifyingGlass} className="h-5 w-5" />
+      </span>
+      <p className="text-base font-semibold text-[color:var(--op-text)]">{title}</p>
       <p className="mt-2 text-xs leading-5 text-[color:var(--op-text-muted)]">{body}</p>
     </div>
   );
