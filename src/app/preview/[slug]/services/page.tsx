@@ -81,7 +81,11 @@ export default async function ServicesPage({
           {model.services.items.map((service, idx) => {
             const Icon = ICON_MAP[service.icon] ?? ICON_MAP["circle-check"];
             const slug2 = serviceSlug(service.title);
-            const price = pricing[idx];
+            // Buyer's free-text price wins over industry default. For
+            // buyer-added services beyond pricing.length there's no industry
+            // default, so the only price shown is whatever the buyer typed.
+            const buyerPrice = service.price?.trim() || null;
+            const industryPrice = pricing[idx] ?? null;
             return (
               <Link
                 key={service.title}
@@ -108,16 +112,32 @@ export default async function ServicesPage({
                 <p className="text-[15px] leading-7 flex-1" style={{ color: palette.textMuted }}>
                   {service.body}
                 </p>
-                {price ? (
+                {buyerPrice ? (
+                  <div className="border-t pt-4 mt-2 flex items-center justify-between" style={{ borderColor: palette.border }}>
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.22em]" style={{ color: palette.accent }}>
+                        Pricing
+                      </p>
+                      <p className="text-xl font-semibold" style={{ color: palette.text }}>
+                        {buyerPrice}
+                      </p>
+                    </div>
+                    <FontAwesomeIcon
+                      icon={faArrowRight}
+                      className="h-4 w-4 transition group-hover:translate-x-1"
+                      style={{ color: palette.accent }}
+                    />
+                  </div>
+                ) : industryPrice ? (
                   <div className="border-t pt-4 mt-2 flex items-center justify-between" style={{ borderColor: palette.border }}>
                     <div>
                       <p className="text-[10px] font-semibold uppercase tracking-[0.22em]" style={{ color: palette.accent }}>
                         Starting at
                       </p>
                       <p className="text-xl font-semibold tabular-nums" style={{ color: palette.text }}>
-                        {price.startingAt}
+                        {industryPrice.startingAt}
                         <span className="ml-1 text-xs font-normal" style={{ color: palette.textMuted }}>
-                          {price.unit}
+                          {industryPrice.unit}
                         </span>
                       </p>
                     </div>

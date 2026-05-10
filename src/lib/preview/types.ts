@@ -4,6 +4,11 @@ export type PreviewService = {
   title: string;
   body: string;
   icon: PreviewIcon;
+  // Buyer-provided free-text price label (e.g. "$199 / visit", "Starts at
+  // $899", "Free estimates"). When set, replaces the industry-default
+  // pricing on the per-service detail page. When null/missing, the page
+  // falls back to SERVICE_PRICING[industry][index].
+  price?: string | null;
 };
 
 export type PreviewIcon =

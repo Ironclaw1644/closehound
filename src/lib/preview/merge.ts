@@ -25,13 +25,16 @@ export type BuyerOverrides = {
     heroUrl?: string | null;
     logoUrl?: string | null;
   };
-  // Per-service overrides. Index-aligned with the industry's base
-  // services.items[]. Empty/null fields fall back to the base value, so a
-  // buyer can edit just one service without re-typing the others.
+  // Per-service overrides. Indices < base.length layer on top of the
+  // industry default (empty/null fields fall back to the base value).
+  // Indices >= base.length are buyer-added services — they need a non-empty
+  // title to appear; otherwise they're skipped. Buyer-added services use
+  // a generic icon since icons are otherwise industry-locked.
   services?: {
     items?: Array<{
       title?: string | null;
       body?: string | null;
+      price?: string | null;
     }>;
   };
 };
@@ -125,19 +128,32 @@ export function mergeBuyerOverrides(
     next.brand = { ...(base.brand ?? {}), accent };
   }
 
-  // Services — index-aligned override of title and body. Icon stays from
-  // the base (industry-locked). Empty buyer fields fall through to base.
+  // Services — for indices < base.length, layer buyer overrides on top of
+  // the industry default (icon stays industry-locked). For indices beyond
+  // the base length, treat them as buyer-added services and include any
+  // with a non-empty title (icon defaults to a generic check mark).
   if (Array.isArray(overrides.services?.items)) {
     const ovItems = overrides.services!.items!;
-    next.services = {
-      ...next.services,
-      items: base.services.items.map((baseItem, i) => {
-        const ov = ovItems[i] ?? {};
-        const title = sx(ov.title) ?? baseItem.title;
-        const body = sx(ov.body) ?? baseItem.body;
-        return { ...baseItem, title, body };
-      }),
-    };
+    const merged = base.services.items.map((baseItem, i) => {
+      const ov = ovItems[i] ?? {};
+      const title = sx(ov.title) ?? baseItem.title;
+      const body = sx(ov.body) ?? baseItem.body;
+      const price = sx(ov.price) ?? baseItem.price ?? null;
+      return { ...baseItem, title, body, price };
+    });
+    // Buyer-added rows beyond base.length
+    for (let i = base.services.items.length; i < ovItems.length; i++) {
+      const ov = ovItems[i] ?? {};
+      const title = sx(ov.title);
+      if (!title) continue; // skip placeholder rows
+      merged.push({
+        title,
+        body: sx(ov.body) ?? "",
+        price: sx(ov.price) ?? null,
+        icon: "circle-check" as const,
+      });
+    }
+    next.services = { ...next.services, items: merged };
   }
 
   // Assets — only override individual slots when buyer set them.

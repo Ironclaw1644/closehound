@@ -84,20 +84,28 @@ export async function saveServiceAreaAction(token: string, formData: FormData) {
 
 export async function saveServicesAction(token: string, formData: FormData) {
   const { previewSiteId } = await requireClaimAuth(token);
-  // Form fields look like: services[0][title], services[0][body], services[1][title]…
-  // Walk indices 0..9 (cap to avoid buyer abuse). Empty entries become null
-  // overrides so they fall back to base in mergeBuyerOverrides.
-  const items: Array<{ title: string | null; body: string | null }> = [];
+  // Form fields: services[i][title|body|price] for i = 0..9. Empty entries
+  // become null overrides — for indices < base.length they fall back to
+  // industry defaults; for indices >= base.length they're skipped entirely
+  // by the merge (buyer-added services need a title to appear).
+  const items: Array<{
+    title: string | null;
+    body: string | null;
+    price: string | null;
+  }> = [];
   for (let i = 0; i < 10; i++) {
     const titleField = formData.get(`services[${i}][title]`);
     const bodyField = formData.get(`services[${i}][body]`);
-    // Stop the moment we run out of fields.
-    if (titleField === null && bodyField === null) break;
+    const priceField = formData.get(`services[${i}][price]`);
+    // Stop walking the moment a row has no fields at all.
+    if (titleField === null && bodyField === null && priceField === null) break;
     const title = String(titleField ?? "").trim();
     const body = String(bodyField ?? "").trim();
+    const price = String(priceField ?? "").trim();
     items.push({
       title: title.length ? title.slice(0, 120) : null,
       body: body.length ? body.slice(0, 600) : null,
+      price: price.length ? price.slice(0, 80) : null,
     });
   }
 

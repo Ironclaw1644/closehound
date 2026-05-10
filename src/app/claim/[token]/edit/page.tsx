@@ -5,7 +5,6 @@ import { getSiteOrigin } from "@/lib/preview/seo";
 import {
   saveBasicsAction,
   saveAboutAction,
-  saveServicesAction,
   saveServiceAreaAction,
   saveBrandAction,
   saveDomainAction,
@@ -14,8 +13,10 @@ import {
 import { ACCENT_PRESET_LIST } from "./constants";
 import { PhotosForm } from "./photos-form";
 import { DomainForm } from "./domain-form";
+import { ServicesForm } from "./services-form";
 import { findLeadById } from "@/lib/preview/load";
 import { getCopyForIndustry } from "@/lib/preview/copy";
+import { getPricingForIndustry } from "@/lib/preview/pricing";
 
 export const dynamic = "force-dynamic";
 
@@ -270,64 +271,54 @@ function AboutTab({ token, site }: { token: string; site: PreviewSiteRow }) {
 }
 
 async function ServicesTab({ token, site }: { token: string; site: PreviewSiteRow }) {
-  // Resolve the base services from the lead's industry copy, then layer the
-  // buyer's overrides on top. We do this directly instead of via
-  // loadPreviewBySlug because that helper calls notFound() on failure, which
-  // gets caught by Next's nearest error boundary and replaces the entire
-  // form with a 404 fallback.
+  // Resolve the base services from the lead's industry copy. We do this
+  // directly instead of via loadPreviewBySlug because that helper calls
+  // notFound() on failure, which gets caught by Next's nearest error boundary
+  // and replaces the entire form with a 404 fallback.
   const lead = site.lead_id ? await findLeadById(site.lead_id) : null;
   const industry = (lead?.industry ?? "handyman") as Parameters<typeof getCopyForIndustry>[0];
-  const baseItems = getCopyForIndustry(industry).services.items;
-  const overrides =
-    (site.preview_payload as { services?: { items?: Array<{ title?: string | null; body?: string | null }> } } | null)
-      ?.services?.items ?? [];
+  const baseItems = getCopyForIndustry(industry).services.items.map((b) => ({
+    title: b.title,
+    body: b.body,
+  }));
+  const industryPricing = getPricingForIndustry(industry);
+  const industryDefaultPrices = industryPricing.map((p) => p.startingAt);
 
-  const items = baseItems.map((b, i) => ({
+  const overrides =
+    (
+      site.preview_payload as {
+        services?: {
+          items?: Array<{
+            title?: string | null;
+            body?: string | null;
+            price?: string | null;
+          }>;
+        };
+      } | null
+    )?.services?.items ?? [];
+
+  // Compose initial rows: base rows (with overrides layered on) + any
+  // buyer-added rows beyond base.length. Buyer-added rows show their saved
+  // values verbatim — empty title means it'll be filtered out on save.
+  const baseRows = baseItems.map((b, i) => ({
     title: overrides[i]?.title?.trim() || b.title,
     body: overrides[i]?.body?.trim() || b.body,
+    price: overrides[i]?.price?.trim() || "",
   }));
+  const extraRows = overrides.slice(baseItems.length).map((ov) => ({
+    title: ov?.title?.trim() ?? "",
+    body: ov?.body?.trim() ?? "",
+    price: ov?.price?.trim() ?? "",
+  }));
+  const initialRows = [...baseRows, ...extraRows];
 
   return (
-    <form
-      action={saveServicesAction.bind(null, token)}
-      className="flex flex-col gap-6 rounded-3xl bg-white p-8 ring-1 ring-black/10"
-    >
-      <div>
-        <h2 className="text-2xl font-semibold tracking-tight">Services</h2>
-        <p className="mt-2 text-sm text-[#6b6b6b]">
-          What you do, in your words. Each service has its own page on your
-          site (e.g. <span className="font-mono text-[13px]">/services/drywall-doors-trim</span>),
-          plus a card on the home page. Leave a field blank to keep our
-          default copy.
-        </p>
-      </div>
-
-      {items.map((s, i) => (
-        <div
-          key={i}
-          className="flex flex-col gap-4 rounded-2xl bg-[#f5f1e8] p-5 ring-1 ring-black/5"
-        >
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6b6b6b]">
-            Service {i + 1}
-          </p>
-          <Field
-            label="Title"
-            name={`services[${i}][title]`}
-            defaultValue={s.title}
-            placeholder="e.g. Drywall, doors, and trim"
-          />
-          <TextareaField
-            label="Description"
-            name={`services[${i}][body]`}
-            defaultValue={s.body}
-            rows={4}
-            placeholder="2-4 sentences. What's included, who it's for, why someone would book this. Visible on the home card and the per-service page."
-          />
-        </div>
-      ))}
-
-      <SaveButton />
-    </form>
+    <ServicesForm
+      token={token}
+      baseItems={baseItems}
+      initialRows={initialRows}
+      industryDefaultPrices={industryDefaultPrices}
+    />
   );
 }
 

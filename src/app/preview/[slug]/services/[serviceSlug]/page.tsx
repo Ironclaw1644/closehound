@@ -63,7 +63,15 @@ export default async function ServiceDetailPage({
   const palette = getPaletteForModel(model);
   const process = getProcessForIndustry(model.industry);
   const pricing = getPricingForIndustry(model.industry);
-  const price = pricing[found.index];
+  // Buyer's price override > industry default. The buyer's price is a single
+  // free-text label (e.g. "$199 / visit", "Starts at $899", "Free estimates"),
+  // so when present we display just the override and skip the unit/notes
+  // pieces that only make sense for our structured industry defaults.
+  const buyerPrice = found.service.price?.trim() || null;
+  const industryPrice = pricing[found.index] ?? null;
+  const price = buyerPrice
+    ? { startingAt: buyerPrice, unit: null, notes: null, label: found.service.title }
+    : industryPrice;
   const others = otherServices(model, found.index);
 
   // Pick a deterministic stock photo for the service hero
@@ -175,16 +183,28 @@ export default async function ServiceDetailPage({
             </div>
             {price ? (
               <div className="mt-8 inline-flex items-center gap-3 rounded-full px-4 py-2 text-sm" style={{ background: palette.surface, border: `1px solid ${palette.border}`, color: palette.text }}>
-                <span className="text-[10px] font-semibold uppercase tracking-[0.22em]" style={{ color: palette.accent }}>Starting at</span>
-                <span className="font-semibold tabular-nums">{price.startingAt}</span>
-                <span style={{ color: palette.textMuted }}>·</span>
-                <span style={{ color: palette.textMuted }}>{price.unit}</span>
-                {price.notes ? (
+                {price.unit ? (
+                  // Industry-default pricing: structured "Starting at $X · unit · notes"
                   <>
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.22em]" style={{ color: palette.accent }}>Starting at</span>
+                    <span className="font-semibold tabular-nums">{price.startingAt}</span>
                     <span style={{ color: palette.textMuted }}>·</span>
-                    <span className="text-xs" style={{ color: palette.textMuted }}>{price.notes}</span>
+                    <span style={{ color: palette.textMuted }}>{price.unit}</span>
+                    {price.notes ? (
+                      <>
+                        <span style={{ color: palette.textMuted }}>·</span>
+                        <span className="text-xs" style={{ color: palette.textMuted }}>{price.notes}</span>
+                      </>
+                    ) : null}
                   </>
-                ) : null}
+                ) : (
+                  // Buyer's free-text override — render verbatim with a leading
+                  // "Pricing" eyebrow so it still reads as a price chip.
+                  <>
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.22em]" style={{ color: palette.accent }}>Pricing</span>
+                    <span className="font-semibold">{price.startingAt}</span>
+                  </>
+                )}
               </div>
             ) : null}
           </div>
