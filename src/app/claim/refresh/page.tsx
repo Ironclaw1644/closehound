@@ -86,8 +86,8 @@ export default async function RefreshPage({
 
         {status === "sent" ? (
           <p className="mt-6 rounded-2xl bg-white px-6 py-5 text-base leading-7 ring-1 ring-black/10">
-            Check your inbox. If a site is associated with that email, you'll
-            receive a fresh claim link within a few minutes.
+            Check your inbox. If we built a site for the business tied to that
+            email, a fresh claim link is on its way within a few minutes.
           </p>
         ) : null}
         {status === "invalid-email" ? (
