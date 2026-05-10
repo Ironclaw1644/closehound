@@ -9,11 +9,13 @@ import {
   saveBrandAction,
   saveDomainAction,
   publishAction,
+  unpublishAction,
 } from "./actions";
 import { ACCENT_PRESET_LIST } from "./constants";
 import { PhotosForm } from "./photos-form";
 import { DomainForm } from "./domain-form";
 import { ServicesForm } from "./services-form";
+import { PublishModal } from "@/components/claim/PublishModal";
 import { findLeadById } from "@/lib/preview/load";
 import { getCopyForIndustry } from "@/lib/preview/copy";
 import { getPricingForIndustry } from "@/lib/preview/pricing";
@@ -58,10 +60,15 @@ export default async function EditPage({
   searchParams,
 }: {
   params: Promise<{ token: string }>;
-  searchParams: Promise<{ tab?: Tab; published?: string; saved?: Tab }>;
+  searchParams: Promise<{
+    tab?: Tab;
+    published?: string;
+    unpublished?: string;
+    saved?: Tab;
+  }>;
 }) {
   const { token } = await params;
-  const { tab: tabRaw, published, saved } = await searchParams;
+  const { tab: tabRaw, published, unpublished, saved } = await searchParams;
   const tab: Tab =
     tabRaw && TABS.some((t) => t.id === tabRaw) ? (tabRaw as Tab) : "basics";
   const savedTab: Tab | null =
@@ -103,7 +110,12 @@ export default async function EditPage({
             >
               Open preview ↗
             </a>
-            <PublishButton token={token} site={site} />
+            <PublishModal
+              isPublished={site.is_published}
+              liveUrl={previewUrl}
+              publishAction={publishAction.bind(null, token)}
+              unpublishAction={unpublishAction.bind(null, token)}
+            />
           </div>
         </div>
         <nav className="mx-auto flex max-w-5xl items-center gap-6 px-6 pb-3 text-sm">
@@ -142,6 +154,15 @@ export default async function EditPage({
               {previewUrl}
             </a>{" "}
             to share it.
+          </div>
+        </div>
+      ) : null}
+
+      {unpublished === "1" && !site.is_published ? (
+        <div className="mx-auto max-w-5xl px-6 pt-6">
+          <div className="rounded-2xl bg-[#6b6b6b]/10 px-5 py-4 text-sm ring-1 ring-[#6b6b6b]/30 text-[#3a3a3a]">
+            🔒 Your site is offline. Click <strong>Publish</strong> to bring it
+            back when you're ready. Your edits are saved.
           </div>
         </div>
       ) : null}
@@ -521,16 +542,8 @@ function SavedBanner({ tabLabel }: { tabLabel: string }) {
   );
 }
 
-function PublishButton({ token, site }: { token: string; site: PreviewSiteRow }) {
-  return (
-    <form action={publishAction.bind(null, token)}>
-      <button
-        type="submit"
-        disabled={site.is_published}
-        className="inline-flex items-center justify-center rounded-full bg-[#ebff00] px-5 py-2 text-sm font-semibold text-[#0e0e0e] transition hover:-translate-y-0.5 disabled:cursor-default disabled:opacity-40 disabled:hover:translate-y-0"
-      >
-        {site.is_published ? "Published" : "Publish"}
-      </button>
-    </form>
-  );
+// (PublishButton replaced by PublishModal client component above — keeping
+// this comment as a breadcrumb so future readers know where to look.)
+function PublishButton(_: { token: string; site: PreviewSiteRow }) {
+  return null;
 }

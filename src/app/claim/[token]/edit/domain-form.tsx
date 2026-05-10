@@ -187,6 +187,22 @@ export function DomainForm({
               day, so that your site shows up on Google search.
             </p>
           )}
+          {/* Propagation note — the most common confused support ticket
+              ("I published, but my domain isn't loading?") is DNS not
+              having propagated yet. Surface this UP FRONT so buyers know
+              to wait, and that the default URL works in the meantime. */}
+          <div className="mt-5 rounded-xl bg-[#ebff00]/10 px-4 py-3 text-xs leading-5 text-[#f5f1e8]/85 ring-1 ring-[#ebff00]/30">
+            <p className="font-semibold uppercase tracking-[0.18em] text-[#ebff00]">
+              Heads-up · DNS propagation
+            </p>
+            <p className="mt-1.5">
+              Custom domains usually start working 24–48 hours after you save
+              the DNS records at your registrar. Your site is{" "}
+              <span className="font-semibold">already live</span> on the
+              default URL above — the custom domain takes over once DNS
+              resolves around the world.
+            </p>
+          </div>
         </div>
       ) : null}
     </div>

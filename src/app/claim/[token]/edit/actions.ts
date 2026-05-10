@@ -7,6 +7,7 @@ import {
   findPreviewSiteById,
   updatePreviewPayload,
   publishPreviewSite,
+  unpublishPreviewSite,
   setCustomDomain,
   setCustomDomainStatus,
 } from "@/lib/onboarding/storage";
@@ -263,4 +264,14 @@ export async function publishAction(token: string) {
   }
 
   redirect(`/claim/${token}/edit?published=1`);
+}
+
+// Inverse of publishAction. Flips is_published back to false so the buyer
+// can keep editing without exposing changes mid-flight. The custom-domain
+// attachment on Vercel is left in place — re-publishing reuses it.
+export async function unpublishAction(token: string) {
+  const { previewSiteId } = await requireClaimAuth(token);
+  await unpublishPreviewSite({ previewSiteId });
+  revalidatePath(`/claim/${token}/edit`);
+  redirect(`/claim/${token}/edit?unpublished=1`);
 }

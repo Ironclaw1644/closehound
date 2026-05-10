@@ -9,6 +9,15 @@ const SLOTS = [
   { idx: 4, label: "Logo", aspect: "1 / 1" },
 ] as const;
 
+// Hard size limit (matches the server-side check in /api/claim/<token>/upload).
+// Catching client-side avoids a wasted upload + a confusing "HTTP 413" later.
+const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
+const ALLOWED_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+]);
+
 export function PhotosForm({
   token,
   initial,
@@ -18,43 +27,99 @@ export function PhotosForm({
 }) {
   const [photos, setPhotos] = useState(initial);
   const [busySlot, setBusySlot] = useState<number | null>(null);
+  // Determinate progress for the active upload (0..1). null when idle.
+  const [progress, setProgress] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function uploadFile(slot: number, file: File) {
-    setBusySlot(slot);
-    setError(null);
-    try {
-      const fd = new FormData();
-      fd.append("file", file);
-      fd.append("slot", String(slot));
-      const res = await fetch(`/api/claim/${encodeURIComponent(token)}/upload`, {
-        method: "POST",
-        body: fd,
-      });
-      const json = (await res.json()) as
-        | { ok: true; publicUrl: string; slot: number }
-        | { ok: false; error: string };
-      if (!res.ok || !json.ok) {
-        setError(json.ok === false ? json.error : `HTTP ${res.status}`);
-        return;
-      }
-      // Update local state to show the new image
-      setPhotos((prev) => {
-        if (slot >= 0 && slot <= 2) {
-          const gallery = [...prev.gallery];
-          while (gallery.length <= slot) gallery.push("");
-          gallery[slot] = json.publicUrl;
-          return { ...prev, gallery };
-        }
-        if (slot === 3) return { ...prev, hero: json.publicUrl };
-        if (slot === 4) return { ...prev, logo: json.publicUrl };
-        return prev;
-      });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed");
-    } finally {
-      setBusySlot(null);
+  // Client-side guards before the upload kicks off. Catches the two
+  // failure modes that produce confusing server errors ("HTTP 413" /
+  // unsupported MIME) and surfaces a friendly message instead.
+  function validateBeforeUpload(file: File): string | null {
+    if (!ALLOWED_TYPES.has(file.type)) {
+      return `Unsupported file type (${file.type || "unknown"}). JPG, PNG, or WebP only.`;
     }
+    if (file.size > MAX_BYTES) {
+      const mb = (file.size / (1024 * 1024)).toFixed(1);
+      return `File is too big (${mb} MB). Max 10 MB per photo.`;
+    }
+    return null;
+  }
+
+  async function uploadFile(slot: number, file: File) {
+    const reason = validateBeforeUpload(file);
+    if (reason) {
+      setError(reason);
+      return;
+    }
+    setBusySlot(slot);
+    setProgress(0);
+    setError(null);
+
+    // XHR instead of fetch so we can report upload progress (fetch's
+    // streams API exists but isn't supported widely enough to rely on for
+    // real users).
+    const xhr = new XMLHttpRequest();
+    const url = `/api/claim/${encodeURIComponent(token)}/upload`;
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("slot", String(slot));
+
+    const done: Promise<{ ok: true; publicUrl: string } | { ok: false; error: string }> =
+      new Promise((resolve) => {
+        xhr.upload.addEventListener("progress", (e) => {
+          if (e.lengthComputable) {
+            setProgress(Math.min(0.95, e.loaded / e.total)); // hold at 95% until server replies
+          }
+        });
+        xhr.addEventListener("load", () => {
+          try {
+            const json = JSON.parse(xhr.responseText);
+            if (xhr.status >= 200 && xhr.status < 300 && json.ok) {
+              resolve(json);
+            } else {
+              resolve({
+                ok: false,
+                error: json?.error ?? `HTTP ${xhr.status}`,
+              });
+            }
+          } catch {
+            resolve({ ok: false, error: `HTTP ${xhr.status}` });
+          }
+        });
+        xhr.addEventListener("error", () =>
+          resolve({ ok: false, error: "Network error. Check your connection." })
+        );
+        xhr.addEventListener("abort", () =>
+          resolve({ ok: false, error: "Upload cancelled." })
+        );
+        xhr.open("POST", url);
+        xhr.send(fd);
+      });
+
+    const result = await done;
+    setProgress(1);
+    if (!result.ok) {
+      setError(result.error);
+      setBusySlot(null);
+      setProgress(null);
+      return;
+    }
+    setPhotos((prev) => {
+      if (slot >= 0 && slot <= 2) {
+        const gallery = [...prev.gallery];
+        while (gallery.length <= slot) gallery.push("");
+        gallery[slot] = result.publicUrl;
+        return { ...prev, gallery };
+      }
+      if (slot === 3) return { ...prev, hero: result.publicUrl };
+      if (slot === 4) return { ...prev, logo: result.publicUrl };
+      return prev;
+    });
+    // Brief pause so the bar visibly hits 100% before clearing.
+    setTimeout(() => {
+      setBusySlot(null);
+      setProgress(null);
+    }, 200);
   }
 
   function preview(slot: number): string | null {
@@ -104,8 +169,21 @@ export function PhotosForm({
                   </div>
                 )}
                 {busy ? (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 text-xs font-semibold text-white">
-                    Uploading…
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/55 text-xs font-semibold text-white">
+                    <span>
+                      Uploading…{" "}
+                      {progress !== null
+                        ? `${Math.round(progress * 100)}%`
+                        : null}
+                    </span>
+                    <div className="h-1 w-3/4 overflow-hidden rounded-full bg-white/20">
+                      <div
+                        className="h-full rounded-full bg-[#ebff00] transition-[width] duration-150"
+                        style={{
+                          width: `${Math.round((progress ?? 0) * 100)}%`,
+                        }}
+                      />
+                    </div>
                   </div>
                 ) : null}
               </div>

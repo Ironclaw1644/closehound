@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { saveServicesAction } from "./actions";
 
 // Hard cap matching the action's loop in actions.ts. Keeps form posts bounded
@@ -44,11 +44,52 @@ export function ServicesForm({
     }))
   );
 
+  // Track whether the form state has diverged from what we mounted with so
+  // we can fire a beforeunload prompt if the buyer tries to close the tab
+  // with unsaved edits. We compare a JSON-serialized snapshot vs current
+  // rows — same shape, easy to compare.
+  const initialSnapshot = useRef(
+    JSON.stringify(
+      initialRows.map((r, i) => ({
+        title: r.title,
+        body: r.body,
+        price: r.price,
+        isBase: i < baseCount,
+      }))
+    )
+  );
+  const submittedRef = useRef(false);
+
+  useEffect(() => {
+    const dirty =
+      !submittedRef.current && JSON.stringify(rows) !== initialSnapshot.current;
+    if (!dirty) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      // Spec requires returnValue to be set for the prompt to fire in some
+      // browsers. The browser shows its own generic message; our text is
+      // ignored, but setting it is required.
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [rows]);
+
   const updateRow = (i: number, patch: Partial<Row>) => {
     setRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
   };
 
   const removeRow = (i: number) => {
+    // Confirm before destroying the row — buyer-added services have real
+    // copy in them and removing is one-click destructive. Save still has to
+    // run to persist the removal, so reverting before save is free too.
+    const title = rows[i]?.title?.trim();
+    const confirmed = window.confirm(
+      title
+        ? `Remove "${title}"? You can re-add it anytime.`
+        : "Remove this service?"
+    );
+    if (!confirmed) return;
     setRows((prev) => prev.filter((_, idx) => idx !== i));
   };
 
@@ -63,6 +104,12 @@ export function ServicesForm({
   return (
     <form
       action={saveServicesAction.bind(null, token)}
+      onSubmit={() => {
+        // Submitting the form → server action redirects to ?saved=services
+        // → we don't want the beforeunload prompt to fire during that
+        // navigation.
+        submittedRef.current = true;
+      }}
       className="flex flex-col gap-6 rounded-3xl bg-white p-8 ring-1 ring-black/10"
     >
       <div>
