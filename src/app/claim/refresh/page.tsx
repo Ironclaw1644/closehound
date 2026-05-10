@@ -122,7 +122,7 @@ export default async function RefreshPage({
           />
           <button
             type="submit"
-            className="mt-2 inline-flex items-center justify-center rounded-full bg-[#0e0e0e] px-6 py-3.5 text-sm font-semibold text-[#ebff00] transition hover:-translate-y-0.5 hover:bg-[#2a2a2a]"
+            className="mt-2 inline-flex items-center justify-center rounded-full bg-[#ebff00] px-6 py-3.5 text-sm font-semibold text-[#0e0e0e] ring-1 ring-[#0e0e0e]/15 transition hover:-translate-y-0.5 hover:bg-[#dcef00]"
           >
             Send me a new link
           </button>

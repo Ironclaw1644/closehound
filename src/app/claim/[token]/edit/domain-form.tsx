@@ -66,11 +66,6 @@ export function DomainForm({
     });
   }
 
-  function pickSuggestion(suggested: string) {
-    setDomain(suggested);
-    setError(null);
-  }
-
   const verification = initialStatus?.verification ?? null;
 
   return (
@@ -100,7 +95,7 @@ export function DomainForm({
       </div>
 
       {/* Card 2 — find a fresh domain */}
-      <DomainSearch onPick={pickSuggestion} />
+      <DomainSearch />
 
       {/* Card 3 — bring your own / chosen domain */}
       <form
@@ -187,8 +182,9 @@ export function DomainForm({
             </div>
           ) : (
             <p className="mt-4 text-xs leading-5 text-[#f5f1e8]/70">
-              After updating DNS, click <strong>Publish</strong>. We'll attach the
-              domain to Vercel and Google will start indexing it within a day.
+              After updating DNS, click <strong>Publish</strong>. We'll attach
+              the domain to Vercel and Google will start indexing it within a
+              day, so that your site shows up on Google search.
             </p>
           )}
         </div>
@@ -197,7 +193,7 @@ export function DomainForm({
   );
 }
 
-function DomainSearch({ onPick }: { onPick: (domain: string) => void }) {
+function DomainSearch() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<DomainCheck[]>([]);
   const [loading, setLoading] = useState(false);
@@ -252,8 +248,8 @@ function DomainSearch({ onPick }: { onPick: (domain: string) => void }) {
         Find a fresh domain
       </p>
       <p className="mt-1 text-sm text-[#3a3a3a]">
-        Type your business name to check what's available. Click "Use this" to
-        pre-fill the field below — actual purchase happens at GoDaddy.
+        Type your business name to check what's available. Hit Register to
+        purchase on GoDaddy, then come back and paste it in the field below.
       </p>
       <label className="mt-4 flex flex-col gap-2">
         <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#6b6b6b]">
@@ -304,23 +300,14 @@ function DomainSearch({ onPick }: { onPick: (domain: string) => void }) {
               </div>
               <div className="flex shrink-0 items-center gap-2">
                 {r.available ? (
-                  <>
-                    <a
-                      href={r.registerUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="rounded-full bg-[#ebff00] px-3 py-1.5 text-xs font-semibold text-[#0e0e0e] transition hover:-translate-y-0.5"
-                    >
-                      Register ↗
-                    </a>
-                    <button
-                      type="button"
-                      onClick={() => onPick(r.domain)}
-                      className="rounded-full border border-black/15 bg-white px-3 py-1.5 text-xs font-semibold text-[#0e0e0e] transition hover:-translate-y-0.5"
-                    >
-                      Use this
-                    </button>
-                  </>
+                  <a
+                    href={r.registerUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-full bg-[#ebff00] px-3 py-1.5 text-xs font-semibold text-[#0e0e0e] transition hover:-translate-y-0.5"
+                  >
+                    Register ↗
+                  </a>
                 ) : (
                   <span className="text-xs text-[#a0a0a0]">—</span>
                 )}
