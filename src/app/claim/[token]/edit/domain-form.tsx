@@ -1,5 +1,5 @@
 "use client";
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 
 type DomainStatus =
   | { kind: "configured"; domain: string; verification?: VerificationHints | null }
@@ -12,6 +12,13 @@ type VerificationHints = {
   value: string;
   reason?: string;
 } | null;
+
+type DomainCheck = {
+  domain: string;
+  available: boolean;
+  approxPriceUsd: number;
+  registerUrl: string;
+};
 
 export function DomainForm({
   token,
@@ -31,7 +38,6 @@ export function DomainForm({
   const [pending, startTransition] = useTransition();
 
   function isValidDomain(value: string): boolean {
-    // Permissive but real: must be host.tld with valid characters, no scheme.
     return /^(?!-)([a-z0-9-]{1,63}(?<!-)\.)+[a-z]{2,}$/i.test(value.trim());
   }
 
@@ -58,6 +64,11 @@ export function DomainForm({
     startTransition(async () => {
       await saveAction(token, fd);
     });
+  }
+
+  function pickSuggestion(suggested: string) {
+    setDomain(suggested);
+    setError(null);
   }
 
   const verification = initialStatus?.verification ?? null;
@@ -88,17 +99,21 @@ export function DomainForm({
         </p>
       </div>
 
-      {/* Card 2 — bring your own */}
+      {/* Card 2 — find a fresh domain */}
+      <DomainSearch onPick={pickSuggestion} />
+
+      {/* Card 3 — bring your own / chosen domain */}
       <form
         onSubmit={handleSubmit}
         className="rounded-2xl p-5 ring-1 ring-black/10"
         style={{ background: "#ffffff" }}
       >
         <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6b6b6b]">
-          Bring your own domain
+          Use a domain
         </p>
         <p className="mt-1 text-sm text-[#3a3a3a]">
-          Got a domain? Drop it in. We'll show DNS instructions and attach it to your site once you publish.
+          Already own one? Type it below. We'll show DNS instructions and attach
+          it to your site once you publish.
         </p>
 
         <label className="mt-4 flex flex-col gap-2">
@@ -139,18 +154,10 @@ export function DomainForm({
               Remove custom domain
             </button>
           ) : null}
-          <a
-            href={`https://www.godaddy.com/domains/searchresults.aspx?checkAvail=1&domainToCheck=${encodeURIComponent(domain || "yourbusiness")}`}
-            target="_blank"
-            rel="noreferrer"
-            className="ml-auto text-sm text-[#3a3a3a] underline underline-offset-4 transition hover:text-[#0e0e0e]"
-          >
-            Don't have one? Search GoDaddy ↗
-          </a>
         </div>
       </form>
 
-      {/* Card 3 — DNS instructions when a domain is saved */}
+      {/* Card 4 — DNS instructions when a domain is saved */}
       {initialDomain ? (
         <div
           className="rounded-2xl p-5 ring-1 ring-black/10"
@@ -186,6 +193,152 @@ export function DomainForm({
           )}
         </div>
       ) : null}
+    </div>
+  );
+}
+
+function DomainSearch({ onPick }: { onPick: (domain: string) => void }) {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<DomainCheck[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastQueryRef = useRef<string>("");
+
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (trimmed.length < 2) {
+      setResults([]);
+      setSearchError(null);
+      setLoading(false);
+      return;
+    }
+    debounceRef.current = setTimeout(async () => {
+      lastQueryRef.current = trimmed;
+      setLoading(true);
+      setSearchError(null);
+      try {
+        const res = await fetch(
+          `/api/domain/check?q=${encodeURIComponent(trimmed)}`
+        );
+        if (!res.ok) {
+          setSearchError("Search failed. Try again.");
+          setResults([]);
+        } else {
+          const body = (await res.json()) as { results?: DomainCheck[] };
+          // Discard stale responses if the user kept typing
+          if (lastQueryRef.current === trimmed) {
+            setResults(body.results ?? []);
+          }
+        }
+      } catch {
+        setSearchError("Network error. Try again.");
+      } finally {
+        if (lastQueryRef.current === trimmed) setLoading(false);
+      }
+    }, 350);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [query]);
+
+  return (
+    <div
+      className="rounded-2xl p-5 ring-1 ring-black/10"
+      style={{ background: "#ffffff" }}
+    >
+      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6b6b6b]">
+        Find a fresh domain
+      </p>
+      <p className="mt-1 text-sm text-[#3a3a3a]">
+        Type your business name to check what's available. Click "Use this" to
+        pre-fill the field below — actual purchase happens at GoDaddy.
+      </p>
+      <label className="mt-4 flex flex-col gap-2">
+        <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#6b6b6b]">
+          Search
+        </span>
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="tomspaint"
+          autoComplete="off"
+          spellCheck={false}
+          className="rounded-xl bg-[#f5f1e8] px-4 py-3 font-mono text-base ring-1 ring-black/10 outline-none transition focus:ring-2 focus:ring-[#ebff00]"
+        />
+      </label>
+
+      {searchError ? (
+        <p className="mt-2 text-xs text-[#7a2222]">{searchError}</p>
+      ) : null}
+
+      {loading ? (
+        <p className="mt-3 text-sm text-[#6b6b6b]">Checking…</p>
+      ) : null}
+
+      {!loading && results.length > 0 ? (
+        <ul className="mt-4 grid gap-2">
+          {results.map((r) => (
+            <li
+              key={r.domain}
+              className="flex items-center justify-between gap-3 rounded-xl bg-[#f5f1e8] px-4 py-3 ring-1 ring-black/5"
+            >
+              <div className="flex min-w-0 items-center gap-3">
+                <span
+                  className="inline-block h-2 w-2 shrink-0 rounded-full"
+                  style={{
+                    background: r.available ? "#0fa45a" : "#a0a0a0",
+                  }}
+                  aria-hidden
+                />
+                <span className="truncate font-mono text-[15px] text-[#0e0e0e]">
+                  {r.domain}
+                </span>
+                <span className="ml-auto shrink-0 text-xs text-[#6b6b6b]">
+                  {r.available
+                    ? `~$${r.approxPriceUsd}/yr`
+                    : "Taken"}
+                </span>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                {r.available ? (
+                  <>
+                    <a
+                      href={r.registerUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="rounded-full bg-[#ebff00] px-3 py-1.5 text-xs font-semibold text-[#0e0e0e] transition hover:-translate-y-0.5"
+                    >
+                      Register ↗
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => onPick(r.domain)}
+                      className="rounded-full border border-black/15 bg-white px-3 py-1.5 text-xs font-semibold text-[#0e0e0e] transition hover:-translate-y-0.5"
+                    >
+                      Use this
+                    </button>
+                  </>
+                ) : (
+                  <span className="text-xs text-[#a0a0a0]">—</span>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
+      {!loading && query.trim().length >= 2 && results.length === 0 && !searchError ? (
+        <p className="mt-3 text-sm text-[#6b6b6b]">No results — try a different name.</p>
+      ) : null}
+
+      <p className="mt-4 text-xs text-[#6b6b6b]">
+        Prices are starting estimates. You'll buy directly from GoDaddy and pay
+        whatever's listed there. After purchase, return here and paste the
+        domain in the field below.
+      </p>
     </div>
   );
 }
