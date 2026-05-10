@@ -17,7 +17,10 @@ import { attachCustomDomain } from "@/lib/vercel/domains";
 import { pingGoogleForUrl } from "@/lib/seo/gsc";
 
 // Server actions called from the editor tabs. Each one verifies the claim
-// session, applies a focused patch to preview_payload, and revalidates.
+// session, applies a focused patch to preview_payload, revalidates, and
+// redirects back to the same tab with `?saved=<tab>` so the page can render
+// a confirmation banner. Without that redirect the user clicks Save and
+// sees no UI change — the form silently re-renders identically.
 
 async function requireClaimAuth(token: string): Promise<{ previewSiteId: string }> {
   const payload = await resolveClaimAuth(token);
@@ -25,6 +28,13 @@ async function requireClaimAuth(token: string): Promise<{ previewSiteId: string 
     redirect("/claim/refresh?status=expired");
   }
   return { previewSiteId: payload.previewSiteId };
+}
+
+// Helper: bounce back to the editor with a `saved` flag so the page can
+// flash a confirmation banner. `redirect()` throws a special Next.js error
+// that's caught by the framework, so it must be the last call in the action.
+function redirectToTab(token: string, tab: string): never {
+  redirect(`/claim/${token}/edit?tab=${tab}&saved=${tab}`);
 }
 
 export async function saveBasicsAction(token: string, formData: FormData) {
@@ -46,6 +56,7 @@ export async function saveBasicsAction(token: string, formData: FormData) {
     },
   });
   revalidatePath(`/claim/${token}/edit`);
+  redirectToTab(token, "basics");
 }
 
 export async function saveAboutAction(token: string, formData: FormData) {
@@ -63,6 +74,7 @@ export async function saveAboutAction(token: string, formData: FormData) {
     },
   });
   revalidatePath(`/claim/${token}/edit`);
+  redirectToTab(token, "about");
 }
 
 export async function saveServiceAreaAction(token: string, formData: FormData) {
@@ -80,6 +92,7 @@ export async function saveServiceAreaAction(token: string, formData: FormData) {
     patch: { serviceArea: { cities } },
   });
   revalidatePath(`/claim/${token}/edit`);
+  redirectToTab(token, "service-area");
 }
 
 export async function saveServicesAction(token: string, formData: FormData) {
@@ -114,6 +127,7 @@ export async function saveServicesAction(token: string, formData: FormData) {
     patch: { services: { items } },
   });
   revalidatePath(`/claim/${token}/edit`);
+  redirectToTab(token, "services");
 }
 
 export async function saveBrandAction(token: string, formData: FormData) {
@@ -128,6 +142,7 @@ export async function saveBrandAction(token: string, formData: FormData) {
     patch: { brand: { accent } },
   });
   revalidatePath(`/claim/${token}/edit`);
+  redirectToTab(token, "brand");
 }
 
 export async function saveDomainAction(token: string, formData: FormData) {
@@ -142,6 +157,7 @@ export async function saveDomainAction(token: string, formData: FormData) {
     domain: raw === "" ? null : raw,
   });
   revalidatePath(`/claim/${token}/edit`);
+  redirectToTab(token, "domain");
 }
 
 export async function publishAction(token: string) {

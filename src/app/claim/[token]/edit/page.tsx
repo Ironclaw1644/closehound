@@ -43,17 +43,29 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "domain", label: "Domain" },
 ];
 
+const TAB_LABELS: Record<Tab, string> = {
+  basics: "Basics",
+  photos: "Photos",
+  about: "About",
+  services: "Services",
+  "service-area": "Service area",
+  brand: "Brand",
+  domain: "Domain",
+};
+
 export default async function EditPage({
   params,
   searchParams,
 }: {
   params: Promise<{ token: string }>;
-  searchParams: Promise<{ tab?: Tab; published?: string }>;
+  searchParams: Promise<{ tab?: Tab; published?: string; saved?: Tab }>;
 }) {
   const { token } = await params;
-  const { tab: tabRaw, published } = await searchParams;
+  const { tab: tabRaw, published, saved } = await searchParams;
   const tab: Tab =
     tabRaw && TABS.some((t) => t.id === tabRaw) ? (tabRaw as Tab) : "basics";
+  const savedTab: Tab | null =
+    saved && TABS.some((t) => t.id === saved) ? (saved as Tab) : null;
 
   const payload = await resolveClaimAuth(token);
   if (!payload) {
@@ -64,6 +76,10 @@ export default async function EditPage({
     redirect(`/claim/refresh?status=not-found`);
   }
 
+  // Host-relative so it works on localhost, preview.walkperro.com, and any
+  // future host. Using getSiteOrigin() here punts users to production even
+  // when they're testing locally — which 404s if the slug isn't deployed.
+  const previewPath = `/preview/${site.slug}`;
   const previewUrl = `${getSiteOrigin()}/preview/${site.slug}`;
 
   return (
@@ -80,7 +96,7 @@ export default async function EditPage({
           </div>
           <div className="flex items-center gap-3">
             <a
-              href={previewUrl}
+              href={previewPath}
               target="_blank"
               rel="noreferrer"
               className="rounded-full border border-black/15 px-4 py-2 text-sm font-semibold transition hover:-translate-y-0.5 hover:border-black/40"
@@ -127,6 +143,13 @@ export default async function EditPage({
             </a>{" "}
             to share it.
           </div>
+        </div>
+      ) : null}
+
+      {savedTab ? (
+        <div className="mx-auto max-w-5xl px-6 pt-6">
+          {/* `key` forces a remount each save so the CSS animation replays */}
+          <SavedBanner key={`saved-${savedTab}`} tabLabel={TAB_LABELS[savedTab]} />
         </div>
       ) : null}
 
@@ -465,6 +488,36 @@ function SaveButton() {
     >
       Save changes
     </button>
+  );
+}
+
+// "Changes saved" banner. Renders when `?saved=<tab>` is in the URL (set by
+// every save server action). Pure CSS auto-fade after a few seconds — no
+// client JS needed. The animation replays each save because page.tsx
+// remounts via the `key` prop.
+function SavedBanner({ tabLabel }: { tabLabel: string }) {
+  return (
+    <>
+      {/* Inline keyframes so we don't have to thread this through globals.css */}
+      <style>{`
+        @keyframes wp-saved-fade {
+          0%   { opacity: 0; transform: translateY(-4px); }
+          8%   { opacity: 1; transform: translateY(0); }
+          80%  { opacity: 1; transform: translateY(0); }
+          100% { opacity: 0; transform: translateY(-4px); }
+        }
+        .wp-saved-banner {
+          animation: wp-saved-fade 4s ease-in-out forwards;
+        }
+      `}</style>
+      <div
+        className="wp-saved-banner rounded-2xl bg-[#0fa45a]/10 px-5 py-4 text-sm ring-1 ring-[#0fa45a]/40 text-[#0a6e3c]"
+        role="status"
+        aria-live="polite"
+      >
+        ✅ {tabLabel} saved.
+      </div>
+    </>
   );
 }
 
