@@ -547,7 +547,7 @@ const INDUSTRY_COPY: Record<LeadIndustry, IndustryCopy> = {
     hero: {
       eyebrow: (city) => `${cityOrArea(city)} med spa`,
       headline: () =>
-        `Subtle, on purpose.`,
+        `Refreshed. Not redone.`,
       subheadline: (_company, _city) =>
         `Botox, fillers, laser, microneedling, and skincare plans built around your face — not a brochure. Free consultations, transparent pricing, and a calm space.`,
       primaryCtaLabel: "Book a free consultation",

@@ -113,7 +113,7 @@ export function DentalPreview({ model }: { model: PreviewModel }) {
               <div className="mt-9 flex flex-wrap items-center gap-3">
                 <a
                   href={model.hero.primaryCta.href}
-                  className="group relative inline-flex items-center gap-2.5 overflow-hidden rounded-full bg-[#0d2724] px-6 py-3.5 text-sm font-medium text-[#f1faf6] shadow-[0_3px_0_rgba(0,0,0,0.22),0_18px_40px_rgba(13,39,36,0.32)] transition hover:-translate-y-0.5 hover:bg-[#218a6f] hover:shadow-[0_5px_0_rgba(0,0,0,0.22),0_24px_48px_rgba(33,138,111,0.42)] active:translate-y-0.5 sm:text-base"
+                  className="group relative inline-flex items-center gap-2.5 overflow-hidden rounded-full bg-[#218a6f] px-6 py-3.5 text-sm font-medium text-[#f1faf6] shadow-[0_3px_0_rgba(0,0,0,0.22),0_18px_40px_rgba(33,138,111,0.42)] transition hover:-translate-y-0.5 hover:bg-[#0d2724] hover:shadow-[0_5px_0_rgba(0,0,0,0.22),0_24px_48px_rgba(13,39,36,0.42)] active:translate-y-0.5 sm:text-base"
                 >
                   <FontAwesomeIcon icon={faCalendarCheck} className="h-4 w-4 transition group-hover:rotate-[-12deg]" />
                   {model.hero.primaryCta.label}

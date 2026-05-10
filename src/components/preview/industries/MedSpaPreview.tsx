@@ -129,7 +129,7 @@ export function MedSpaPreview({ model }: { model: PreviewModel }) {
               <div className="mt-9 flex flex-wrap items-center gap-3">
                 <a
                   href={model.hero.primaryCta.href}
-                  className="group relative inline-flex items-center gap-2.5 overflow-hidden rounded-full bg-[#251918] px-7 py-4 text-sm tracking-[0.18em] text-[#fff7f1] shadow-[0_3px_0_rgba(0,0,0,0.22),0_18px_40px_rgba(37,25,24,0.32)] transition hover:-translate-y-0.5 hover:bg-[#b27361] hover:shadow-[0_5px_0_rgba(0,0,0,0.22),0_24px_48px_rgba(178,115,97,0.42)] active:translate-y-0.5 sm:text-base"
+                  className="group relative inline-flex items-center gap-2.5 overflow-hidden rounded-full bg-[#b27361] px-7 py-4 text-sm tracking-[0.18em] text-[#fff7f1] shadow-[0_3px_0_rgba(0,0,0,0.22),0_18px_40px_rgba(178,115,97,0.42)] transition hover:-translate-y-0.5 hover:bg-[#251918] hover:shadow-[0_5px_0_rgba(0,0,0,0.22),0_24px_48px_rgba(37,25,24,0.42)] active:translate-y-0.5 sm:text-base"
                   style={{ fontFamily: "var(--font-lora)" }}
                 >
                   {model.hero.primaryCta.label.toUpperCase()}
@@ -242,10 +242,10 @@ export function MedSpaPreview({ model }: { model: PreviewModel }) {
                 </div>
               </div>
 
-              {/* "Booked today" badge — top-right */}
+              {/* "Book today" CTA-style badge — top-right */}
               <div className="absolute -right-3 -top-3 inline-flex items-center gap-2 rounded-full bg-[#251918] px-3.5 py-1.5 text-[10px] tracking-[0.32em] text-[#fff7f1] shadow-[0_8px_24px_rgba(37,25,24,0.32)] sm:-right-6 sm:-top-6">
                 <span className="preview-pulse inline-block h-1.5 w-1.5 rounded-full bg-[#e0b8a4]" />
-                BOOKED TODAY
+                BOOK TODAY
               </div>
             </div>
           </Reveal>

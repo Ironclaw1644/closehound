@@ -77,7 +77,7 @@ export const ABOUT_COPY: Record<LeadIndustry, AboutCopy> = {
     badges: ["ADA-member dentist", "Most PPO insurance accepted", "Saturday hours"],
   },
   "med spa": {
-    tagline: "Subtle, on purpose.",
+    tagline: "Refreshed. Not redone.",
     paragraphs: (company, city, years) => [
       `${company} is a small medical aesthetics practice anchored on three principles: conservative dosing, posted pricing, and a clinical team that doesn't oversell. ${ageBlurb(years)}`,
       `Every treatment plan is reviewed by our medical director. Per-unit pricing is read aloud at the consult, before any decisions get made. We'd rather see you back for a touch-up than push too hard once.`,
