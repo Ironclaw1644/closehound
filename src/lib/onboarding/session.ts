@@ -1,5 +1,6 @@
 import "server-only";
 import { cookies } from "next/headers";
+import type { NextResponse } from "next/server";
 import { verifyOnboardingToken, type OnboardingTokenPayload } from "@/lib/onboarding/token";
 
 // Onboarding sessions are scoped to /claim/* — once the customer clicks the
@@ -11,17 +12,31 @@ const COOKIE_NAME = "wp_claim_session";
 const COOKIE_PATH = "/claim";
 const MAX_AGE_SECONDS = 30 * 24 * 60 * 60; // 30 days
 
+const COOKIE_OPTIONS = {
+  name: COOKIE_NAME,
+  path: COOKIE_PATH,
+  httpOnly: true,
+  secure: true,
+  sameSite: "lax" as const,
+  maxAge: MAX_AGE_SECONDS,
+};
+
+// Server Action / Route Handler usage. Next.js 15 allows cookies().set()
+// here but rejects it from Pages and Layouts.
 export async function setClaimSession(token: string): Promise<void> {
   const store = await cookies();
-  store.set({
-    name: COOKIE_NAME,
-    value: token,
-    path: COOKIE_PATH,
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-    maxAge: MAX_AGE_SECONDS,
-  });
+  store.set({ ...COOKIE_OPTIONS, value: token });
+}
+
+// Route Handler convenience — set the cookie directly on a NextResponse so we
+// can `return NextResponse.redirect(...)` and have the cookie ride along on
+// the same response. Works in Pages-incompatible contexts where the implicit
+// cookies() write would be silently dropped.
+export function setClaimSessionOnResponse(
+  response: NextResponse,
+  token: string
+): void {
+  response.cookies.set({ ...COOKIE_OPTIONS, value: token });
 }
 
 export async function clearClaimSession(): Promise<void> {

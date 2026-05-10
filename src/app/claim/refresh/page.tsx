@@ -90,6 +90,18 @@ export default async function RefreshPage({
             email, a fresh claim link is on its way within a few minutes.
           </p>
         ) : null}
+        {status === "expired" ? (
+          <p className="mt-6 rounded-2xl bg-white px-6 py-5 text-base leading-7 ring-1 ring-black/10">
+            <strong>Your claim link expired.</strong> Claim links are valid for
+            30 days. Drop your email below and we'll send you a fresh one.
+          </p>
+        ) : null}
+        {status === "not-found" ? (
+          <p className="mt-6 rounded-2xl bg-[#fff1f1] px-6 py-5 text-base leading-7 ring-1 ring-[#c33a3a]/30 text-[#7a2222]">
+            We couldn't find a site for that link. Reply to your Stripe receipt
+            and we'll sort it out within a day.
+          </p>
+        ) : null}
         {status === "invalid-email" ? (
           <p className="mt-6 rounded-2xl bg-[#fff1f1] px-6 py-5 text-base leading-7 ring-1 ring-[#c33a3a]/30 text-[#7a2222]">
             That doesn't look like a valid email — try again.
