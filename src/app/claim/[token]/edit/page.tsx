@@ -5,6 +5,7 @@ import { getSiteOrigin } from "@/lib/preview/seo";
 import {
   saveBasicsAction,
   saveAboutAction,
+  saveServicesAction,
   saveServiceAreaAction,
   saveBrandAction,
   saveDomainAction,
@@ -13,6 +14,8 @@ import {
 import { ACCENT_PRESET_LIST } from "./constants";
 import { PhotosForm } from "./photos-form";
 import { DomainForm } from "./domain-form";
+import { findLeadById } from "@/lib/preview/load";
+import { getCopyForIndustry } from "@/lib/preview/copy";
 
 export const dynamic = "force-dynamic";
 
@@ -21,11 +24,19 @@ export const metadata = {
   robots: { index: false, follow: false },
 };
 
-type Tab = "basics" | "photos" | "about" | "service-area" | "brand" | "domain";
+type Tab =
+  | "basics"
+  | "photos"
+  | "about"
+  | "services"
+  | "service-area"
+  | "brand"
+  | "domain";
 const TABS: { id: Tab; label: string }[] = [
   { id: "basics", label: "Basics" },
   { id: "photos", label: "Photos" },
   { id: "about", label: "About" },
+  { id: "services", label: "Services" },
   { id: "service-area", label: "Service Area" },
   { id: "brand", label: "Brand" },
   { id: "domain", label: "Domain" },
@@ -137,6 +148,9 @@ export default async function EditPage({
           />
         ) : null}
         {tab === "about" ? <AboutTab token={token} site={site} /> : null}
+        {tab === "services" ? (
+          <ServicesTab token={token} site={site} />
+        ) : null}
         {tab === "service-area" ? (
           <ServiceAreaTab token={token} site={site} />
         ) : null}
@@ -250,6 +264,68 @@ function AboutTab({ token, site }: { token: string; site: PreviewSiteRow }) {
         rows={10}
         placeholder="Tell visitors who you are, what you stand for, why they should hire you. 2–3 paragraphs is plenty."
       />
+      <SaveButton />
+    </form>
+  );
+}
+
+async function ServicesTab({ token, site }: { token: string; site: PreviewSiteRow }) {
+  // Resolve the base services from the lead's industry copy, then layer the
+  // buyer's overrides on top. We do this directly instead of via
+  // loadPreviewBySlug because that helper calls notFound() on failure, which
+  // gets caught by Next's nearest error boundary and replaces the entire
+  // form with a 404 fallback.
+  const lead = site.lead_id ? await findLeadById(site.lead_id) : null;
+  const industry = (lead?.industry ?? "handyman") as Parameters<typeof getCopyForIndustry>[0];
+  const baseItems = getCopyForIndustry(industry).services.items;
+  const overrides =
+    (site.preview_payload as { services?: { items?: Array<{ title?: string | null; body?: string | null }> } } | null)
+      ?.services?.items ?? [];
+
+  const items = baseItems.map((b, i) => ({
+    title: overrides[i]?.title?.trim() || b.title,
+    body: overrides[i]?.body?.trim() || b.body,
+  }));
+
+  return (
+    <form
+      action={saveServicesAction.bind(null, token)}
+      className="flex flex-col gap-6 rounded-3xl bg-white p-8 ring-1 ring-black/10"
+    >
+      <div>
+        <h2 className="text-2xl font-semibold tracking-tight">Services</h2>
+        <p className="mt-2 text-sm text-[#6b6b6b]">
+          What you do, in your words. Each service has its own page on your
+          site (e.g. <span className="font-mono text-[13px]">/services/drywall-doors-trim</span>),
+          plus a card on the home page. Leave a field blank to keep our
+          default copy.
+        </p>
+      </div>
+
+      {items.map((s, i) => (
+        <div
+          key={i}
+          className="flex flex-col gap-4 rounded-2xl bg-[#f5f1e8] p-5 ring-1 ring-black/5"
+        >
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6b6b6b]">
+            Service {i + 1}
+          </p>
+          <Field
+            label="Title"
+            name={`services[${i}][title]`}
+            defaultValue={s.title}
+            placeholder="e.g. Drywall, doors, and trim"
+          />
+          <TextareaField
+            label="Description"
+            name={`services[${i}][body]`}
+            defaultValue={s.body}
+            rows={4}
+            placeholder="2-4 sentences. What's included, who it's for, why someone would book this. Visible on the home card and the per-service page."
+          />
+        </div>
+      ))}
+
       <SaveButton />
     </form>
   );

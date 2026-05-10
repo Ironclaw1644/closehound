@@ -82,6 +82,32 @@ export async function saveServiceAreaAction(token: string, formData: FormData) {
   revalidatePath(`/claim/${token}/edit`);
 }
 
+export async function saveServicesAction(token: string, formData: FormData) {
+  const { previewSiteId } = await requireClaimAuth(token);
+  // Form fields look like: services[0][title], services[0][body], services[1][title]…
+  // Walk indices 0..9 (cap to avoid buyer abuse). Empty entries become null
+  // overrides so they fall back to base in mergeBuyerOverrides.
+  const items: Array<{ title: string | null; body: string | null }> = [];
+  for (let i = 0; i < 10; i++) {
+    const titleField = formData.get(`services[${i}][title]`);
+    const bodyField = formData.get(`services[${i}][body]`);
+    // Stop the moment we run out of fields.
+    if (titleField === null && bodyField === null) break;
+    const title = String(titleField ?? "").trim();
+    const body = String(bodyField ?? "").trim();
+    items.push({
+      title: title.length ? title.slice(0, 120) : null,
+      body: body.length ? body.slice(0, 600) : null,
+    });
+  }
+
+  await updatePreviewPayload({
+    previewSiteId,
+    patch: { services: { items } },
+  });
+  revalidatePath(`/claim/${token}/edit`);
+}
+
 export async function saveBrandAction(token: string, formData: FormData) {
   const { previewSiteId } = await requireClaimAuth(token);
   const accent = String(formData.get("accent") ?? "").trim();

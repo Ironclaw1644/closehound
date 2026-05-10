@@ -25,6 +25,15 @@ export type BuyerOverrides = {
     heroUrl?: string | null;
     logoUrl?: string | null;
   };
+  // Per-service overrides. Index-aligned with the industry's base
+  // services.items[]. Empty/null fields fall back to the base value, so a
+  // buyer can edit just one service without re-typing the others.
+  services?: {
+    items?: Array<{
+      title?: string | null;
+      body?: string | null;
+    }>;
+  };
 };
 
 // E.164-ish formatter — same approach as src/lib/preview/build.ts uses inline.
@@ -114,6 +123,21 @@ export function mergeBuyerOverrides(
   const accent = sx(overrides.brand?.accent);
   if (accent) {
     next.brand = { ...(base.brand ?? {}), accent };
+  }
+
+  // Services — index-aligned override of title and body. Icon stays from
+  // the base (industry-locked). Empty buyer fields fall through to base.
+  if (Array.isArray(overrides.services?.items)) {
+    const ovItems = overrides.services!.items!;
+    next.services = {
+      ...next.services,
+      items: base.services.items.map((baseItem, i) => {
+        const ov = ovItems[i] ?? {};
+        const title = sx(ov.title) ?? baseItem.title;
+        const body = sx(ov.body) ?? baseItem.body;
+        return { ...baseItem, title, body };
+      }),
+    };
   }
 
   // Assets — only override individual slots when buyer set them.
