@@ -74,7 +74,7 @@ export function PaintingPreview({ model }: { model: PreviewModel }) {
         {model.business.phoneDisplay ? (
           <a
             href={model.business.phoneTelHref ?? `tel:${model.business.phoneDisplay}`}
-            className="group inline-flex items-center gap-2 rounded-full bg-[#181818] px-4 py-2.5 text-sm font-semibold text-[#f5f3ef] transition hover:bg-[#c33a3a]"
+            className="group inline-flex items-center gap-2 rounded-full bg-[#c33a3a] px-4 py-2.5 text-sm font-semibold text-[#f5f3ef] transition hover:bg-[#181818]"
           >
             <FontAwesomeIcon icon={faPhone} className="h-3.5 w-3.5 transition group-hover:rotate-12" />
             <span className="hidden sm:inline">{model.business.phoneDisplay}</span>

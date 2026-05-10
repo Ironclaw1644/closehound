@@ -79,7 +79,7 @@ export function PlumbingPreview({ model }: { model: PreviewModel }) {
         {model.business.phoneDisplay ? (
           <a
             href={model.business.phoneTelHref ?? `tel:${model.business.phoneDisplay}`}
-            className="group inline-flex items-center gap-2 rounded-full bg-[#0e1d2c] px-4 py-2.5 text-sm font-semibold text-[#f7f1e6] transition hover:bg-[#c97645]"
+            className="group inline-flex items-center gap-2 rounded-full bg-[#c97645] px-4 py-2.5 text-sm font-semibold text-[#f7f1e6] transition hover:bg-[#0e1d2c]"
           >
             <FontAwesomeIcon icon={faPhone} className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">{model.business.phoneDisplay}</span>
@@ -432,7 +432,7 @@ export function PlumbingPreview({ model }: { model: PreviewModel }) {
                 className="text-[11px] tracking-[0.36em] text-[#c97645]"
                 style={{ fontFamily: "var(--font-outfit)", fontWeight: 600 }}
               >
-                ON THE TRUCK
+                WHERE WE WORK
               </p>
               <h2
                 className="mt-3 tracking-tight"

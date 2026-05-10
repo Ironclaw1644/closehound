@@ -80,7 +80,7 @@ export function HandymanPreview({ model }: { model: PreviewModel }) {
         {model.business.phoneDisplay ? (
           <a
             href={model.business.phoneTelHref ?? `tel:${model.business.phoneDisplay}`}
-            className="group inline-flex items-center gap-2 rounded-full bg-[#13161a] px-4 py-2.5 text-sm font-semibold text-[#f6f1e7] transition hover:bg-[#e8761a] hover:text-[#13161a]"
+            className="group inline-flex items-center gap-2 rounded-full bg-[#e8761a] px-4 py-2.5 text-sm font-semibold text-[#13161a] transition hover:bg-[#13161a] hover:text-[#f6f1e7]"
           >
             <FontAwesomeIcon icon={faPhone} className="h-3.5 w-3.5 transition group-hover:rotate-12" />
             <span className="hidden sm:inline">{model.business.phoneDisplay}</span>
@@ -221,10 +221,10 @@ export function HandymanPreview({ model }: { model: PreviewModel }) {
                 </ul>
               </div>
 
-              {/* "On the truck right now" badge */}
+              {/* "Working today" status badge */}
               <div className="absolute -right-3 -top-3 inline-flex items-center gap-2 rounded-full bg-[#13161a] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#f6f1e7] shadow-[0_8px_24px_rgba(19,22,26,0.32)] sm:-right-6 sm:-top-6">
                 <span className="preview-pulse inline-block h-1.5 w-1.5 rounded-full bg-[#e8761a]" />
-                On the truck
+                Working today
               </div>
             </div>
           </Reveal>

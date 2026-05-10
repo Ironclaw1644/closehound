@@ -1086,7 +1086,7 @@ const INDUSTRY_COPY: Record<LeadIndustry, IndustryCopy> = {
       heading: "Why drivers leave the dealer for us",
       bullets: [
         {
-          title: "ASE-certified on the floor",
+          title: "ASE-certified mechanics",
           body: "Every tech holds at least one ASE cert in the system they're working on. Most hold five-plus. We invest in training quarterly.",
           icon: "wrench",
         },

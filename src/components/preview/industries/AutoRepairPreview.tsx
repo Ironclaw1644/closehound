@@ -73,7 +73,7 @@ export function AutoRepairPreview({ model }: { model: PreviewModel }) {
         {model.business.phoneDisplay ? (
           <a
             href={model.business.phoneTelHref ?? `tel:${model.business.phoneDisplay}`}
-            className="group inline-flex items-center gap-2 rounded-md bg-[#0c0d0f] px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-[#ff5b14] transition hover:bg-[#ff5b14] hover:text-[#0c0d0f]"
+            className="group inline-flex items-center gap-2 rounded-md bg-[#ff5b14] px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-[#0c0d0f] transition hover:bg-[#0c0d0f] hover:text-[#ff5b14]"
           >
             <FontAwesomeIcon icon={faPhone} className="h-3.5 w-3.5 transition group-hover:rotate-12" />
             <span className="hidden sm:inline">{model.business.phoneDisplay}</span>
@@ -360,7 +360,7 @@ export function AutoRepairPreview({ model }: { model: PreviewModel }) {
                 className="text-[10px] uppercase tracking-[0.32em] text-[#ff5b14]"
                 style={{ fontFamily: "var(--font-bungee)" }}
               >
-                ON THE FLOOR
+                IN THE SHOP
               </p>
               <h2
                 className="mt-3 text-3xl tracking-tight sm:text-4xl"

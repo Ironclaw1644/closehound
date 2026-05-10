@@ -72,7 +72,7 @@ export function HvacPreview({ model }: { model: PreviewModel }) {
         {model.business.phoneDisplay ? (
           <a
             href={model.business.phoneTelHref ?? `tel:${model.business.phoneDisplay}`}
-            className="group inline-flex items-center gap-2 rounded-2xl bg-[#0c1623] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#f0a922] hover:text-[#1a1206]"
+            className="group inline-flex items-center gap-2 rounded-2xl bg-[#f0a922] px-4 py-2.5 text-sm font-semibold text-[#1a1206] transition hover:bg-[#0c1623] hover:text-white"
           >
             <FontAwesomeIcon icon={faPhone} className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">{model.business.phoneDisplay}</span>
