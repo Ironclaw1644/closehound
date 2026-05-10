@@ -36,11 +36,24 @@ export function PreviewLayout({
         color: palette.text,
       }}
     >
+      {/* Skip link for keyboard users — invisible until focused, then jumps
+          past the nav and breadcrumbs straight to the page content. Important
+          for screen-reader and keyboard-only users; doesn't affect mouse UX. */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-md focus:px-3 focus:py-2 focus:text-sm focus:font-semibold focus:no-underline focus:shadow-lg"
+        style={{
+          background: palette.accent,
+          color: palette.accentInk,
+        }}
+      >
+        Skip to main content
+      </a>
       <PreviewNav model={model} active={active} />
       {breadcrumbs && breadcrumbs.length > 0 ? (
         <Breadcrumbs model={model} trail={breadcrumbs} />
       ) : null}
-      <main>{children}</main>
+      <main id="main-content">{children}</main>
       <PreviewFooter model={model} />
       <BuyBar model={model} />
     </div>

@@ -4,6 +4,7 @@ import { faPhone, faCheck } from "@fortawesome/free-solid-svg-icons";
 import { loadPreviewBySlug } from "@/lib/preview/load";
 import { PreviewLayout } from "@/components/preview/multipage/PreviewLayout";
 import { JsonLd } from "@/components/preview/JsonLd";
+import { ContactForm } from "@/components/preview/ContactForm";
 import { getPaletteForModel } from "@/lib/preview/palettes";
 import {
   previewHomeUrl,
@@ -168,105 +169,24 @@ export default async function ContactPage({
               We respond same-day, Mon – Sat.
             </p>
 
-            {/* No backend submit handler — the form posts to mailto: with the
-                customer's contact email so the lead lands directly in their
-                inbox. Falls back to hello@walkperro.com if the buyer hasn't
-                set their public contact email yet. */}
-            <form
-              action={`mailto:${buyerEmail ?? "hello@walkperro.com"}?subject=${encodeURIComponent(
-                `Inquiry — ${model.business.name}`
-              )}`}
-              className="mt-6 flex flex-col gap-4"
-            >
-              <label className="flex flex-col gap-1.5">
-                <span
-                  className="text-[11px] font-semibold uppercase tracking-[0.22em]"
-                  style={{ color: palette.textMuted }}
-                >
-                  Name
-                </span>
-                <input
-                  name="name"
-                  type="text"
-                  autoComplete="name"
-                  className="rounded-xl px-4 py-3 text-[15px] outline-none transition focus:ring-2"
-                  style={{
-                    background: palette.background,
-                    border: `1px solid ${palette.border}`,
-                    color: palette.text,
-                  }}
-                />
-              </label>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="flex flex-col gap-1.5">
-                  <span
-                    className="text-[11px] font-semibold uppercase tracking-[0.22em]"
-                    style={{ color: palette.textMuted }}
-                  >
-                    Phone
-                  </span>
-                  <input
-                    name="phone"
-                    type="tel"
-                    autoComplete="tel"
-                    className="rounded-xl px-4 py-3 text-[15px] outline-none transition focus:ring-2"
-                    style={{
-                      background: palette.background,
-                      border: `1px solid ${palette.border}`,
-                      color: palette.text,
-                    }}
-                  />
-                </label>
-                <label className="flex flex-col gap-1.5">
-                  <span
-                    className="text-[11px] font-semibold uppercase tracking-[0.22em]"
-                    style={{ color: palette.textMuted }}
-                  >
-                    Email
-                  </span>
-                  <input
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    className="rounded-xl px-4 py-3 text-[15px] outline-none transition focus:ring-2"
-                    style={{
-                      background: palette.background,
-                      border: `1px solid ${palette.border}`,
-                      color: palette.text,
-                    }}
-                  />
-                </label>
-              </div>
-              <label className="flex flex-col gap-1.5">
-                <span
-                  className="text-[11px] font-semibold uppercase tracking-[0.22em]"
-                  style={{ color: palette.textMuted }}
-                >
-                  What can we help with?
-                </span>
-                <textarea
-                  name="message"
-                  rows={5}
-                  className="rounded-xl px-4 py-3 text-[15px] outline-none transition focus:ring-2"
-                  style={{
-                    background: palette.background,
-                    border: `1px solid ${palette.border}`,
-                    color: palette.text,
-                  }}
-                />
-              </label>
-              <button
-                type="submit"
-                className="mt-2 inline-flex h-12 items-center justify-center rounded-xl px-6 text-[15px] font-semibold tracking-tight transition hover:-translate-y-0.5"
-                style={{
-                  background: palette.accent,
-                  color: palette.accentInk,
-                  boxShadow: `0 10px 24px ${palette.accent}33`,
-                }}
-              >
-                Send
-              </button>
-            </form>
+            {/* Real-backend contact form. POSTs to /api/preview/<slug>/contact
+                which Resend-emails the buyer's email (set via the editor's
+                Basics tab) — falls back to hello@walkperro.com if the buyer
+                hasn't published one yet. Client-side validation; success state
+                replaces the form inline. */}
+            <ContactForm
+              slug={slug}
+              businessName={model.business.name}
+              palette={{
+                background: palette.background,
+                surface: palette.surface,
+                border: palette.border,
+                text: palette.text,
+                textMuted: palette.textMuted,
+                accent: palette.accent,
+                accentInk: palette.accentInk,
+              }}
+            />
           </div>
 
           {/* RIGHT: hours + address + badge */}
