@@ -171,6 +171,91 @@ export async function publishPreviewSite(opts: {
   }
 }
 
+// Inverse of publishPreviewSite — flips the flag back, preserves the
+// published_at timestamp as historical (we don't null it out so the operator
+// can still tell when the site WAS first live).
+export async function unpublishPreviewSite(opts: {
+  previewSiteId: string;
+}): Promise<void> {
+  const { error } = await admin()
+    .from("preview_sites")
+    .update({ is_published: false })
+    .eq("id", opts.previewSiteId);
+  if (error) {
+    throw new Error(`unpublish failed: ${error.message}`);
+  }
+}
+
+// Used by the operator /customers page. Lists every preview_site row joined
+// with the associated lead (when present) and the matching purchase row. The
+// purchase amount lets us show total revenue per customer.
+export type CustomerRow = PreviewSiteRow & {
+  company_name: string | null;
+  lead_industry: string | null;
+  lead_city: string | null;
+  amount_cents: number | null;
+  paid_at: string | null;
+};
+
+export async function listCustomers(): Promise<CustomerRow[]> {
+  // Two queries (preview_sites + purchases) because they live in different
+  // schemas (walkperro + closehound) and PostgREST joins don't cross schemas.
+  const { data: previews, error: pErr } = await admin()
+    .from("preview_sites")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(500);
+  if (pErr) throw new Error(`listCustomers (preview_sites): ${pErr.message}`);
+  const previewRows = (previews ?? []) as unknown as PreviewSiteRow[];
+
+  // Pull leads and purchases keyed by lead_id for in-memory join.
+  const leadIds = previewRows.map((r) => r.lead_id).filter((id): id is string => !!id);
+  if (leadIds.length === 0) {
+    return previewRows.map((r) => ({
+      ...r,
+      company_name: null,
+      lead_industry: null,
+      lead_city: null,
+      amount_cents: null,
+      paid_at: null,
+    }));
+  }
+
+  const closehound = getSupabaseAdminClient().schema("closehound");
+  const [leadsRes, purchasesRes] = await Promise.all([
+    closehound
+      .from("leads")
+      .select("id, company_name, industry, city")
+      .in("id", leadIds),
+    closehound
+      .from("purchases")
+      .select("lead_id, amount_cents, paid_at")
+      .in("lead_id", leadIds)
+      .eq("status", "paid"),
+  ]);
+  const leadMap = new Map<string, { company_name: string; industry: string | null; city: string | null }>();
+  for (const row of (leadsRes.data ?? []) as Array<{ id: string; company_name: string; industry: string | null; city: string | null }>) {
+    leadMap.set(row.id, row);
+  }
+  const purchaseMap = new Map<string, { amount_cents: number; paid_at: string | null }>();
+  for (const row of (purchasesRes.data ?? []) as Array<{ lead_id: string; amount_cents: number; paid_at: string | null }>) {
+    purchaseMap.set(row.lead_id, row);
+  }
+
+  return previewRows.map((r) => {
+    const lead = r.lead_id ? leadMap.get(r.lead_id) : undefined;
+    const purchase = r.lead_id ? purchaseMap.get(r.lead_id) : undefined;
+    return {
+      ...r,
+      company_name: lead?.company_name ?? null,
+      lead_industry: lead?.industry ?? null,
+      lead_city: lead?.city ?? null,
+      amount_cents: purchase?.amount_cents ?? null,
+      paid_at: purchase?.paid_at ?? null,
+    };
+  });
+}
+
 export async function setCustomDomain(opts: {
   previewSiteId: string;
   domain: string | null;

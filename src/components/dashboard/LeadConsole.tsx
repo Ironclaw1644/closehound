@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, KeyboardEvent } from "react";
+import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faMagnifyingGlass,
@@ -15,10 +16,17 @@ import {
   faExternalLink,
   faChevronDown,
   faPlus,
+  faUsers,
 } from "@fortawesome/free-solid-svg-icons";
 import { INDUSTRY_OPTIONS, type IndustryValue } from "@/lib/industries";
 import type { Lead, LeadStatus } from "@/types/lead";
-import type { Job, JobStatus } from "@/types/operator";
+import type { Job } from "@/types/operator";
+import { ConfirmModal } from "./ConfirmModal";
+import { UndoToast } from "./UndoToast";
+import { LeadDetailPanel } from "./LeadDetailPanel";
+import { JobQueueDrawer } from "./JobQueueDrawer";
+import { useUrlFilters } from "@/lib/dashboard/url-filters";
+import { humanizeOperatorError } from "@/lib/operator/humanize-error";
 
 type Props = {
   initialLeads: Lead[];
@@ -65,14 +73,38 @@ function relativeTime(iso: string): string {
 export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
   const [leads, setLeads] = useState(initialLeads);
   const [jobs, setJobs] = useState(initialJobs);
-  const [search, setSearch] = useState("");
-  const [industry, setIndustry] = useState<IndustryValue>("all");
-  const [statusFilter, setStatusFilter] = useState<"all" | LeadStatus>("all");
+
+  // Filters live in the URL so /dashboard?industry=hvac&status=emailed&q=austin
+  // is shareable and survives reload. `q` = search; `industry`/`status` mirror
+  // local types.
+  const { values: filterValues, setFilter } = useUrlFilters({
+    q: "",
+    industry: "all",
+    status: "all",
+  });
+  const search = filterValues.q;
+  const industry = filterValues.industry as IndustryValue;
+  const statusFilter = filterValues.status as "all" | LeadStatus;
+  const setSearch = (v: string) => setFilter("q", v);
+  const setIndustry = (v: IndustryValue) => setFilter("industry", v);
+  const setStatusFilter = (v: "all" | LeadStatus) => setFilter("status", v);
+
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [activeIndex, setActiveIndex] = useState(0);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [leadHoundOpen, setLeadHoundOpen] = useState(false);
+  const [detailLead, setDetailLead] = useState<Lead | null>(null);
+  const [jobDrawerOpen, setJobDrawerOpen] = useState(false);
+  const [confirmState, setConfirmState] = useState<null | {
+    action: "generate" | "email" | "mark";
+    count: number;
+  }>(null);
+  const [undoState, setUndoState] = useState<null | {
+    message: string;
+    leadIds: string[];
+    priorStatus: LeadStatus;
+  }>(null);
   const searchRef = useRef<HTMLInputElement | null>(null);
 
   // Poll jobs + leads every 4s.
@@ -167,13 +199,29 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
     });
   };
 
-  // Bulk actions
-  const callBulk = useCallback(
+  // Bulk actions — gated through confirmation modal so destructive actions
+  // (mark closed) can't fire on accident. Generate + email are also confirmed
+  // because they spend API credits / send real emails to real prospects.
+  const requestBulk = useCallback(
+    (action: "generate" | "email" | "mark") => {
+      const ids = Array.from(selected);
+      if (ids.length === 0) return;
+      setConfirmState({ action, count: ids.length });
+    },
+    [selected]
+  );
+
+  const executeBulk = useCallback(
     async (action: "generate" | "email" | "mark") => {
       const ids = Array.from(selected);
       if (ids.length === 0) return;
       setBusy(action);
       setError(null);
+      // Capture the prior status of selected leads so "mark closed" can be undone
+      // by the toast. Most rows will be the same prior status, but we batch the
+      // first one for a single revert action. Per-lead revert would need a join.
+      const priorStatus =
+        leads.find((l) => l.id === ids[0])?.status ?? "new";
       try {
         if (action === "generate") {
           await fetch("/api/generate/bulk", {
@@ -193,15 +241,55 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ leadIds: ids, status: "closed" }),
           });
+          // Surface an undo toast only for the destructive bulk-close path.
+          setUndoState({
+            message: `Marked ${ids.length} lead${ids.length === 1 ? "" : "s"} closed.`,
+            leadIds: ids,
+            priorStatus,
+          });
         }
         setSelected(new Set());
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Bulk action failed.");
+        setError(humanizeOperatorError(err));
       } finally {
         setBusy(null);
       }
     },
-    [selected]
+    [selected, leads]
+  );
+
+  const undoMarkClosed = useCallback(async () => {
+    if (!undoState) return;
+    try {
+      await fetch("/api/leads/bulk-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          leadIds: undoState.leadIds,
+          status: undoState.priorStatus,
+        }),
+      });
+    } catch (err) {
+      setError(humanizeOperatorError(err));
+    } finally {
+      setUndoState(null);
+    }
+  }, [undoState]);
+
+  // Single-lead status change called by the detail panel.
+  const handleStatusChange = useCallback(
+    async (leadId: string, status: LeadStatus) => {
+      const res = await fetch("/api/leads", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: leadId, status }),
+      });
+      if (!res.ok) {
+        const b = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(b.error ?? `HTTP ${res.status}`);
+      }
+    },
+    []
   );
 
   // Keyboard shortcuts.
@@ -224,15 +312,19 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
         e.preventDefault();
         const lead = filtered[activeIndex];
         if (lead) toggleOne(lead.id);
+      } else if (e.key === "Enter" && !detailLead) {
+        // Enter on the focused row opens the detail panel.
+        const lead = filtered[activeIndex];
+        if (lead) setDetailLead(lead);
       } else if (e.key.toLowerCase() === "g" && selected.size) {
-        void callBulk("generate");
+        requestBulk("generate");
       } else if (e.key.toLowerCase() === "e" && selected.size) {
-        void callBulk("email");
+        requestBulk("email");
       } else if (e.key.toLowerCase() === "x" && selected.size) {
-        void callBulk("mark");
+        requestBulk("mark");
       }
     },
-    [filtered, activeIndex, selected, callBulk]
+    [filtered, activeIndex, selected, requestBulk, detailLead]
   );
 
   const handleLeadHoundQueue = useCallback(
@@ -249,7 +341,7 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
         if (!res.ok) throw new Error(body.error ?? "Failed to queue LeadHound.");
         setLeadHoundOpen(false);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "LeadHound failed to queue.");
+        setError(humanizeOperatorError(err));
       } finally {
         setBusy(null);
       }
@@ -276,6 +368,13 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
         </div>
 
         <div className="ml-auto flex items-center gap-2">
+          <Link
+            href="/customers"
+            className="inline-flex items-center gap-2 rounded-md border border-[color:var(--op-border)] px-3 py-1.5 text-xs font-medium text-[color:var(--op-text)] hover:bg-[color:var(--op-panel-soft)]"
+          >
+            <FontAwesomeIcon icon={faUsers} className="h-3 w-3" />
+            Customers
+          </Link>
           <button
             type="button"
             onClick={() => setLeadHoundOpen(true)}
@@ -284,7 +383,14 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
             <FontAwesomeIcon icon={faPlus} className="h-3 w-3" />
             LeadHound
           </button>
-          <WorkerPill status={workerStatus} jobs={jobs} />
+          <button
+            type="button"
+            onClick={() => setJobDrawerOpen(true)}
+            aria-label="Open job queue"
+            className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--op-accent)]"
+          >
+            <WorkerPill status={workerStatus} jobs={jobs} />
+          </button>
         </div>
       </header>
 
@@ -379,8 +485,11 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
                 return (
                   <tr
                     key={lead.id}
-                    onClick={() => setActiveIndex(index)}
-                    className={`group border-t border-[color:var(--op-border)] cursor-default ${
+                    onClick={() => {
+                      setActiveIndex(index);
+                      setDetailLead(lead);
+                    }}
+                    className={`group border-t border-[color:var(--op-border)] cursor-pointer ${
                       isActive
                         ? "bg-[color:var(--op-accent-soft)]"
                         : "hover:bg-[color:var(--op-panel-soft)]"
@@ -466,21 +575,21 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
               label="Generate previews"
               hint="G"
               icon={faWandMagicSparkles}
-              onClick={() => callBulk("generate")}
+              onClick={() => requestBulk("generate")}
               busy={busy === "generate"}
             />
             <ActionButton
               label="Send emails"
               hint="E"
               icon={faPaperPlane}
-              onClick={() => callBulk("email")}
+              onClick={() => requestBulk("email")}
               busy={busy === "email"}
             />
             <ActionButton
               label="Mark closed"
               hint="X"
               icon={faCircleCheck}
-              onClick={() => callBulk("mark")}
+              onClick={() => requestBulk("mark")}
               busy={busy === "mark"}
               tone="muted"
             />
@@ -510,12 +619,79 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
         <Kbd k="/" /> search
         <Kbd k="J" /> / <Kbd k="K" /> nav
         <Kbd k="␣" /> select
+        <Kbd k="⏎" /> detail
         <Kbd k="G" /> generate
         <Kbd k="E" /> email
         <Kbd k="X" /> close
       </div>
+
+      {/* ── Confirmation modal for destructive bulk actions ──────────────── */}
+      <ConfirmModal
+        open={!!confirmState}
+        title={confirmState ? confirmTitleFor(confirmState.action, confirmState.count) : ""}
+        body={confirmState ? confirmBodyFor(confirmState.action, confirmState.count) : ""}
+        confirmLabel={confirmState ? confirmLabelFor(confirmState.action) : "Confirm"}
+        tone={confirmState?.action === "mark" ? "destructive" : "primary"}
+        onConfirm={() => {
+          if (!confirmState) return;
+          const action = confirmState.action;
+          setConfirmState(null);
+          void executeBulk(action);
+        }}
+        onCancel={() => setConfirmState(null)}
+      />
+
+      {/* ── Undo toast after destructive bulk close ─────────────────────── */}
+      <UndoToast
+        open={!!undoState}
+        message={undoState?.message ?? ""}
+        onUndo={() => {
+          void undoMarkClosed();
+        }}
+        onDismiss={() => setUndoState(null)}
+      />
+
+      {/* ── Lead detail slide-out panel ─────────────────────────────────── */}
+      <LeadDetailPanel
+        lead={detailLead}
+        onClose={() => setDetailLead(null)}
+        onStatusChange={handleStatusChange}
+      />
+
+      {/* ── Job queue drawer (opened by clicking the worker pill) ───────── */}
+      <JobQueueDrawer
+        open={jobDrawerOpen}
+        jobs={jobs}
+        onClose={() => setJobDrawerOpen(false)}
+      />
     </div>
   );
+}
+
+// Confirm-modal copy per action. Generate/email confirmations are still
+// requested (these spend Stripe/Resend credits + send to real prospects) but
+// styled as primary, not destructive.
+function confirmTitleFor(action: "generate" | "email" | "mark", count: number): string {
+  const plural = count === 1 ? "lead" : "leads";
+  if (action === "generate") return `Generate previews for ${count} ${plural}?`;
+  if (action === "email") return `Send outreach to ${count} ${plural}?`;
+  return `Mark ${count} ${plural} closed?`;
+}
+
+function confirmBodyFor(action: "generate" | "email" | "mark", count: number): string {
+  if (action === "generate") {
+    return "Queues a preview_generate job for each lead. Worker will pick these up and render multipage sites. Safe to repeat — already-generated leads will be skipped.";
+  }
+  if (action === "email") {
+    return "Sends a real outreach email to each lead that already has a preview. Skips any without a preview. Make sure your copy is what you want them to read.";
+  }
+  return "Sets status to 'closed' on each lead. You can undo within 4 seconds from the toast that appears.";
+}
+
+function confirmLabelFor(action: "generate" | "email" | "mark"): string {
+  if (action === "generate") return "Generate";
+  if (action === "email") return "Send emails";
+  return "Mark closed";
 }
 
 function Kbd({ k }: { k: string }) {
