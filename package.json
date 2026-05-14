@@ -15,6 +15,7 @@
     "leadhound:fetch": "node --env-file=.env.local --experimental-strip-types --import ./scripts/register-ts-path-loader.mjs ./scripts/leadhound-fetch.ts",
     "email:walkperro-og": "node --env-file=.env.local --experimental-strip-types --import ./scripts/register-ts-path-loader.mjs ./scripts/email-walkperro-og.ts",
     "leadhound:pull-to-json": "node --env-file=.env.local --experimental-strip-types --import ./scripts/register-ts-path-loader.mjs ./scripts/leadhound-pull-to-json.ts",
+    "enrich:emails": "node --env-file=.env.local --experimental-strip-types --import ./scripts/register-ts-path-loader.mjs ./scripts/enrich-lead-emails.ts",
     "operator:worker": "npm run worker"
   },
   "dependencies": {

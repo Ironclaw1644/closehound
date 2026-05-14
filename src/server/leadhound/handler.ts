@@ -3,6 +3,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { classifyLead } from "@/lib/leadhound/classify";
 import { fetchPlaceDetails, searchPlaces } from "@/lib/leadhound/places";
+import { findBusinessEmail } from "@/lib/leadhound/find-email";
 import type { LeadIndustry } from "@/lib/industries";
 import type { Database } from "@/types/supabase";
 import type { JobLogEntry, LeadPullJobPayload, LeadPullJobResult } from "@/types/operator";
@@ -103,11 +104,34 @@ export async function runLeadPullJob(
       topReview: details.topReview?.text ?? null,
     });
 
+    // Try to find a public email for the business. Google Places never
+    // returns one (deprecated), so we cascade through DuckDuckGo + scrapes
+    // in find-email.ts. ~30-50% hit rate on local services. The leads we
+    // can't find emails for stay in the dataset for phone outreach.
+    let contactEmail: string | null = null;
+    try {
+      const emailResult = await findBusinessEmail({
+        companyName: details.name,
+        city: details.city ?? input.city,
+        state: input.state ?? null,
+        phone: details.phone,
+      });
+      contactEmail = emailResult.email;
+      if (emailResult.email) {
+        logger.info(`Found email for ${details.name}: ${emailResult.email}`);
+      }
+    } catch (err) {
+      logger.error(
+        `Email enrichment failed for ${details.name}: ${err instanceof Error ? err.message : "unknown"}`
+      );
+    }
+
     const { error: insertError } = await closehound.from("leads").insert({
       company_name: details.name,
       city: details.city ?? input.city,
       industry: input.industry,
       phone: details.phone,
+      contact_email: contactEmail,
       rating: details.rating,
       review_count: details.reviewCount,
       has_website: false,
