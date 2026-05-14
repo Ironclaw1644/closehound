@@ -21,7 +21,16 @@ export function getOutboundFromAddress() {
 }
 
 export function getOutboundSender() {
-  return `${getOutboundSenderName()} <${getOutboundFromAddress()}>`;
+  // RESEND_FROM may be either a bare email ("hello@walkperro.com") OR a
+  // full RFC-style "Name <email>" string ("WalkPerro <hello@walkperro.com>").
+  // The walkperro repo's env var uses the full form; if we naively wrap it
+  // again we produce "Name <Name <email>>" which Resend rejects with
+  // "Invalid `from` field". Detect and pass through.
+  const raw = getOutboundFromAddress().trim();
+  if (raw.includes("<") && raw.includes(">") && raw.includes("@")) {
+    return raw;
+  }
+  return `${getOutboundSenderName()} <${raw}>`;
 }
 
 export function getTestRecipient() {
