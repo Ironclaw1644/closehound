@@ -14,9 +14,60 @@ import {
   faGlobe,
   faStar,
   faQuoteLeft,
+  faIdCard,
+  faBriefcase,
+  faCalendar,
+  faTag,
+  faPencil,
+  faCheck,
 } from "@fortawesome/free-solid-svg-icons";
 import type { Lead, LeadStatus } from "@/types/lead";
 import { humanizeOperatorError } from "@/lib/operator/humanize-error";
+
+// Shape of each officer row stored in `new_business_leads.officers` jsonb.
+type Officer = {
+  name?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  middle?: string | null;
+  address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  zip?: string | null;
+  role?: string | null;
+  // Filled in by an enrichment pass (Apollo, manual lookup, etc.)
+  phone?: string | null;
+  email?: string | null;
+};
+
+// Shape returned by /api/leads/[id]/sos-detail. Mirrors the
+// `closehound.new_business_leads` columns we project.
+type SosFiling = {
+  source_entity_id: string;
+  business_name: string;
+  entity_type: string | null;
+  filing_date: string | null;
+  state: string | null;
+  principal_address: {
+    line1?: string | null;
+    city?: string | null;
+    state?: string | null;
+    zip?: string | null;
+  } | null;
+  registered_agent: { name?: string | null; address?: string | null; city?: string | null; state?: string | null } | null;
+  officers: Officer[] | null;
+  naics_code: string | null;
+  naics_inferred: boolean | null;
+  raw_payload: Record<string, unknown> | null;
+  contact_phone: string | null;
+  contact_email: string | null;
+  contact_checked_at: string | null;
+  domain_found: string | null;
+  has_website: boolean | null;
+  gmb_found: boolean | null;
+  priority_score: number | null;
+  priority_tier: string | null;
+};
 
 // Slide-out right-side panel showing the full profile of a single lead.
 // Mounted by LeadConsole when the operator clicks/Enter on a row.
@@ -47,6 +98,8 @@ const STATUS_LABEL: Record<LeadStatus, string> = {
 export function LeadDetailPanel({ lead, onClose, onStatusChange }: LeadDetailPanelProps) {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [sos, setSos] = useState<SosFiling | null>(null);
+  const [sosLoading, setSosLoading] = useState(false);
 
   // Escape closes
   useEffect(() => {
@@ -57,6 +110,32 @@ export function LeadDetailPanel({ lead, onClose, onStatusChange }: LeadDetailPan
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [lead, onClose]);
+
+  // Fetch the matching SOS filing whenever a new lead is opened. Resets when
+  // the panel closes (lead === null). Won't fetch for non-SOS sources — the
+  // API returns {sos: null} and the section just doesn't render.
+  useEffect(() => {
+    if (!lead) {
+      setSos(null);
+      return;
+    }
+    let cancelled = false;
+    setSosLoading(true);
+    fetch(`/api/leads/${lead.id}/sos-detail`)
+      .then((r) => (r.ok ? r.json() : Promise.resolve({ sos: null })))
+      .then((body: { sos: SosFiling | null }) => {
+        if (!cancelled) setSos(body.sos);
+      })
+      .catch(() => {
+        if (!cancelled) setSos(null);
+      })
+      .finally(() => {
+        if (!cancelled) setSosLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [lead]);
 
   if (!lead) return null;
 
@@ -146,22 +225,103 @@ export function LeadDetailPanel({ lead, onClose, onStatusChange }: LeadDetailPan
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-5 py-4">
-          {/* Contact */}
+          {/* Contact — phone/email come from contact_check enrichment for SOS
+              leads, or from Google Places for the legacy preserved lead. Both
+              are inline-editable so the operator can paste in a number they
+              looked up manually (e.g. via TruePeopleSearch). */}
           <Section title="Contact">
-            <DetailRow
+            <EditableContactRow
+              leadId={lead.id}
               icon={faPhone}
               label="Phone"
-              value={lead.phone}
-              href={lead.phone ? `tel:${lead.phone.replace(/[^\d+]/g, "")}` : undefined}
+              value={lead.phone ?? sos?.contact_phone ?? null}
+              field="phone"
+              hrefPrefix="tel"
+              placeholder="(555) 123-4567"
+              inputMode="tel"
             />
-            <DetailRow
+            <EditableContactRow
+              leadId={lead.id}
               icon={faEnvelope}
               label="Email"
-              value={lead.contact_email}
-              href={lead.contact_email ? `mailto:${lead.contact_email}` : undefined}
+              value={lead.contact_email ?? sos?.contact_email ?? null}
+              field="contact_email"
+              hrefPrefix="mailto"
+              placeholder="owner@example.com"
+              inputMode="email"
             />
-            <DetailRow icon={faLocationDot} label="City" value={lead.city} />
+            <DetailRow
+              icon={faLocationDot}
+              label="Address"
+              value={
+                sos?.principal_address
+                  ? formatAddress(sos.principal_address)
+                  : lead.city
+              }
+            />
           </Section>
+
+          {/* SOS filing details — only shows for fl_sunbiz / ny_dos leads.
+              For the legacy Google Places lead the API returns sos=null and
+              this section is hidden entirely. */}
+          {sos ? (
+            <Section title={sourceLabel(lead.lead_source)}>
+              <DetailRow
+                icon={faCalendar}
+                label="Filing date"
+                value={sos.filing_date ?? null}
+              />
+              <DetailRow
+                icon={faBriefcase}
+                label="Entity type"
+                value={sos.entity_type ?? null}
+              />
+              <DetailRow
+                icon={faTag}
+                label="NAICS"
+                value={
+                  sos.naics_code
+                    ? `${sos.naics_code}${sos.naics_inferred ? " (inferred from name)" : ""}`
+                    : null
+                }
+              />
+              <DetailRow
+                icon={faIdCard}
+                label="State filing ID"
+                value={sos.source_entity_id}
+              />
+              {sos.registered_agent?.name ? (
+                <DetailRow
+                  icon={faIdCard}
+                  label="Registered agent"
+                  value={
+                    [
+                      sos.registered_agent.name,
+                      sos.registered_agent.city,
+                      sos.registered_agent.state,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ") || null
+                  }
+                />
+              ) : null}
+            </Section>
+          ) : sosLoading ? (
+            <Section title="State filing">
+              <p className="text-xs text-[color:var(--op-text-subtle)]">Loading…</p>
+            </Section>
+          ) : null}
+
+          {/* Officers — the actual humans who registered the LLC. Their phone /
+              email isn't in the state filing; enrich via Apollo or run a name+
+              address skip-trace to populate `officer.phone` / `officer.email`. */}
+          {sos?.officers && sos.officers.length > 0 ? (
+            <Section title={`Officer${sos.officers.length > 1 ? "s" : ""}`}>
+              {sos.officers.map((officer, idx) => (
+                <OfficerCard key={idx} officer={officer} />
+              ))}
+            </Section>
+          ) : null}
 
           {/* Business */}
           <Section title="Business">
@@ -171,12 +331,15 @@ export function LeadDetailPanel({ lead, onClose, onStatusChange }: LeadDetailPan
               label="Has website"
               value={typeof lead.has_website === "boolean" ? (lead.has_website ? "yes" : "no") : null}
             />
+            {sos?.domain_found ? (
+              <DetailRow icon={faGlobe} label="Domain" value={sos.domain_found} />
+            ) : null}
             <DetailRow
               icon={faQuoteLeft}
               label="Years in business"
               value={typeof lead.years_in_business === "number" ? `${lead.years_in_business}` : null}
             />
-            <DetailRow icon={faExternalLink} label="Lead source" value={lead.lead_source} />
+            <DetailRow icon={faExternalLink} label="Lead source" value={sourceLabel(lead.lead_source)} />
           </Section>
 
           {/* Top review (if present) */}
@@ -338,8 +501,248 @@ function PanelAction({
   );
 }
 
+/** Inline-editable contact row (phone / email).
+ *
+ * Default state: displays the value as a tel:/mailto: link with a pencil
+ * affordance on hover. Click pencil → input replaces the link. Save sends
+ * PATCH /api/leads with the single field. Empty string clears. The polling
+ * in LeadConsole picks up the new value within ~4s.
+ *
+ * Optimistic: when the user hits Save we exit the input immediately even
+ * before the network round-trip completes, then the polled refresh
+ * re-syncs. A brief "saving…" badge indicates the in-flight write.
+ */
+function EditableContactRow({
+  leadId,
+  icon,
+  label,
+  value,
+  field,
+  hrefPrefix,
+  placeholder,
+  inputMode,
+}: {
+  leadId: string;
+  icon: typeof faPhone;
+  label: string;
+  value: string | null;
+  field: "phone" | "contact_email";
+  hrefPrefix: "tel" | "mailto";
+  placeholder: string;
+  inputMode: "tel" | "email";
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value ?? "");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Reset the draft if the underlying value changes (polling refresh) and
+  // we're not actively editing.
+  useEffect(() => {
+    if (!editing) setDraft(value ?? "");
+  }, [value, editing]);
+
+  const begin = () => {
+    setDraft(value ?? "");
+    setEditing(true);
+    setError(null);
+  };
+
+  const save = async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/leads", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lead_id: leadId,
+          [field]: draft.trim() === "" ? null : draft.trim(),
+        }),
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(body.error ?? `HTTP ${res.status}`);
+      }
+      setEditing(false);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Save failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const cancel = () => {
+    setDraft(value ?? "");
+    setEditing(false);
+    setError(null);
+  };
+
+  const href =
+    value
+      ? `${hrefPrefix}:${hrefPrefix === "tel" ? value.replace(/[^\d+]/g, "") : value}`
+      : undefined;
+
+  return (
+    <div className="group flex items-start gap-2.5 text-xs">
+      <FontAwesomeIcon icon={icon} className="mt-0.5 h-3 w-3 text-[color:var(--op-text-subtle)]" />
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5">
+          <p className="text-[10px] uppercase tracking-[0.16em] text-[color:var(--op-text-subtle)]">
+            {label}
+          </p>
+          {saving ? (
+            <span className="text-[9px] uppercase tracking-[0.14em] text-[color:var(--op-text-subtle)]">
+              saving…
+            </span>
+          ) : null}
+        </div>
+        {editing ? (
+          <div className="mt-0.5 flex items-center gap-1.5">
+            <input
+              type={inputMode === "tel" ? "tel" : "email"}
+              inputMode={inputMode}
+              value={draft}
+              autoFocus
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") void save();
+                else if (e.key === "Escape") cancel();
+              }}
+              placeholder={placeholder}
+              className="flex-1 h-7 rounded border border-[color:var(--op-border-strong)] bg-[color:var(--op-panel-soft)] px-2 text-xs text-[color:var(--op-text)] outline-none focus:border-[color:var(--op-accent)]"
+            />
+            <button
+              type="button"
+              onClick={() => void save()}
+              disabled={saving}
+              aria-label="Save"
+              className="rounded p-1 text-[color:var(--op-accent)] hover:bg-[color:var(--op-panel-soft)] disabled:opacity-50"
+            >
+              <FontAwesomeIcon icon={faCheck} className="h-3 w-3" />
+            </button>
+            <button
+              type="button"
+              onClick={cancel}
+              disabled={saving}
+              aria-label="Cancel"
+              className="rounded p-1 text-[color:var(--op-text-subtle)] hover:bg-[color:var(--op-panel-soft)]"
+            >
+              <FontAwesomeIcon icon={faXmark} className="h-3 w-3" />
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            {value ? (
+              <a
+                href={href}
+                className="truncate text-[color:var(--op-text)] hover:text-[color:var(--op-accent)]"
+              >
+                {value}
+              </a>
+            ) : (
+              <button
+                type="button"
+                onClick={begin}
+                className="text-[color:var(--op-text-subtle)] italic hover:text-[color:var(--op-accent)]"
+              >
+                Add {label.toLowerCase()}…
+              </button>
+            )}
+            {value ? (
+              <button
+                type="button"
+                onClick={begin}
+                aria-label={`Edit ${label}`}
+                className="opacity-0 group-hover:opacity-100 rounded p-1 text-[color:var(--op-text-subtle)] hover:bg-[color:var(--op-panel-soft)] hover:text-[color:var(--op-text)] transition"
+              >
+                <FontAwesomeIcon icon={faPencil} className="h-2.5 w-2.5" />
+              </button>
+            ) : null}
+          </div>
+        )}
+        {error ? (
+          <p className="mt-1 text-[10px] text-rose-300">{error}</p>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function OfficerCard({ officer }: { officer: Officer }) {
+  const name = officer.name || [officer.first_name, officer.last_name].filter(Boolean).join(" ");
+  const addressLine = [
+    officer.address,
+    [officer.city, officer.state].filter(Boolean).join(", "),
+    officer.zip,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  return (
+    <div className="rounded-md border border-[color:var(--op-border)] bg-[color:var(--op-panel-soft)] px-3 py-2.5 text-xs">
+      <div className="flex items-center justify-between gap-2">
+        <span className="font-medium text-[color:var(--op-text)]">{name || "—"}</span>
+        {officer.role ? (
+          <span className="rounded-full border border-[color:var(--op-border)] px-1.5 py-0.5 text-[10px] uppercase tracking-[0.14em] text-[color:var(--op-text-subtle)]">
+            {officer.role}
+          </span>
+        ) : null}
+      </div>
+      {addressLine ? (
+        <p className="mt-1 leading-5 text-[color:var(--op-text-muted)]">{addressLine}</p>
+      ) : null}
+      {officer.phone || officer.email ? (
+        <div className="mt-2 grid gap-1">
+          {officer.phone ? (
+            <a
+              href={`tel:${officer.phone.replace(/[^\d+]/g, "")}`}
+              className="inline-flex items-center gap-1.5 text-[color:var(--op-text)] hover:text-[color:var(--op-accent)]"
+            >
+              <FontAwesomeIcon icon={faPhone} className="h-2.5 w-2.5" />
+              {officer.phone}
+            </a>
+          ) : null}
+          {officer.email ? (
+            <a
+              href={`mailto:${officer.email}`}
+              className="inline-flex items-center gap-1.5 text-[color:var(--op-text)] hover:text-[color:var(--op-accent)]"
+            >
+              <FontAwesomeIcon icon={faEnvelope} className="h-2.5 w-2.5" />
+              {officer.email}
+            </a>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function formatRating(rating: number | null | undefined, count: number | null | undefined) {
   const r = typeof rating === "number" ? rating.toFixed(1) : "—";
   if (typeof count === "number") return `${r}★ · ${count} reviews`;
   return r;
+}
+
+function formatAddress(addr: {
+  line1?: string | null;
+  city?: string | null;
+  state?: string | null;
+  zip?: string | null;
+}) {
+  const parts = [
+    addr.line1,
+    [addr.city, addr.state].filter(Boolean).join(", "),
+    addr.zip,
+  ]
+    .map((p) => (p ? p.trim() : ""))
+    .filter(Boolean);
+  return parts.length ? parts.join(" · ") : null;
+}
+
+function sourceLabel(source: string | null | undefined): string {
+  if (source === "fl_sunbiz") return "FL — Sunbiz filing";
+  if (source === "ny_dos") return "NY — DOS filing";
+  if (source === "google_places") return "Google Places";
+  if (source === "seed") return "Seed data";
+  return source ?? "—";
 }

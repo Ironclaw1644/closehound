@@ -11,12 +11,14 @@ import {
   faCircleExclamation,
   faPaperPlane,
   faWandMagicSparkles,
-  faPhoneVolume,
   faXmark,
   faExternalLink,
   faChevronDown,
   faPlus,
   faUsers,
+  faChevronLeft,
+  faChevronRight,
+  faFileImport,
 } from "@fortawesome/free-solid-svg-icons";
 import { INDUSTRY_OPTIONS, type IndustryValue } from "@/lib/industries";
 import type { Lead, LeadStatus } from "@/types/lead";
@@ -35,6 +37,10 @@ type Props = {
 };
 
 type WorkerStatus = "idle" | "busy" | "stalled" | "unconfigured";
+
+// Page size for the lead table. 100 fits ~2-3 screens of scroll on a 13"
+// laptop and keeps the DOM manageable when the table has hundreds of rows.
+const PAGE_SIZE = 100;
 
 const STATUS_LABEL: Record<LeadStatus, string> = {
   new: "new",
@@ -81,19 +87,30 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
     q: "",
     industry: "all",
     status: "all",
+    source: "all",
   });
   const search = filterValues.q;
   const industry = filterValues.industry as IndustryValue;
   const statusFilter = filterValues.status as "all" | LeadStatus;
+  const sourceFilter = filterValues.source as "all" | "fl_sunbiz" | "ny_dos" | "google_places";
   const setSearch = (v: string) => setFilter("q", v);
   const setIndustry = (v: IndustryValue) => setFilter("industry", v);
   const setStatusFilter = (v: "all" | LeadStatus) => setFilter("status", v);
+  const setSourceFilter = (v: "all" | "fl_sunbiz" | "ny_dos" | "google_places") =>
+    setFilter("source", v);
 
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [activeIndex, setActiveIndex] = useState(0);
+  // Pagination — page is 0-indexed. Reset to 0 whenever a filter changes so
+  // results stay anchored at the top.
+  const [page, setPage] = useState(0);
+  useEffect(() => {
+    setPage(0);
+    setActiveIndex(0);
+  }, [search, industry, statusFilter, sourceFilter]);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [leadHoundOpen, setLeadHoundOpen] = useState(false);
+  const [sosPullOpen, setSosPullOpen] = useState(false);
   const [detailLead, setDetailLead] = useState<Lead | null>(null);
   const [jobDrawerOpen, setJobDrawerOpen] = useState(false);
   const [confirmState, setConfirmState] = useState<null | {
@@ -161,6 +178,9 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
       if (statusFilter !== "all" && lead.status !== statusFilter) {
         return false;
       }
+      if (sourceFilter !== "all" && lead.lead_source !== sourceFilter) {
+        return false;
+      }
       if (!q) return true;
       const haystack = [
         lead.company_name,
@@ -173,18 +193,28 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
         .toLowerCase();
       return haystack.includes(q);
     });
-  }, [leads, industry, statusFilter, search]);
+  }, [leads, industry, statusFilter, sourceFilter, search]);
 
-  const allSelected = filtered.length > 0 && filtered.every((l) => selected.has(l.id));
-  const partiallySelected = !allSelected && filtered.some((l) => selected.has(l.id));
+  // Slice the filtered set into a single page worth of rows. Selection,
+  // toggle-all, and the table render all operate against `paginated` so the
+  // user can only act on rows they can actually see.
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const clampedPage = Math.min(page, pageCount - 1);
+  const paginated = useMemo(
+    () => filtered.slice(clampedPage * PAGE_SIZE, (clampedPage + 1) * PAGE_SIZE),
+    [filtered, clampedPage]
+  );
+
+  const allSelected = paginated.length > 0 && paginated.every((l) => selected.has(l.id));
+  const partiallySelected = !allSelected && paginated.some((l) => selected.has(l.id));
 
   const toggleAll = () => {
     setSelected((prev) => {
       const next = new Set(prev);
       if (allSelected) {
-        for (const lead of filtered) next.delete(lead.id);
+        for (const lead of paginated) next.delete(lead.id);
       } else {
-        for (const lead of filtered) next.add(lead.id);
+        for (const lead of paginated) next.add(lead.id);
       }
       return next;
     });
@@ -279,10 +309,12 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
   // Single-lead status change called by the detail panel.
   const handleStatusChange = useCallback(
     async (leadId: string, status: LeadStatus) => {
+      // Use `lead_id` to match the API route's payload contract. (An earlier
+      // mismatch had this sending `id`, which the route silently rejected.)
       const res = await fetch("/api/leads", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: leadId, status }),
+        body: JSON.stringify({ lead_id: leadId, status }),
       });
       if (!res.ok) {
         const b = (await res.json().catch(() => ({}))) as { error?: string };
@@ -305,16 +337,16 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
       if (isInput) return;
 
       if (e.key === "j") {
-        setActiveIndex((i) => Math.min(filtered.length - 1, i + 1));
+        setActiveIndex((i) => Math.min(paginated.length - 1, i + 1));
       } else if (e.key === "k") {
         setActiveIndex((i) => Math.max(0, i - 1));
       } else if (e.key === " ") {
         e.preventDefault();
-        const lead = filtered[activeIndex];
+        const lead = paginated[activeIndex];
         if (lead) toggleOne(lead.id);
       } else if (e.key === "Enter" && !detailLead) {
         // Enter on the focused row opens the detail panel.
-        const lead = filtered[activeIndex];
+        const lead = paginated[activeIndex];
         if (lead) setDetailLead(lead);
       } else if (e.key.toLowerCase() === "g" && selected.size) {
         requestBulk("generate");
@@ -324,22 +356,22 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
         requestBulk("mark");
       }
     },
-    [filtered, activeIndex, selected, requestBulk, detailLead]
+    [paginated, activeIndex, selected, requestBulk, detailLead]
   );
 
-  const handleLeadHoundQueue = useCallback(
-    async (payload: { industry: string; city: string; state?: string; maxResults?: number }) => {
-      setBusy("leadhound");
+  const handleSosPull = useCallback(
+    async (payload: { source: "fl_sunbiz" | "ny_dos"; days: number }) => {
+      setBusy("sos-pull");
       setError(null);
       try {
-        const res = await fetch("/api/leadhound/run", {
+        const res = await fetch("/api/sos/pull", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
-        const body = (await res.json().catch(() => ({}))) as { error?: string };
-        if (!res.ok) throw new Error(body.error ?? "Failed to queue LeadHound.");
-        setLeadHoundOpen(false);
+        const body = (await res.json().catch(() => ({}))) as { error?: string; hint?: string };
+        if (!res.ok) throw new Error(body.error ?? "Failed to start SOS pull.");
+        setSosPullOpen(false);
       } catch (err) {
         setError(humanizeOperatorError(err));
       } finally {
@@ -377,11 +409,12 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
           </Link>
           <button
             type="button"
-            onClick={() => setLeadHoundOpen(true)}
+            onClick={() => setSosPullOpen(true)}
             className="inline-flex items-center gap-2 rounded-md border border-[color:var(--op-border)] px-3 py-1.5 text-xs font-medium text-[color:var(--op-text)] hover:bg-[color:var(--op-panel-soft)]"
+            title="Pull fresh leads from state Secretary-of-State filings (FL / NY)"
           >
-            <FontAwesomeIcon icon={faPlus} className="h-3 w-3" />
-            LeadHound
+            <FontAwesomeIcon icon={faFileImport} className="h-3 w-3" />
+            Pull SOS leads
           </button>
           <button
             type="button"
@@ -427,8 +460,23 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
             { value: "closed", label: "Closed" },
           ]}
         />
+        <Select
+          value={sourceFilter}
+          onChange={(v) =>
+            setSourceFilter(v as "all" | "fl_sunbiz" | "ny_dos" | "google_places")
+          }
+          options={[
+            { value: "all", label: "All sources" },
+            { value: "fl_sunbiz", label: "FL — Sunbiz" },
+            { value: "ny_dos", label: "NY — DOS" },
+            { value: "google_places", label: "Google Places" },
+          ]}
+        />
         <span className="ml-auto text-xs tabular text-[color:var(--op-text-subtle)]">
-          {filtered.length} of {leads.length}
+          {filtered.length === 0
+            ? "0 of " + leads.length
+            : `${clampedPage * PAGE_SIZE + 1}–${Math.min(filtered.length, (clampedPage + 1) * PAGE_SIZE)} of ${filtered.length}`}
+          {leads.length !== filtered.length ? ` (filtered from ${leads.length})` : ""}
         </span>
       </div>
 
@@ -479,7 +527,7 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((lead, index) => {
+              {paginated.map((lead, index) => {
                 const isSelected = selected.has(lead.id);
                 const isActive = index === activeIndex;
                 return (
@@ -544,10 +592,30 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
                       {formatRating(lead.rating, lead.review_count)}
                     </td>
                     <td className="px-3 py-2 text-[color:var(--op-text-muted)] truncate max-w-[200px]">
-                      {lead.contact_email ?? "—"}
+                      {lead.contact_email ? (
+                        <a
+                          href={`mailto:${lead.contact_email}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="hover:text-[color:var(--op-accent)] underline-offset-2 hover:underline"
+                        >
+                          {lead.contact_email}
+                        </a>
+                      ) : (
+                        "—"
+                      )}
                     </td>
                     <td className="px-3 py-2 text-[color:var(--op-text-muted)]">
-                      {lead.phone ?? "—"}
+                      {lead.phone ? (
+                        <a
+                          href={`tel:${lead.phone.replace(/[^\d+]/g, "")}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="tabular hover:text-[color:var(--op-accent)] underline-offset-2 hover:underline"
+                        >
+                          {lead.phone}
+                        </a>
+                      ) : (
+                        "—"
+                      )}
                     </td>
                     <td className="px-3 py-2 text-[color:var(--op-text-subtle)]">
                       {relativeTime(lead.created_at)}
@@ -560,6 +628,40 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
           </table>
         )}
       </main>
+
+      {/* ── Pagination bar (hidden when filtered fits on one page) ──────── */}
+      {filtered.length > PAGE_SIZE ? (
+        <div className="sticky bottom-0 z-20 flex items-center justify-between gap-3 border-t border-[color:var(--op-border)] bg-[color:var(--op-bg)] px-4 py-2 text-xs sm:px-6">
+          <span className="tabular text-[color:var(--op-text-subtle)]">
+            Page {clampedPage + 1} of {pageCount}
+          </span>
+          <div className="flex items-center gap-1.5">
+            <PageButton
+              disabled={clampedPage === 0}
+              onClick={() => setPage(0)}
+              label="First"
+            />
+            <PageButton
+              disabled={clampedPage === 0}
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              icon={faChevronLeft}
+              label="Prev"
+            />
+            <PageButton
+              disabled={clampedPage >= pageCount - 1}
+              onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+              icon={faChevronRight}
+              label="Next"
+              trailingIcon
+            />
+            <PageButton
+              disabled={clampedPage >= pageCount - 1}
+              onClick={() => setPage(pageCount - 1)}
+              label="Last"
+            />
+          </div>
+        </div>
+      ) : null}
 
       {/* ── Bottom action bar ───────────────────────────── */}
       {selected.size > 0 ? (
@@ -605,12 +707,12 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
         </div>
       ) : null}
 
-      {/* ── LeadHound dialog ────────────────────────────── */}
-      {leadHoundOpen ? (
-        <LeadHoundDialog
-          onClose={() => setLeadHoundOpen(false)}
-          onSubmit={handleLeadHoundQueue}
-          busy={busy === "leadhound"}
+      {/* ── SOS pull dialog (replaces Google Places / LeadHound flow) ──── */}
+      {sosPullOpen ? (
+        <SosPullDialog
+          onClose={() => setSosPullOpen(false)}
+          onSubmit={handleSosPull}
+          busy={busy === "sos-pull"}
         />
       ) : null}
 
@@ -736,6 +838,33 @@ function ActionButton({
   );
 }
 
+function PageButton({
+  onClick,
+  disabled,
+  label,
+  icon,
+  trailingIcon,
+}: {
+  onClick: () => void;
+  disabled?: boolean;
+  label: string;
+  icon?: typeof faPaperPlane;
+  trailingIcon?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="inline-flex items-center gap-1.5 rounded-md border border-[color:var(--op-border)] px-2.5 py-1 text-[11px] font-medium hover:bg-[color:var(--op-panel-soft)] disabled:opacity-40 disabled:hover:bg-transparent"
+    >
+      {icon && !trailingIcon ? <FontAwesomeIcon icon={icon} className="h-2.5 w-2.5" /> : null}
+      {label}
+      {icon && trailingIcon ? <FontAwesomeIcon icon={icon} className="h-2.5 w-2.5" /> : null}
+    </button>
+  );
+}
+
 function Select<T extends string>({
   value,
   onChange,
@@ -816,24 +945,25 @@ function EmptyState({ title, body }: { title: string; body: string }) {
   );
 }
 
-function LeadHoundDialog({
+function SosPullDialog({
   onClose,
   onSubmit,
   busy,
 }: {
   onClose: () => void;
-  onSubmit: (payload: {
-    industry: string;
-    city: string;
-    state?: string;
-    maxResults?: number;
-  }) => Promise<void>;
+  onSubmit: (payload: { source: "fl_sunbiz" | "ny_dos"; days: number }) => Promise<void>;
   busy: boolean;
 }) {
-  const [industry, setIndustry] = useState("handyman");
-  const [city, setCity] = useState("");
-  const [state, setState] = useState("");
-  const [maxResults, setMaxResults] = useState(40);
+  const [source, setSource] = useState<"fl_sunbiz" | "ny_dos">("fl_sunbiz");
+  const [days, setDays] = useState(7);
+
+  // Per-source description so the user understands what the pipeline will do.
+  // Both run: fetch → NAICS filter → domain check → upsert → contact scrape →
+  // promote to leads. No Google Places API anywhere in the chain.
+  const desc =
+    source === "fl_sunbiz"
+      ? "Pulls daily fixed-width records from sftp.floridados.gov, filters by target NAICS, scores, and inserts new leads."
+      : "Pulls recent entities from the NY DOS Socrata dataset (n9v6-gdp6), filters by name-inferred industry, scores, and inserts new leads.";
 
   return (
     <div
@@ -845,7 +975,7 @@ function LeadHoundDialog({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold">LeadHound run</h2>
+          <h2 className="text-base font-semibold">Pull SOS leads</h2>
           <button
             type="button"
             onClick={onClose}
@@ -855,54 +985,38 @@ function LeadHoundDialog({
             <FontAwesomeIcon icon={faXmark} className="h-4 w-4" />
           </button>
         </div>
-        <p className="mt-1 text-xs text-[color:var(--op-text-muted)]">
-          Queues a lead_pull job. Worker picks it up, scrapes Google Places, scores with Ollama,
-          inserts new leads.
+        <p className="mt-1 text-xs leading-5 text-[color:var(--op-text-muted)]">
+          Runs the state Secretary-of-State ingestion pipeline (no Google Places API).
+          Returns immediately — pipeline finishes in 2–5 min and new leads stream into the
+          table as they upsert.
         </p>
         <div className="mt-4 grid gap-3">
-          <Field label="Industry">
-            <select
-              value={industry}
-              onChange={(e) => setIndustry(e.target.value)}
-              className="h-9 w-full rounded-md border border-[color:var(--op-border)] bg-[color:var(--op-panel-soft)] px-3 text-sm"
-            >
-              {INDUSTRY_OPTIONS.filter((o) => o.value !== "all").map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <div className="grid grid-cols-3 gap-3">
-            <div className="col-span-2">
-              <Field label="City">
-                <input
-                  type="text"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  placeholder="Austin"
-                  className="h-9 w-full rounded-md border border-[color:var(--op-border)] bg-[color:var(--op-panel-soft)] px-3 text-sm"
-                />
-              </Field>
-            </div>
-            <Field label="State">
-              <input
-                type="text"
-                value={state}
-                onChange={(e) => setState(e.target.value)}
-                placeholder="TX"
-                maxLength={2}
-                className="h-9 w-full rounded-md border border-[color:var(--op-border)] bg-[color:var(--op-panel-soft)] px-3 text-sm uppercase"
+          <Field label="Source">
+            <div className="grid grid-cols-2 gap-2">
+              <SourceRadio
+                value="fl_sunbiz"
+                selected={source}
+                onSelect={setSource}
+                title="Florida (Sunbiz)"
+                sub="~500 leads / 7-day window"
               />
-            </Field>
-          </div>
-          <Field label="Max results">
+              <SourceRadio
+                value="ny_dos"
+                selected={source}
+                onSelect={setSource}
+                title="New York (DOS)"
+                sub="~100 leads / 7-day window"
+              />
+            </div>
+          </Field>
+          <p className="text-[11px] leading-4 text-[color:var(--op-text-subtle)]">{desc}</p>
+          <Field label="Days back (1–60)">
             <input
               type="number"
-              min={5}
-              max={120}
-              value={maxResults}
-              onChange={(e) => setMaxResults(Number(e.target.value))}
+              min={1}
+              max={60}
+              value={days}
+              onChange={(e) => setDays(Number(e.target.value))}
               className="h-9 w-full rounded-md border border-[color:var(--op-border)] bg-[color:var(--op-panel-soft)] px-3 text-sm tabular"
             />
           </Field>
@@ -917,18 +1031,48 @@ function LeadHoundDialog({
           </button>
           <button
             type="button"
-            disabled={busy || !industry || !city}
-            onClick={() =>
-              void onSubmit({ industry, city: city.trim(), state: state.trim() || undefined, maxResults })
-            }
+            disabled={busy || days < 1}
+            onClick={() => void onSubmit({ source, days })}
             className="inline-flex items-center gap-1.5 rounded-md bg-[color:var(--op-accent)] px-3 py-1.5 text-xs font-medium text-[color:var(--op-bg)] disabled:opacity-50"
           >
-            <FontAwesomeIcon icon={faPhoneVolume} className="h-3 w-3" />
-            {busy ? "Queueing…" : "Queue lead_pull"}
+            <FontAwesomeIcon icon={faFileImport} className="h-3 w-3" />
+            {busy ? "Starting…" : source === "fl_sunbiz" ? "Pull FL leads" : "Pull NY leads"}
           </button>
         </div>
       </div>
     </div>
+  );
+}
+
+function SourceRadio<T extends string>({
+  value,
+  selected,
+  onSelect,
+  title,
+  sub,
+}: {
+  value: T;
+  selected: T;
+  onSelect: (value: T) => void;
+  title: string;
+  sub: string;
+}) {
+  const active = selected === value;
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(value)}
+      className={`flex flex-col items-start gap-0.5 rounded-md border px-3 py-2 text-left text-xs transition ${
+        active
+          ? "border-[color:var(--op-accent)] bg-[color:var(--op-accent)]/10 text-[color:var(--op-text)]"
+          : "border-[color:var(--op-border)] bg-[color:var(--op-panel-soft)] text-[color:var(--op-text-muted)] hover:border-[color:var(--op-border-strong)]"
+      }`}
+    >
+      <span className="font-medium text-[color:var(--op-text)]">{title}</span>
+      <span className="text-[10px] uppercase tracking-[0.14em] text-[color:var(--op-text-subtle)]">
+        {sub}
+      </span>
+    </button>
   );
 }
 
