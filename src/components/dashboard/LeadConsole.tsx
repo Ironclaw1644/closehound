@@ -88,16 +88,29 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
     industry: "all",
     status: "all",
     source: "all",
+    contact: "all",
   });
   const search = filterValues.q;
   const industry = filterValues.industry as IndustryValue;
   const statusFilter = filterValues.status as "all" | LeadStatus;
   const sourceFilter = filterValues.source as "all" | "fl_sunbiz" | "ny_dos" | "google_places";
+  // Contact-completeness filter so the operator can narrow to leads they can
+  // actually reach. "has_either" is the most useful default narrow — phone OR
+  // email present.
+  const contactFilter = filterValues.contact as
+    | "all"
+    | "has_phone"
+    | "has_email"
+    | "has_either"
+    | "missing_both";
   const setSearch = (v: string) => setFilter("q", v);
   const setIndustry = (v: IndustryValue) => setFilter("industry", v);
   const setStatusFilter = (v: "all" | LeadStatus) => setFilter("status", v);
   const setSourceFilter = (v: "all" | "fl_sunbiz" | "ny_dos" | "google_places") =>
     setFilter("source", v);
+  const setContactFilter = (
+    v: "all" | "has_phone" | "has_email" | "has_either" | "missing_both"
+  ) => setFilter("contact", v);
 
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [activeIndex, setActiveIndex] = useState(0);
@@ -107,7 +120,7 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
   useEffect(() => {
     setPage(0);
     setActiveIndex(0);
-  }, [search, industry, statusFilter, sourceFilter]);
+  }, [search, industry, statusFilter, sourceFilter, contactFilter]);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sosPullOpen, setSosPullOpen] = useState(false);
@@ -181,6 +194,14 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
       if (sourceFilter !== "all" && lead.lead_source !== sourceFilter) {
         return false;
       }
+      // Contact filter — checks the leads.phone / leads.contact_email fields
+      // that the table renders. Empty string treated as missing.
+      const hasPhone = !!(lead.phone && lead.phone.trim());
+      const hasEmail = !!(lead.contact_email && lead.contact_email.trim());
+      if (contactFilter === "has_phone" && !hasPhone) return false;
+      if (contactFilter === "has_email" && !hasEmail) return false;
+      if (contactFilter === "has_either" && !hasPhone && !hasEmail) return false;
+      if (contactFilter === "missing_both" && (hasPhone || hasEmail)) return false;
       if (!q) return true;
       const haystack = [
         lead.company_name,
@@ -193,7 +214,7 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
         .toLowerCase();
       return haystack.includes(q);
     });
-  }, [leads, industry, statusFilter, sourceFilter, search]);
+  }, [leads, industry, statusFilter, sourceFilter, contactFilter, search]);
 
   // Slice the filtered set into a single page worth of rows. Selection,
   // toggle-all, and the table render all operate against `paginated` so the
@@ -475,6 +496,21 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
             { value: "fl_sunbiz", label: "FL — Sunbiz" },
             { value: "ny_dos", label: "NY — DOS" },
             { value: "google_places", label: "Google Places" },
+          ]}
+        />
+        <Select
+          value={contactFilter}
+          onChange={(v) =>
+            setContactFilter(
+              v as "all" | "has_phone" | "has_email" | "has_either" | "missing_both"
+            )
+          }
+          options={[
+            { value: "all", label: "Any contact" },
+            { value: "has_either", label: "Has phone or email" },
+            { value: "has_phone", label: "Has phone" },
+            { value: "has_email", label: "Has email" },
+            { value: "missing_both", label: "Missing both" },
           ]}
         />
         <span className="ml-auto text-xs tabular text-[color:var(--op-text-subtle)]">
