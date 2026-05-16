@@ -149,7 +149,12 @@ export function CustomersConsole({ initial }: { initial: CustomerRow[] }) {
             </p>
           </div>
         ) : (
-          <table className="w-full text-sm">
+          // Customers table is dense (7 columns) so on mobile we fall back to
+          // horizontal scroll rather than a full card-view rewrite. The admin
+          // view is rarely touched on phones; if that changes, mirror the
+          // LeadConsole responsive treatment.
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[720px] text-sm">
             <thead className="sticky top-0 bg-[color:var(--op-bg)] text-left text-[10px] uppercase tracking-[0.18em] text-[color:var(--op-text-subtle)]">
               <tr>
                 <th className="px-3 py-2 font-medium">Status</th>
@@ -235,6 +240,7 @@ export function CustomersConsole({ initial }: { initial: CustomerRow[] }) {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </main>
     </div>

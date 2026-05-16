@@ -388,33 +388,38 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
       tabIndex={-1}
     >
       {/* ── Top bar ──────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 flex items-center gap-3 border-b border-[color:var(--op-border)] bg-[color:var(--op-bg)]/95 px-4 py-2.5 backdrop-blur sm:px-6">
-        <div className="flex items-center gap-2">
-          <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[color:var(--op-accent)] text-[color:var(--op-bg)] text-sm font-bold">
+      {/* On mobile: tighter padding, "Operator" badge hidden, action buttons
+          collapse to icon-only. The worker pill always shows because it
+          carries critical state. */}
+      <header className="sticky top-0 z-40 flex items-center gap-2 border-b border-[color:var(--op-border)] bg-[color:var(--op-bg)]/95 px-3 py-2.5 backdrop-blur sm:gap-3 sm:px-6">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[color:var(--op-accent)] text-[color:var(--op-bg)] text-sm font-bold">
             C
           </span>
-          <span className="text-sm font-semibold tracking-tight">closehound</span>
-          <span className="ml-2 rounded-full border border-[color:var(--op-border)] px-2 py-0.5 text-[10px] uppercase tracking-[0.16em] text-[color:var(--op-text-muted)]">
+          <span className="text-sm font-semibold tracking-tight truncate">closehound</span>
+          <span className="hidden sm:inline-block ml-2 rounded-full border border-[color:var(--op-border)] px-2 py-0.5 text-[10px] uppercase tracking-[0.16em] text-[color:var(--op-text-muted)]">
             Operator
           </span>
         </div>
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
           <Link
             href="/customers"
-            className="inline-flex items-center gap-2 rounded-md border border-[color:var(--op-border)] px-3 py-1.5 text-xs font-medium text-[color:var(--op-text)] hover:bg-[color:var(--op-panel-soft)]"
+            aria-label="Customers"
+            className="inline-flex items-center gap-2 rounded-md border border-[color:var(--op-border)] px-2 py-1.5 text-xs font-medium text-[color:var(--op-text)] hover:bg-[color:var(--op-panel-soft)] sm:px-3"
           >
             <FontAwesomeIcon icon={faUsers} className="h-3 w-3" />
-            Customers
+            <span className="hidden sm:inline">Customers</span>
           </Link>
           <button
             type="button"
             onClick={() => setSosPullOpen(true)}
-            className="inline-flex items-center gap-2 rounded-md border border-[color:var(--op-border)] px-3 py-1.5 text-xs font-medium text-[color:var(--op-text)] hover:bg-[color:var(--op-panel-soft)]"
+            aria-label="Pull SOS leads"
+            className="inline-flex items-center gap-2 rounded-md border border-[color:var(--op-border)] px-2 py-1.5 text-xs font-medium text-[color:var(--op-text)] hover:bg-[color:var(--op-panel-soft)] sm:px-3"
             title="Pull fresh leads from state Secretary-of-State filings (FL / NY)"
           >
             <FontAwesomeIcon icon={faFileImport} className="h-3 w-3" />
-            Pull SOS leads
+            <span className="hidden sm:inline">Pull SOS leads</span>
           </button>
           <button
             type="button"
@@ -497,10 +502,91 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
         ) : filtered.length === 0 ? (
           <EmptyState
             title="No leads yet"
-            body="Use LeadHound (top right) to queue a Google Places pull, then run worker locally."
+            body="Tap 'Pull SOS leads' (top right) to fetch fresh FL/NY filings."
           />
         ) : (
-          <table className="w-full text-sm tabular">
+          <>
+          {/* Mobile card view — table doesn't fit at 375px so we stack each
+              lead into a card. md:hidden flips it to the desktop table at the
+              tablet breakpoint. */}
+          <ul className="md:hidden divide-y divide-[color:var(--op-border)]">
+            {paginated.map((lead, index) => {
+              const isSelected = selected.has(lead.id);
+              const isActive = index === activeIndex;
+              return (
+                <li
+                  key={lead.id}
+                  onClick={() => {
+                    setActiveIndex(index);
+                    setDetailLead(lead);
+                  }}
+                  className={`px-4 py-3 cursor-pointer ${
+                    isActive
+                      ? "bg-[color:var(--op-accent-soft)]"
+                      : "active:bg-[color:var(--op-panel-soft)]"
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onClick={(e) => e.stopPropagation()}
+                      onChange={() => toggleOne(lead.id)}
+                      className="mt-1"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] ${
+                            STATUS_TONE[lead.status] ?? STATUS_TONE.new
+                          }`}
+                        >
+                          {STATUS_LABEL[lead.status] ?? lead.status}
+                        </span>
+                        <span className="text-[11px] tabular text-[color:var(--op-text-muted)]">
+                          {formatScore(lead.lead_score)}
+                        </span>
+                        <span className="ml-auto text-[10px] uppercase tracking-[0.14em] text-[color:var(--op-text-subtle)]">
+                          {relativeTime(lead.created_at)}
+                        </span>
+                      </div>
+                      <h3 className="mt-1.5 text-sm font-semibold text-[color:var(--op-text)] leading-snug break-words">
+                        {lead.company_name}
+                      </h3>
+                      <p className="mt-0.5 text-xs text-[color:var(--op-text-muted)]">
+                        {[lead.city ?? "—", lead.industry ?? "—"].join(" · ")}
+                      </p>
+                      {(lead.phone || lead.contact_email) ? (
+                        <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs">
+                          {lead.phone ? (
+                            <a
+                              href={`tel:${lead.phone.replace(/[^\d+]/g, "")}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="tabular text-[color:var(--op-text)] hover:text-[color:var(--op-accent)] underline-offset-2 hover:underline"
+                            >
+                              {lead.phone}
+                            </a>
+                          ) : null}
+                          {lead.contact_email ? (
+                            <a
+                              href={`mailto:${lead.contact_email}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="truncate text-[color:var(--op-text)] hover:text-[color:var(--op-accent)] underline-offset-2 hover:underline"
+                            >
+                              {lead.contact_email}
+                            </a>
+                          ) : null}
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+
+          {/* Desktop table */}
+          <table className="hidden md:table w-full text-sm tabular">
             <thead className="sticky top-0 bg-[color:var(--op-bg)] text-left text-[10px] uppercase tracking-[0.18em] text-[color:var(--op-text-subtle)]">
               <tr>
                 <th className="w-8 px-3 py-2">
@@ -626,6 +712,7 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
               })}
             </tbody>
           </table>
+          </>
         )}
       </main>
 

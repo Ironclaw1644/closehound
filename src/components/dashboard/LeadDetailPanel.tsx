@@ -181,7 +181,7 @@ export function LeadDetailPanel({ lead, onClose, onStatusChange }: LeadDetailPan
         role="dialog"
         aria-modal="true"
         aria-label={`Lead detail: ${lead.company_name}`}
-        className="fixed right-0 top-0 z-50 flex h-screen w-full max-w-[480px] flex-col border-l border-[color:var(--op-border)] bg-[color:var(--op-panel)] shadow-[-24px_0_60px_rgba(0,0,0,0.5)]"
+        className="fixed right-0 top-0 z-50 flex h-screen w-full max-w-full sm:max-w-[480px] flex-col border-l border-[color:var(--op-border)] bg-[color:var(--op-panel)] shadow-[-24px_0_60px_rgba(0,0,0,0.5)]"
       >
         {/* Header */}
         <header className="flex items-start justify-between gap-3 border-b border-[color:var(--op-border)] px-5 py-4">
