@@ -2,17 +2,22 @@
 
 :root {
   color-scheme: dark;
-  --background: #09090b;
-  --panel: rgba(24, 24, 27, 0.9);
-  --panel-strong: rgba(39, 39, 42, 0.96);
-  --border: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.14);
-  --text: #fafafa;
-  --muted: #a1a1aa;
-  --accent: #f4a261;
-  --accent-soft: rgba(244, 162, 97, 0.16);
-  --success: #7dd3a7;
-  --warning: #facc15;
+
+  /* Operator (CloseHound) tokens — graphite + signal-orange. */
+  --op-bg: #0a0c10;
+  --op-panel: #11141a;
+  --op-panel-soft: #161a22;
+  --op-border: #1f2530;
+  --op-border-strong: #2a313d;
+  --op-text: #e7eaf0;
+  --op-text-muted: #8a92a3;
+  --op-text-subtle: #5b6373;
+  --op-accent: #ff7a1a;
+  --op-accent-soft: rgba(255, 122, 26, 0.14);
+  --op-success: #6ee7a8;
+  --op-warning: #facc15;
+  --op-danger: #ef6f6f;
+  --op-info: #6ab7ff;
 }
 
 * {
@@ -20,26 +25,82 @@
 }
 
 html {
+  background: var(--op-bg);
   scroll-behavior: smooth;
-  background:
-    radial-gradient(circle at top, rgba(244, 162, 97, 0.14), transparent 28%),
-    linear-gradient(180deg, #121215 0%, #09090b 50%, #050507 100%);
+  scroll-padding-top: 32px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Subtle drift animation for hero photos (preview templates). */
+@keyframes preview-hero-drift {
+  0% { transform: scale(1.04) translate3d(0, 0, 0); }
+  50% { transform: scale(1.06) translate3d(-1%, -1.5%, 0); }
+  100% { transform: scale(1.04) translate3d(0, 0, 0); }
+}
+
+.preview-hero-drift {
+  animation: preview-hero-drift 18s ease-in-out infinite;
+}
+
+/* Marquee for ticker strips. */
+@keyframes preview-marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.preview-marquee {
+  animation: preview-marquee 32s linear infinite;
+}
+
+/* Soft pulse for live status dots. */
+@keyframes preview-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(0.92); }
+}
+
+.preview-pulse {
+  animation: preview-pulse 2.4s ease-in-out infinite;
+}
+
+/* Number tick — subtle vertical scroll loop for stats. */
+@keyframes preview-tick {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+.preview-tick {
+  animation: preview-tick 4s ease-in-out infinite;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  background: transparent;
-  color: var(--text);
+  background: var(--op-bg);
+  color: var(--op-text);
   font-family:
-    "SF Pro Display",
     "SF Pro Text",
+    "Inter",
     ui-sans-serif,
     system-ui,
     -apple-system,
-    BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
+  font-feature-settings: "ss01", "cv02", "cv11";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 a {
@@ -49,4 +110,33 @@ a {
 
 button {
   font: inherit;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+/* Scrollbar (operator surfaces). */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--op-border);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--op-border-strong);
+}
+
+/* Numeric columns: tabular figures. */
+.tabular {
+  font-variant-numeric: tabular-nums;
 }

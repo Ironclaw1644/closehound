@@ -11,9 +11,10 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 .env*.local
+*.tsbuildinfo
+
+# Claude Code session artifacts (local-only)
+.claude/
 
 # Local enriched-lead CSVs — contain real contact info, keep out of git
 lead_exports/
-*.tsbuildinfo
-.claude/scheduled_tasks.lock
-.claude/worktrees/

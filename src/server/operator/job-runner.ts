@@ -1,42 +1,36 @@
+import "server-only";
+
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { buildPreviewUrl } from "@/lib/preview";
-import { generatePreviewSite } from "@/lib/site-generator";
-import type { Lead } from "@/types/lead";
+import { runLeadPullJob } from "@/server/leadhound/handler";
+import { runOutreachEmailJob } from "@/server/outreach/handler";
+import { runPreviewGenerateJob } from "@/server/preview-generate/handler";
+import { runPromoteSiteJob } from "@/server/promote/handler";
 import type { Database, Json } from "@/types/supabase";
-import type {
-  Job,
-  JobLogEntry,
-  JobRun,
-  PreviewGenerateJobPayload,
-  PreviewGenerateJobResult,
-} from "@/types/operator";
+import type { Job, JobLogEntry, JobRun } from "@/types/operator";
 
 export const PREVIEW_GENERATE_LOCK_KEY = "preview_generate";
-export const MAX_CONCURRENT_PREVIEW_JOBS = 1;
-export const PREVIEW_GENERATE_LOCK_TTL_MS = 15 * 60 * 1000;
+export const LEAD_PULL_LOCK_KEY = "lead_pull";
 
-type JobLogger = {
-  entries: JobLogEntry[];
+export const PREVIEW_GENERATE_LOCK_TTL_MS = 15 * 60 * 1000;
+export const LEAD_PULL_LOCK_TTL_MS = 15 * 60 * 1000;
+
+type Logger = {
   info: (message: string) => void;
   error: (message: string) => void;
+  entries: JobLogEntry[];
 };
 
-type JobRunResult = {
+type RunResult = {
   result: Json;
   runStatus: "completed";
+  log: JobLogEntry[];
 };
 
-function createJobLogger(): JobLogger {
+function createLogger(): Logger {
   const entries: JobLogEntry[] = [];
-
   function push(level: JobLogEntry["level"], message: string) {
-    entries.push({
-      at: new Date().toISOString(),
-      level,
-      message,
-    });
+    entries.push({ at: new Date().toISOString(), level, message });
   }
-
   return {
     entries,
     info(message) {
@@ -50,135 +44,6 @@ function createJobLogger(): JobLogger {
 
 function getClosehound(supabase: SupabaseClient<Database>) {
   return supabase.schema("closehound");
-}
-
-function asPreviewPayload(payload: Job["payload"]): PreviewGenerateJobPayload {
-  const leadId =
-    payload &&
-    typeof payload === "object" &&
-    !Array.isArray(payload) &&
-    typeof payload.leadId === "string"
-      ? payload.leadId
-      : null;
-
-  if (!leadId) {
-    throw new Error("preview_generate job is missing payload.leadId.");
-  }
-
-  return { leadId };
-}
-
-async function storePreviewPayloadIfAvailable(
-  supabase: SupabaseClient<Database>,
-  slug: string,
-  leadId: string,
-  previewUrl: string,
-  previewPayload: Json,
-  logger: JobLogger
-) {
-  try {
-    const { error } = await getClosehound(supabase)
-      .from("preview_sites")
-      .upsert({
-        slug,
-        lead_id: leadId,
-        preview_url: previewUrl,
-        preview_payload: previewPayload,
-        updated_at: new Date().toISOString(),
-      }, {
-        onConflict: "slug",
-      });
-
-    if (error) {
-      logger.info(
-        `preview_sites unavailable for payload storage; falling back to preview_url only (${error.message}).`
-      );
-
-      return "preview_url_only" as const;
-    }
-
-    logger.info("Stored preview payload in closehound.preview_sites.");
-
-    return "preview_sites_table" as const;
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown preview_sites error.";
-    logger.info(
-      `preview_sites unavailable for payload storage; falling back to preview_url only (${message}).`
-    );
-
-    return "preview_url_only" as const;
-  }
-}
-
-async function runPreviewGenerateJob(
-  supabase: SupabaseClient<Database>,
-  job: Job,
-  logger: JobLogger
-) {
-  const { leadId } = asPreviewPayload(job.payload);
-  const closehound = getClosehound(supabase);
-
-  logger.info(`Fetching lead ${leadId}.`);
-
-  const { data: lead, error: leadError } = await closehound
-    .from("leads")
-    .select("*")
-    .eq("id", leadId)
-    .single();
-
-  if (leadError || !lead) {
-    throw new Error(leadError?.message ?? `Lead ${leadId} was not found.`);
-  }
-
-  logger.info(`Generating deterministic preview for ${lead.company_name}.`);
-
-  const previewSite = generatePreviewSite(lead as Lead);
-  const metadata = {
-    presetDetected: previewSite.templateKey,
-    detectionMode: "explicit" as const,
-    matchedKeyword: null,
-    previewRoute: previewSite.previewUrl,
-  };
-  const previewUrl = buildPreviewUrl(leadId);
-
-  const { error: updateLeadError } = await closehound
-    .from("leads")
-    .update({
-      preview_url: previewUrl,
-      status: "generated",
-    })
-    .eq("id", leadId);
-
-  if (updateLeadError) {
-    throw new Error(updateLeadError.message);
-  }
-
-  logger.info(`Updated lead ${leadId} with preview URL ${previewUrl}.`);
-
-  const storageMode = await storePreviewPayloadIfAvailable(
-    supabase,
-    leadId,
-    leadId,
-    previewUrl,
-    previewSite as unknown as Json,
-    logger
-  );
-
-  const result: PreviewGenerateJobResult = {
-    leadId,
-    previewUrl,
-    leadStatus: "generated",
-    metadata,
-    previewSite: previewSite as unknown as Json,
-    storageMode,
-  };
-
-  return result;
-}
-
-async function runStubJob(job: Job, logger: JobLogger) {
-  logger.info(`Stub handler invoked for ${job.job_type}.`);
-  throw new Error(`${job.job_type} is stubbed in Operator Mode v1 and not implemented yet.`);
 }
 
 export async function createJobRun(
@@ -214,7 +79,7 @@ export async function completeJobRun(
     .from("job_runs")
     .update({
       run_status: runStatus,
-      log,
+      log: log as unknown as Json,
       completed_at: new Date().toISOString(),
     })
     .eq("id", runId);
@@ -227,18 +92,22 @@ export async function completeJobRun(
 export async function runJobHandler(
   supabase: SupabaseClient<Database>,
   job: Job
-): Promise<JobRunResult & { log: JobLogEntry[] }> {
-  const logger = createJobLogger();
-
+): Promise<RunResult> {
+  const logger = createLogger();
   let result: Json = null;
 
   switch (job.job_type) {
-    case "preview_generate":
-      result = await runPreviewGenerateJob(supabase, job, logger);
-      break;
     case "lead_pull":
+      result = (await runLeadPullJob(supabase, job.payload, logger)) as unknown as Json;
+      break;
+    case "preview_generate":
+      result = (await runPreviewGenerateJob(supabase, job.payload, logger)) as unknown as Json;
+      break;
+    case "outreach_email":
+      result = (await runOutreachEmailJob(job.payload, logger)) as unknown as Json;
+      break;
     case "promote_site":
-      await runStubJob(job, logger);
+      result = (await runPromoteSiteJob(job.payload, logger)) as unknown as Json;
       break;
     default:
       throw new Error(`Unsupported job type: ${job.job_type}`);
@@ -249,4 +118,16 @@ export async function runJobHandler(
     runStatus: "completed",
     log: logger.entries,
   };
+}
+
+export function lockKeyForJob(job: Job): string | null {
+  if (job.job_type === "preview_generate") return PREVIEW_GENERATE_LOCK_KEY;
+  if (job.job_type === "lead_pull") return LEAD_PULL_LOCK_KEY;
+  return null;
+}
+
+export function lockTtlMsForKey(key: string): number {
+  if (key === PREVIEW_GENERATE_LOCK_KEY) return PREVIEW_GENERATE_LOCK_TTL_MS;
+  if (key === LEAD_PULL_LOCK_KEY) return LEAD_PULL_LOCK_TTL_MS;
+  return PREVIEW_GENERATE_LOCK_TTL_MS;
 }

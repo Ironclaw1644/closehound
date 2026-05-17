@@ -1,10 +1,10 @@
 import { getSupabaseAdminClient } from "@/lib/supabase";
 import type { Job } from "@/types/operator";
 import {
-  PREVIEW_GENERATE_LOCK_KEY,
-  PREVIEW_GENERATE_LOCK_TTL_MS,
   completeJobRun,
   createJobRun,
+  lockKeyForJob,
+  lockTtlMsForKey,
   runJobHandler,
 } from "@/server/operator/job-runner";
 
@@ -14,12 +14,8 @@ type RunWorkerOnceResult = {
   processedJobId: string | null;
 };
 
-function isLockableJob(job: Job) {
-  return job.job_type === PREVIEW_GENERATE_LOCK_KEY;
-}
-
-function nextLockExpiration() {
-  return new Date(Date.now() + PREVIEW_GENERATE_LOCK_TTL_MS).toISOString();
+function nextLockExpiration(lockKey: string) {
+  return new Date(Date.now() + lockTtlMsForKey(lockKey)).toISOString();
 }
 
 async function acquireOperatorLock(lockKey: string, workerName: string) {
@@ -27,22 +23,20 @@ async function acquireOperatorLock(lockKey: string, workerName: string) {
   const closehound = supabase.schema("closehound");
   const now = new Date().toISOString();
 
-  await closehound.from("operator_locks").delete().eq("lock_key", lockKey).lt("expires_at", now);
+  await closehound
+    .from("operator_locks")
+    .delete()
+    .eq("lock_key", lockKey)
+    .lt("expires_at", now);
 
   const { error } = await closehound.from("operator_locks").insert({
     lock_key: lockKey,
     locked_by: workerName,
-    expires_at: nextLockExpiration(),
+    expires_at: nextLockExpiration(lockKey),
   });
 
-  if (!error) {
-    return true;
-  }
-
-  if (error.code === "23505") {
-    return false;
-  }
-
+  if (!error) return true;
+  if (error.code === "23505") return false; // already locked
   throw new Error(error.message);
 }
 
@@ -53,10 +47,7 @@ async function releaseOperatorLock(lockKey: string, workerName: string) {
     .delete()
     .eq("lock_key", lockKey)
     .eq("locked_by", workerName);
-
-  if (error) {
-    throw new Error(error.message);
-  }
+  if (error) throw new Error(error.message);
 }
 
 async function claimPendingJob(job: Job) {
@@ -77,13 +68,9 @@ async function claimPendingJob(job: Job) {
     .single();
 
   if (error) {
-    if (error.code === "PGRST116") {
-      return null;
-    }
-
+    if (error.code === "PGRST116") return null;
     throw new Error(error.message);
   }
-
   return data as Job;
 }
 
@@ -99,10 +86,7 @@ async function failJob(jobId: string, message: string) {
       updated_at: now,
     })
     .eq("id", jobId);
-
-  if (error) {
-    throw new Error(error.message);
-  }
+  if (error) throw new Error(error.message);
 }
 
 async function completeJob(jobId: string, result: Job["result"]) {
@@ -118,13 +102,12 @@ async function completeJob(jobId: string, result: Job["result"]) {
       error_message: null,
     })
     .eq("id", jobId);
-
-  if (error) {
-    throw new Error(error.message);
-  }
+  if (error) throw new Error(error.message);
 }
 
-export async function runOperatorWorkerOnce(workerName: string): Promise<RunWorkerOnceResult> {
+export async function runOperatorWorkerOnce(
+  workerName: string
+): Promise<RunWorkerOnceResult> {
   const closehound = getSupabaseAdminClient().schema("closehound");
   const { data, error } = await closehound
     .from("jobs")
@@ -133,33 +116,26 @@ export async function runOperatorWorkerOnce(workerName: string): Promise<RunWork
     .order("created_at", { ascending: true })
     .limit(10);
 
-  if (error) {
-    throw new Error(error.message);
-  }
+  if (error) throw new Error(error.message);
 
   const jobs = (data ?? []) as Job[];
 
   for (const pendingJob of jobs) {
-    const lockKey = isLockableJob(pendingJob) ? PREVIEW_GENERATE_LOCK_KEY : null;
+    const lockKey = lockKeyForJob(pendingJob);
     let lockAcquired = false;
 
     try {
       if (lockKey) {
         lockAcquired = await acquireOperatorLock(lockKey, workerName);
-
-        if (!lockAcquired) {
-          continue;
-        }
+        if (!lockAcquired) continue;
       }
 
       const claimedJob = await claimPendingJob(pendingJob);
-
       if (!claimedJob) {
         if (lockKey && lockAcquired) {
           await releaseOperatorLock(lockKey, workerName);
           lockAcquired = false;
         }
-
         continue;
       }
 
@@ -169,49 +145,34 @@ export async function runOperatorWorkerOnce(workerName: string): Promise<RunWork
         const outcome = await runJobHandler(getSupabaseAdminClient(), claimedJob);
         await completeJob(claimedJob.id, outcome.result);
         await completeJobRun(getSupabaseAdminClient(), run.id, outcome.runStatus, outcome.log);
-
-        return {
-          processedJobId: claimedJob.id,
-        };
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "Unknown operator job error.";
+        return { processedJobId: claimedJob.id };
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Unknown operator job error.";
         await failJob(claimedJob.id, message);
         await completeJobRun(getSupabaseAdminClient(), run.id, "failed", [
-          {
-            at: new Date().toISOString(),
-            level: "error",
-            message,
-          },
+          { at: new Date().toISOString(), level: "error", message },
         ]);
-
-        return {
-          processedJobId: claimedJob.id,
-        };
+        return { processedJobId: claimedJob.id };
       } finally {
         if (lockKey && lockAcquired) {
           await releaseOperatorLock(lockKey, workerName);
           lockAcquired = false;
         }
       }
-    } catch (error) {
+    } catch (err) {
       if (lockKey && lockAcquired) {
         await releaseOperatorLock(lockKey, workerName);
         lockAcquired = false;
       }
-
-      throw error;
+      throw err;
     }
   }
 
-  return {
-    processedJobId: null,
-  };
+  return { processedJobId: null };
 }
 
 function sleep(ms: number) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export async function startOperatorWorker({
@@ -221,16 +182,18 @@ export async function startOperatorWorker({
   workerName: string;
   pollIntervalMs?: number;
 }) {
+  // eslint-disable-next-line no-console
+  console.info(`[worker:${workerName}] starting, polling every ${pollIntervalMs}ms`);
   for (;;) {
     try {
       const { processedJobId } = await runOperatorWorkerOnce(workerName);
-
       if (!processedJobId) {
         await sleep(pollIntervalMs);
       }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Unknown worker loop error.";
-      console.error(`[operator-worker:${workerName}] ${message}`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown worker loop error.";
+      // eslint-disable-next-line no-console
+      console.error(`[worker:${workerName}] ${message}`);
       await sleep(pollIntervalMs);
     }
   }
