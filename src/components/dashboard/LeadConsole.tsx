@@ -19,6 +19,7 @@ import {
   faChevronLeft,
   faChevronRight,
   faFileImport,
+  faBoxArchive,
 } from "@fortawesome/free-solid-svg-icons";
 import { INDUSTRY_OPTIONS, type IndustryValue } from "@/lib/industries";
 import type { Lead, LeadStatus } from "@/types/lead";
@@ -127,7 +128,7 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
   const [detailLead, setDetailLead] = useState<Lead | null>(null);
   const [jobDrawerOpen, setJobDrawerOpen] = useState(false);
   const [confirmState, setConfirmState] = useState<null | {
-    action: "generate" | "email" | "mark";
+    action: "generate" | "email" | "mark" | "archive";
     count: number;
   }>(null);
   const [undoState, setUndoState] = useState<null | {
@@ -251,10 +252,15 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
   };
 
   // Bulk actions — gated through confirmation modal so destructive actions
-  // (mark closed) can't fire on accident. Generate + email are also confirmed
-  // because they spend API credits / send real emails to real prospects.
+  // (mark closed, archive) can't fire on accident. Generate + email are also
+  // confirmed because they spend API credits / send real emails to real
+  // prospects.
+  //
+  // Action names map to: "mark" = mark closed, "archive" = mark called (the
+  // user-facing "archive a contact as called" verb). Kept as distinct strings
+  // so confirm-modal copy can differentiate without prop-drilling status.
   const requestBulk = useCallback(
-    (action: "generate" | "email" | "mark") => {
+    (action: "generate" | "email" | "mark" | "archive") => {
       const ids = Array.from(selected);
       if (ids.length === 0) return;
       setConfirmState({ action, count: ids.length });
@@ -263,14 +269,14 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
   );
 
   const executeBulk = useCallback(
-    async (action: "generate" | "email" | "mark") => {
+    async (action: "generate" | "email" | "mark" | "archive") => {
       const ids = Array.from(selected);
       if (ids.length === 0) return;
       setBusy(action);
       setError(null);
-      // Capture the prior status of selected leads so "mark closed" can be undone
-      // by the toast. Most rows will be the same prior status, but we batch the
-      // first one for a single revert action. Per-lead revert would need a join.
+      // Capture the prior status of selected leads so destructive actions can
+      // be undone by the toast. Most rows will share the same prior status,
+      // but we batch the first one for a single revert action.
       const priorStatus =
         leads.find((l) => l.id === ids[0])?.status ?? "new";
       try {
@@ -286,13 +292,26 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ leadIds: ids }),
           });
+        } else if (action === "archive") {
+          // Archive = mark called. The detail-panel "Mark called" button does
+          // the per-lead variant; this is the bulk version.
+          await fetch("/api/leads/bulk-status", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ leadIds: ids, status: "called" }),
+          });
+          setUndoState({
+            message: `Archived ${ids.length} lead${ids.length === 1 ? "" : "s"} as called.`,
+            leadIds: ids,
+            priorStatus,
+          });
         } else {
+          // "mark" → mark closed
           await fetch("/api/leads/bulk-status", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ leadIds: ids, status: "closed" }),
           });
-          // Surface an undo toast only for the destructive bulk-close path.
           setUndoState({
             message: `Marked ${ids.length} lead${ids.length === 1 ? "" : "s"} closed.`,
             leadIds: ids,
@@ -375,6 +394,8 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
         requestBulk("email");
       } else if (e.key.toLowerCase() === "x" && selected.size) {
         requestBulk("mark");
+      } else if (e.key.toLowerCase() === "a" && selected.size) {
+        requestBulk("archive");
       }
     },
     [paginated, activeIndex, selected, requestBulk, detailLead]
@@ -787,17 +808,22 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
       ) : null}
 
       {/* ── Bottom action bar ───────────────────────────── */}
+      {/* On mobile: buttons collapse to icon-only with tooltips, the "N
+          selected" indicator becomes a compact pill, and the row uses
+          flex-wrap as a safety net for very narrow screens. Keyboard hints
+          are desktop-only since mobile has no keyboard anyway. */}
       {selected.size > 0 ? (
-        <div className="sticky bottom-0 z-30 flex items-center justify-between gap-3 border-t border-[color:var(--op-border)] bg-[color:var(--op-panel)] px-4 py-2 sm:px-6">
-          <span className="text-xs text-[color:var(--op-text-muted)]">
+        <div className="sticky bottom-0 z-30 flex flex-wrap items-center justify-between gap-2 border-t border-[color:var(--op-border)] bg-[color:var(--op-panel)] px-3 py-2 sm:gap-3 sm:px-6">
+          <span className="text-xs text-[color:var(--op-text-muted)] whitespace-nowrap">
             <span className="font-medium text-[color:var(--op-text)] tabular">
               {selected.size}
             </span>{" "}
             selected
           </span>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             <ActionButton
               label="Generate previews"
+              shortLabel="Generate"
               hint="G"
               icon={faWandMagicSparkles}
               onClick={() => requestBulk("generate")}
@@ -805,13 +831,24 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
             />
             <ActionButton
               label="Send emails"
+              shortLabel="Email"
               hint="E"
               icon={faPaperPlane}
               onClick={() => requestBulk("email")}
               busy={busy === "email"}
             />
             <ActionButton
+              label="Archive (called)"
+              shortLabel="Archive"
+              hint="A"
+              icon={faBoxArchive}
+              onClick={() => requestBulk("archive")}
+              busy={busy === "archive"}
+              tone="muted"
+            />
+            <ActionButton
               label="Mark closed"
+              shortLabel="Close"
               hint="X"
               icon={faCircleCheck}
               onClick={() => requestBulk("mark")}
@@ -821,10 +858,11 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
             <button
               type="button"
               onClick={() => setSelected(new Set())}
-              className="inline-flex items-center gap-1.5 rounded-md border border-[color:var(--op-border)] px-3 py-1.5 text-xs hover:bg-[color:var(--op-panel-soft)]"
+              aria-label="Clear selection"
+              className="inline-flex items-center gap-1.5 rounded-md border border-[color:var(--op-border)] px-2 py-1.5 text-xs hover:bg-[color:var(--op-panel-soft)] sm:px-3"
             >
               <FontAwesomeIcon icon={faXmark} className="h-3 w-3" />
-              Clear
+              <span className="hidden sm:inline">Clear</span>
             </button>
           </div>
         </div>
@@ -840,13 +878,14 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
       ) : null}
 
       {/* ── Keyboard hints ──────────────────────────────── */}
-      <div className="hidden sm:flex items-center justify-end gap-3 border-t border-[color:var(--op-border)] bg-[color:var(--op-bg)] px-6 py-1.5 text-[10px] uppercase tracking-[0.18em] text-[color:var(--op-text-subtle)]">
+      <div className="hidden lg:flex items-center justify-end gap-3 border-t border-[color:var(--op-border)] bg-[color:var(--op-bg)] px-6 py-1.5 text-[10px] uppercase tracking-[0.18em] text-[color:var(--op-text-subtle)]">
         <Kbd k="/" /> search
         <Kbd k="J" /> / <Kbd k="K" /> nav
         <Kbd k="␣" /> select
         <Kbd k="⏎" /> detail
         <Kbd k="G" /> generate
         <Kbd k="E" /> email
+        <Kbd k="A" /> archive
         <Kbd k="X" /> close
       </div>
 
@@ -896,26 +935,37 @@ export function LeadConsole({ initialLeads, initialJobs, configured }: Props) {
 // Confirm-modal copy per action. Generate/email confirmations are still
 // requested (these spend Stripe/Resend credits + send to real prospects) but
 // styled as primary, not destructive.
-function confirmTitleFor(action: "generate" | "email" | "mark", count: number): string {
+function confirmTitleFor(
+  action: "generate" | "email" | "mark" | "archive",
+  count: number
+): string {
   const plural = count === 1 ? "lead" : "leads";
   if (action === "generate") return `Generate previews for ${count} ${plural}?`;
   if (action === "email") return `Send outreach to ${count} ${plural}?`;
+  if (action === "archive") return `Archive ${count} ${plural} as called?`;
   return `Mark ${count} ${plural} closed?`;
 }
 
-function confirmBodyFor(action: "generate" | "email" | "mark", count: number): string {
+function confirmBodyFor(
+  action: "generate" | "email" | "mark" | "archive",
+  count: number
+): string {
   if (action === "generate") {
     return "Queues a preview_generate job for each lead. Worker will pick these up and render multipage sites. Safe to repeat — already-generated leads will be skipped.";
   }
   if (action === "email") {
     return "Sends a real outreach email to each lead that already has a preview. Skips any without a preview. Make sure your copy is what you want them to read.";
   }
+  if (action === "archive") {
+    return "Sets status to 'called' on each lead so they're out of your active worklist. Use the Status filter to switch back to seeing them. You can undo within 4 seconds from the toast.";
+  }
   return "Sets status to 'closed' on each lead. You can undo within 4 seconds from the toast that appears.";
 }
 
-function confirmLabelFor(action: "generate" | "email" | "mark"): string {
+function confirmLabelFor(action: "generate" | "email" | "mark" | "archive"): string {
   if (action === "generate") return "Generate";
   if (action === "email") return "Send emails";
+  if (action === "archive") return "Archive";
   return "Mark closed";
 }
 
@@ -929,6 +979,7 @@ function Kbd({ k }: { k: string }) {
 
 function ActionButton({
   label,
+  shortLabel,
   hint,
   icon,
   onClick,
@@ -936,6 +987,9 @@ function ActionButton({
   tone,
 }: {
   label: string;
+  /** Optional shorter label shown at the `sm` breakpoint when the full label
+   *  would push the row off-screen. Falls back to `label` if not provided. */
+  shortLabel?: string;
   hint: string;
   icon: typeof faPaperPlane;
   onClick: () => void;
@@ -948,15 +1002,28 @@ function ActionButton({
       type="button"
       onClick={onClick}
       disabled={busy}
-      className={`inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium ${
+      aria-label={label}
+      title={label}
+      className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium sm:gap-2 sm:px-3 ${
         isMuted
           ? "border border-[color:var(--op-border)] hover:bg-[color:var(--op-panel-soft)]"
           : "bg-[color:var(--op-accent)] text-[color:var(--op-bg)] hover:opacity-90"
       } disabled:opacity-50`}
     >
       <FontAwesomeIcon icon={icon} className="h-3 w-3" />
-      {busy ? "Working…" : label}
-      <Kbd k={hint} />
+      {/* Mobile: icon-only (label hidden). Tablet+: short label (or full).
+          Wide desktop: full label. Working-state always shows text. */}
+      {busy ? (
+        <span>Working…</span>
+      ) : (
+        <>
+          <span className="hidden sm:inline lg:hidden">{shortLabel ?? label}</span>
+          <span className="hidden lg:inline">{label}</span>
+        </>
+      )}
+      <span className="hidden lg:inline-flex">
+        <Kbd k={hint} />
+      </span>
     </button>
   );
 }
