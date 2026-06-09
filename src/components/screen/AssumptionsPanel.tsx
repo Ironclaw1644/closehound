@@ -21,7 +21,7 @@ export function AssumptionsPanel({
       <CardContent className="grid grid-cols-2 gap-x-3 gap-y-3">
         <NumberField label="Down payment" suffix="%" value={a.downPaymentPct} onChange={f("downPaymentPct")} />
         <NumberField label="Interest" suffix="%" step={0.125} value={a.interestRatePct} onChange={f("interestRatePct")} />
-        <NumberField label="Loan term" suffix="yr" value={a.loanTermYears} onChange={f("loanTermYears")} />
+        <NumberField label="Loan term" suffix="yr" min={1} value={a.loanTermYears} onChange={f("loanTermYears")} />
         <NumberField label="Closing" suffix="%" step={0.5} value={a.closingCostPct} onChange={f("closingCostPct")} />
         <NumberField label="Rehab" suffix="$" step={1000} value={a.rehabCost} onChange={f("rehabCost")} />
         <NumberField

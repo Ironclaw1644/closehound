@@ -2,16 +2,20 @@ import "server-only";
 import { NextResponse } from "next/server";
 import { isMockMode } from "@/lib/env";
 import { getUser } from "@/lib/supabase/server";
-import { assertQuota } from "@/lib/quota";
+import { reserveScreens } from "@/lib/quota";
 import { ensureProfile } from "@/lib/auth";
 
 /**
- * The bankruptcy guard. Run BEFORE any billable HUD/RentCast call. In MOCK_MODE
- * there are no billable calls, so screening is open (great for demos). In live
- * mode it requires auth + quota; a user is structurally incapable of running up
- * a bill we have to eat. Returns the userId to meter, or a 401/402 to return.
+ * The bankruptcy guard. Run BEFORE any billable HUD/RentCast call, passing the
+ * number of billable units (ZIPs) the request will fan out to. In MOCK_MODE
+ * there are no billable calls, so screening is open. In live mode it requires
+ * auth and ATOMICALLY RESERVES `count` screens against quota before returning —
+ * a user is structurally incapable of running up a bill. FAIL-CLOSED: if the
+ * quota service errors we refuse (503), never bill on uncertainty.
+ *
+ * Returns { userId } on success; the caller MUST refund on downstream failure.
  */
-export async function guardBillable(): Promise<{ userId: string | null } | NextResponse> {
+export async function guardBillable(count: number): Promise<{ userId: string | null } | NextResponse> {
   if (isMockMode()) return { userId: null };
 
   const user = await getUser();
@@ -19,10 +23,20 @@ export async function guardBillable(): Promise<{ userId: string | null } | NextR
     return NextResponse.json({ error: "Sign in to screen live data." }, { status: 401 });
   }
   await ensureProfile(user.id);
-  const q = await assertQuota(user.id);
-  if (!q.ok) {
+
+  let granted: boolean;
+  let limit: number;
+  try {
+    const r = await reserveScreens(user.id, count);
+    granted = r.granted;
+    limit = r.limit;
+  } catch {
+    return NextResponse.json({ error: "Quota service unavailable — try again." }, { status: 503 });
+  }
+
+  if (!granted) {
     return NextResponse.json(
-      { error: "Monthly screen limit reached — upgrade to keep screening.", used: q.used, limit: q.limit },
+      { error: "Monthly screen limit reached — upgrade to keep screening.", limit },
       { status: 402 }
     );
   }

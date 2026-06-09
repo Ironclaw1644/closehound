@@ -138,9 +138,10 @@ export function DealDrawer({
 
           {/* Source */}
           <p className="rounded-lg border border-border bg-background/40 p-3 text-[11px] leading-relaxed text-muted-foreground">
-            Rent ceiling from HUD SAFMR (FY2026) for {l.beds ?? "—"} BR:{" "}
-            <span className="tabular font-semibold text-foreground">{fmtUSD(deal.safmrMonthly)}</span>/mo.
-            Property tax {l.annualTax ? `from listing (${fmtUSD(l.annualTax)}/yr)` : "estimated from tax-rate assumption"}.
+            Rent ceiling from HUD SAFMR (FY2026) for {Math.min(Math.max(l.beds ?? 3, 0), 4)} BR:{" "}
+            <span className="tabular font-semibold text-foreground">{fmtUSD(deal.safmrMonthly)}</span>/mo
+            {(l.beds ?? 0) > 4 ? " (5+ BR uses the 4 BR ceiling)" : ""}. Property tax{" "}
+            {l.annualTax ? `from listing (${fmtUSD(l.annualTax)}/yr)` : "estimated from tax-rate assumption"}.
           </p>
         </div>
 

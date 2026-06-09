@@ -36,7 +36,7 @@ export function Dashboard() {
   const [selectedZip, setSelectedZip] = useState<string | null>(null);
   const [raw, setRaw] = useState<ListingsResponse | null>(null);
   const [loadingListings, setLoadingListings] = useState(false);
-  const [selectedDeal, setSelectedDeal] = useState<ClientDeal | null>(null);
+  const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
@@ -119,6 +119,10 @@ export function Dashboard() {
       })
       .sort((a, b) => b.underwriting.dealScore - a.underwriting.dealScore);
   }, [raw, assumptions]);
+
+  // Derive the open drawer deal from the live `deals` so assumption tweaks
+  // re-score the open drawer too (no stale snapshot).
+  const selectedDeal = deals.find((d) => d.listing.rentcastId === selectedDealId) ?? null;
 
   const saveDeal = useCallback(async (d: ClientDeal) => {
     setSaving(true);
@@ -215,7 +219,11 @@ export function Dashboard() {
               </div>
             </CardHeader>
             <CardContent>
-              <DealTable deals={deals} onSelect={setSelectedDeal} selectedId={selectedDeal?.listing.rentcastId} />
+              <DealTable
+                deals={deals}
+                onSelect={(d) => setSelectedDealId(d.listing.rentcastId)}
+                selectedId={selectedDealId}
+              />
             </CardContent>
           </Card>
         </div>
@@ -223,7 +231,7 @@ export function Dashboard() {
 
       <DealDrawer
         deal={selectedDeal}
-        onClose={() => setSelectedDeal(null)}
+        onClose={() => setSelectedDealId(null)}
         onSave={saveDeal}
         saving={saving}
         saved={selectedDeal ? savedIds.has(selectedDeal.listing.rentcastId) : false}

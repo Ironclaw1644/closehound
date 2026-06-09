@@ -3,7 +3,7 @@ import { z } from "zod";
 import { getSafmr } from "@/lib/hud/client";
 import { getListings } from "@/lib/rentcast/client";
 import { guardBillable } from "@/lib/screen-guard";
-import { incrementUsage } from "@/lib/quota";
+import { refundScreens } from "@/lib/quota";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,12 +18,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  const guard = await guardBillable();
+  const guard = await guardBillable(1);
   if (guard instanceof NextResponse) return guard;
 
   const { zip } = parsed.data;
-  const [safmr, listings] = await Promise.all([getSafmr(zip), getListings(zip)]);
-
-  if (guard.userId) await incrementUsage(guard.userId, 1);
-  return NextResponse.json({ safmr, listings });
+  try {
+    const [safmr, listings] = await Promise.all([getSafmr(zip), getListings(zip)]);
+    return NextResponse.json({ safmr, listings });
+  } catch {
+    if (guard.userId) await refundScreens(guard.userId, 1);
+    return NextResponse.json({ error: "Listings failed" }, { status: 502 });
+  }
 }

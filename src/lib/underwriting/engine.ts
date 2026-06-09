@@ -18,6 +18,7 @@ const round = (n: number, dp = 2) => {
 export function monthlyPayment(loan: number, annualRatePct: number, termYears: number): number {
   if (loan <= 0) return 0;
   const n = termYears * 12;
+  if (n <= 0) return 0; // guard a zeroed-out loan term (avoids Infinity)
   const r = annualRatePct / 100 / 12;
   if (r === 0) return loan / n;
   const factor = (r * (1 + r) ** n) / ((1 + r) ** n - 1);

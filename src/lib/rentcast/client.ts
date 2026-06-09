@@ -98,38 +98,46 @@ export async function getListings(zip: string): Promise<Listing[]> {
       .order("fetched_at", { ascending: false });
     if (rows && rows.length && isFresh(rows[0].fetched_at, TTL.listings)) {
       recordCall("rentcast", "cache");
-      return rows.map((r) => ({
-        rentcastId: r.rentcast_id,
-        zip: r.zip,
-        address: r.address,
-        price: r.price,
-        beds: r.beds,
-        baths: r.baths,
-        sqft: r.sqft,
-        yearBuilt: r.year_built,
-        annualTax: r.annual_tax,
-      }));
+      // Filter the negative-cache sentinel (an empty ZIP still counts as fresh).
+      return rows
+        .filter((r) => !r.rentcast_id.startsWith("__empty__"))
+        .map((r) => ({
+          rentcastId: r.rentcast_id,
+          zip: r.zip,
+          address: r.address,
+          price: r.price,
+          beds: r.beds,
+          baths: r.baths,
+          sqft: r.sqft,
+          yearBuilt: r.year_built,
+          annualTax: r.annual_tax,
+        }));
     }
   }
 
   const fresh = isMockMode() ? mockListings(zip) : await liveListings(zip);
 
-  if (db && fresh.length) {
+  if (db) {
     const now = new Date().toISOString();
-    await db.from("listings_cache").upsert(
-      fresh.map((l) => ({
-        rentcast_id: l.rentcastId,
-        zip: l.zip,
-        address: l.address,
-        price: l.price,
-        beds: l.beds,
-        baths: l.baths,
-        sqft: l.sqft,
-        year_built: l.yearBuilt,
-        annual_tax: l.annualTax,
-        fetched_at: now,
-      }))
-    );
+    if (fresh.length) {
+      await db.from("listings_cache").upsert(
+        fresh.map((l) => ({
+          rentcast_id: l.rentcastId,
+          zip: l.zip,
+          address: l.address,
+          price: l.price,
+          beds: l.beds,
+          baths: l.baths,
+          sqft: l.sqft,
+          year_built: l.yearBuilt,
+          annual_tax: l.annualTax,
+          fetched_at: now,
+        }))
+      );
+    } else {
+      // Negative cache: don't re-bill RentCast for a known-empty ZIP within the TTL.
+      await db.from("listings_cache").upsert({ rentcast_id: `__empty__:${zip}`, zip, fetched_at: now });
+    }
   }
   return fresh;
 }

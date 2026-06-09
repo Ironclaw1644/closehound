@@ -168,7 +168,16 @@ export type Database = {
       };
     };
     Views: { [_ in never]: never };
-    Functions: { [_ in never]: never };
+    Functions: {
+      reserve_screens: {
+        Args: { p_user: string; p_period: string; p_limit: number; p_count: number };
+        Returns: number;
+      };
+      refund_screens: {
+        Args: { p_user: string; p_period: string; p_count: number };
+        Returns: undefined;
+      };
+    };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };
   };
