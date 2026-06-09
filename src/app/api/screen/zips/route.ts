@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { screenZips } from "@/lib/screening/stage1";
+import { guardBillable } from "@/lib/screen-guard";
+import { incrementUsage } from "@/lib/quota";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,6 +17,13 @@ export async function POST(req: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
+
+  // Bankruptcy guard — before any billable call.
+  const guard = await guardBillable();
+  if (guard instanceof NextResponse) return guard;
+
   const rows = await screenZips(parsed.data.zips, parsed.data.bedrooms);
+
+  if (guard.userId) await incrementUsage(guard.userId, 1);
   return NextResponse.json({ rows });
 }
