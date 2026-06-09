@@ -18,3 +18,8 @@ pnpm-debug.log*
 
 # Local enriched-lead CSVs — contain real contact info, keep out of git
 lead_exports/
+
+# Abandoned eviction-scraper discovery scratch — saved third-party court-site
+# HTML/JSON that embed session/viewstate/telemetry tokens. Keep out of git
+# (preserved on local disk; no preservation value on a pushed branch).
+lead_ingestion/notes/
