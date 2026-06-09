@@ -7,16 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit",
-    "worker": "node --env-file=.env.local --experimental-strip-types --import ./scripts/register-ts-path-loader.mjs ./scripts/run-operator-worker.ts",
-    "leadhound:queue": "node --env-file=.env.local --experimental-strip-types --import ./scripts/register-ts-path-loader.mjs ./scripts/queue-leadhound.ts",
-    "images:stock": "node --env-file=.env.local --experimental-strip-types --import ./scripts/register-ts-path-loader.mjs ./scripts/generate-stock-images.ts",
-    "images:walkperro-og": "node --env-file=.env.local --experimental-strip-types --import ./scripts/register-ts-path-loader.mjs ./scripts/generate-walkperro-og.ts",
-    "leadhound:fetch": "node --env-file=.env.local --experimental-strip-types --import ./scripts/register-ts-path-loader.mjs ./scripts/leadhound-fetch.ts",
-    "email:walkperro-og": "node --env-file=.env.local --experimental-strip-types --import ./scripts/register-ts-path-loader.mjs ./scripts/email-walkperro-og.ts",
-    "leadhound:pull-to-json": "node --env-file=.env.local --experimental-strip-types --import ./scripts/register-ts-path-loader.mjs ./scripts/leadhound-pull-to-json.ts",
-    "enrich:emails": "node --env-file=.env.local --experimental-strip-types --import ./scripts/register-ts-path-loader.mjs ./scripts/enrich-lead-emails.ts",
-    "operator:worker": "npm run worker"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.2.0",
