@@ -1,39 +1,109 @@
 @import "tailwindcss";
 
+/* ── CloseHound design tokens ──────────────────────────────────────────────
+   Clean near-black base, warm-white text, a single high-energy chartreuse
+   accent (#EBFF00) used sparingly — primary actions, the Deal Score badge,
+   key callouts. Dark-first. Raw values live in :root so they can be themed;
+   `@theme inline` exposes them as Tailwind utilities and to shadcn/ui. */
 :root {
   color-scheme: dark;
 
-  /* Operator (CloseHound) tokens — graphite + signal-orange. */
-  --op-bg: #0a0c10;
-  --op-panel: #11141a;
-  --op-panel-soft: #161a22;
-  --op-border: #1f2530;
-  --op-border-strong: #2a313d;
-  --op-text: #e7eaf0;
-  --op-text-muted: #8a92a3;
-  --op-text-subtle: #5b6373;
-  --op-accent: #ff7a1a;
-  --op-accent-soft: rgba(255, 122, 26, 0.14);
-  --op-success: #6ee7a8;
-  --op-warning: #facc15;
-  --op-danger: #ef6f6f;
-  --op-info: #6ab7ff;
+  --background: #0e0e0e;
+  --foreground: #f5f1e8;
+
+  --card: #141418;
+  --card-foreground: #f5f1e8;
+  --popover: #141418;
+  --popover-foreground: #f5f1e8;
+
+  --primary: #ebff00; /* chartreuse — sparingly: CTAs, Deal Score, callouts */
+  --primary-foreground: #0e0e0e;
+
+  --secondary: #1a1a20;
+  --secondary-foreground: #f5f1e8;
+
+  --muted: #1a1a20;
+  --muted-foreground: #9a9a93;
+
+  --accent: #20210f; /* chartreuse-tinted hover surface */
+  --accent-foreground: #ebff00;
+
+  --destructive: #ef6f6f;
+  --destructive-foreground: #0e0e0e;
+
+  --border: #26262c;
+  --input: #26262c;
+  --ring: #ebff00;
+
+  /* Semantic data colors — deal tables + charts. */
+  --success: #6ee7a8;
+  --warning: #facc15;
+  --danger: #ef6f6f;
+  --info: #6ab7ff;
+
+  --radius: 0.625rem;
 }
 
-* {
-  box-sizing: border-box;
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", sans-serif;
+  --font-display: var(--font-instrument-serif), ui-serif, Georgia,
+    "Times New Roman", serif;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 
-html {
-  background: var(--op-bg);
-  scroll-behavior: smooth;
-  scroll-padding-top: 32px;
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv02", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+  }
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+  button {
+    font: inherit;
+    cursor: pointer;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
   *,
   *::before,
   *::after {
@@ -44,83 +114,12 @@ html {
   }
 }
 
-/* Subtle drift animation for hero photos (preview templates). */
-@keyframes preview-hero-drift {
-  0% { transform: scale(1.04) translate3d(0, 0, 0); }
-  50% { transform: scale(1.06) translate3d(-1%, -1.5%, 0); }
-  100% { transform: scale(1.04) translate3d(0, 0, 0); }
+/* Numeric columns: tabular figures (deal tables). */
+.tabular {
+  font-variant-numeric: tabular-nums;
 }
 
-.preview-hero-drift {
-  animation: preview-hero-drift 18s ease-in-out infinite;
-}
-
-/* Marquee for ticker strips. */
-@keyframes preview-marquee {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-
-.preview-marquee {
-  animation: preview-marquee 32s linear infinite;
-}
-
-/* Soft pulse for live status dots. */
-@keyframes preview-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.55; transform: scale(0.92); }
-}
-
-.preview-pulse {
-  animation: preview-pulse 2.4s ease-in-out infinite;
-}
-
-/* Number tick — subtle vertical scroll loop for stats. */
-@keyframes preview-tick {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-2px); }
-}
-
-.preview-tick {
-  animation: preview-tick 4s ease-in-out infinite;
-}
-
-body {
-  margin: 0;
-  min-height: 100vh;
-  background: var(--op-bg);
-  color: var(--op-text);
-  font-family:
-    "SF Pro Text",
-    "Inter",
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    "Segoe UI",
-    sans-serif;
-  font-feature-settings: "ss01", "cv02", "cv11";
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-button {
-  font: inherit;
-  background: transparent;
-  border: 0;
-  color: inherit;
-  cursor: pointer;
-}
-
-table {
-  border-collapse: collapse;
-}
-
-/* Scrollbar (operator surfaces). */
+/* Scrollbar. */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -129,14 +128,9 @@ table {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--op-border);
+  background: var(--border);
   border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--op-border-strong);
-}
-
-/* Numeric columns: tabular figures. */
-.tabular {
-  font-variant-numeric: tabular-nums;
+  background: #353541;
 }
