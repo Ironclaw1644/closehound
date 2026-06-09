@@ -77,6 +77,12 @@ export function getClosehoundSchema() {
   return getSupabaseClient().schema("closehound");
 }
 
+/** Service-role client scoped to the closehound schema. Server-only — used for
+ *  cache reads/writes and metering, which bypass RLS. Never import client-side. */
+export function getClosehoundAdminSchema() {
+  return getSupabaseAdminClient().schema("closehound");
+}
+
 export function getSupabaseAdminClient() {
   if (adminClient) {
     return adminClient;

@@ -1,8 +1,8 @@
 import { defineConfig } from "vitest/config";
 import { fileURLToPath } from "node:url";
 
-// Pure-function unit tests (underwriting engine, helpers). No React plugin yet —
-// add @vitejs/plugin-react + a jsdom environment when component tests arrive.
+// Pure-function + server-module unit tests. No React plugin yet — add
+// @vitejs/plugin-react + jsdom when component tests arrive.
 export default defineConfig({
   test: {
     globals: true,
@@ -10,8 +10,10 @@ export default defineConfig({
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
   },
   resolve: {
-    alias: {
-      "@": fileURLToPath(new URL("./src", import.meta.url)),
-    },
+    alias: [
+      // `server-only` throws outside a react-server context; stub it for tests.
+      { find: "server-only", replacement: fileURLToPath(new URL("./src/test/empty.ts", import.meta.url)) },
+      { find: "@", replacement: fileURLToPath(new URL("./src", import.meta.url)) },
+    ],
   },
 });

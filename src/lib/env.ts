@@ -10,9 +10,10 @@ function truthy(v: string | undefined): boolean {
  * ZERO live (billable) API calls. Enabled when either MOCK_MODE (server) or
  * NEXT_PUBLIC_MOCK_MODE (client-visible) is "1" or "true".
  */
-export const MOCK_MODE =
-  truthy(process.env.MOCK_MODE) || truthy(process.env.NEXT_PUBLIC_MOCK_MODE);
-
+/** Dynamic so runtime/test env changes are honored (clients call this). */
 export function isMockMode(): boolean {
-  return MOCK_MODE;
+  return truthy(process.env.MOCK_MODE) || truthy(process.env.NEXT_PUBLIC_MOCK_MODE);
 }
+
+/** Import-time snapshot for client-side display (NEXT_PUBLIC_MOCK_MODE). */
+export const MOCK_MODE = isMockMode();
