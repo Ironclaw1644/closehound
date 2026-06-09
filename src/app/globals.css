@@ -134,3 +134,33 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #353541;
 }
+
+/* Print: render the deal drawer as a clean one-page sheet for investor handoff. */
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  #deal-print,
+  #deal-print * {
+    visibility: visible !important;
+  }
+  #deal-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-width: none;
+    overflow: visible;
+    border: 0;
+    box-shadow: none;
+    background: #fff !important;
+    color: #111 !important;
+  }
+  #deal-print .text-muted-foreground {
+    color: #555 !important;
+  }
+  #deal-print .bg-background\/40,
+  #deal-print .bg-secondary {
+    background: #f4f4f2 !important;
+  }
+}
