@@ -53,6 +53,66 @@
   --glow: rgba(235, 255, 0, 0.14);
 }
 
+/* ── Light surface (data-first app: /screen, /account, /saved) ──────────────
+   Applied via <div data-surface="light"> in the (app) route-group layout.
+   Marketing stays dark (:root). We rebind the RAW custom properties here —
+   NOT the --color- aliases — because `@theme inline` compiles utilities to
+   `var(--background)` (the raw token), so this scope cascades to every
+   bg-, text- and border- utility AND to runtime var() reads (Recharts).
+   Keep `@theme inline` — switching to plain `@theme` would bind utilities
+   to --color- and silently break this scope. All hexes are WCAG-AA checked.
+   Chartreuse (#ebff00) is a TILE color only; as text on light it fails AA. */
+[data-surface="light"] {
+  color-scheme: light; /* native inputs / scrollbars / focus render light */
+
+  --background: #faf8f3; /* warm paper */
+  --foreground: #1a1a16; /* near-black ink — 15.8:1 on bg ✓AAA */
+
+  --card: #ffffff;
+  --card-foreground: #1a1a16;
+  --popover: #ffffff;
+  --popover-foreground: #1a1a16;
+
+  --primary: #ebff00; /* chartreuse unchanged — Deal-Score tile / CTA fill */
+  --primary-foreground: #1a1a16; /* dark ink ON the chartreuse tile */
+
+  --secondary: #f1ede3; /* warm hover / row-stripe surface */
+  --secondary-foreground: #1a1a16;
+
+  --muted: #f1ede3;
+  --muted-foreground: #5c5a52; /* 6.4:1 on bg ✓AA (dark #9a9a93 fails on white) */
+
+  --accent: #f4f1d8; /* chartreuse-tinted light hover */
+  --accent-foreground: #4a4f00;
+
+  --destructive: #b42318; /* red tuned for white — 6.3:1 ✓AA */
+  --destructive-foreground: #ffffff;
+  --danger: #b42318; /* keep in lockstep with --destructive */
+
+  --border: #e6e1d4; /* warm hairline */
+  --input: #d9d3c4;
+  --ring: #8a9a00; /* darkened chartreuse — visible focus on light */
+
+  --success: #1f7a4d; /* 5.0:1 on white ✓AA */
+  --warning: #9a6b00; /* amber-brown text — 4.9:1 ✓AA */
+  --info: #1b6fb5; /* scatter points — 4.6:1 ✓AA */
+
+  --primary-deep: #c2d100;
+  --gold: #8a6d2e; /* gold tuned darker for light — 5.1:1 ✓AA */
+  --gold-foreground: #ffffff;
+  --surface-1: #ffffff;
+  --surface-2: #f6f3ec;
+  --hairline: #e6e1d4;
+  --glow: rgba(235, 255, 0, 0.16);
+}
+
+/* Light-surface safety net: chartreuse as TEXT fails AA on light, so any stray
+   `text-primary` (shared Pill/GradeBadge "accent" tone) renders gold instead.
+   Chartreuse TILES (bg-primary + text-primary-foreground) are unaffected. */
+[data-surface="light"] .text-primary {
+  color: var(--gold);
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -142,17 +202,20 @@
   font-family: var(--font-mono);
 }
 
-/* Mono micro-label: `// LIVE — V1` style eyebrow text. */
+/* Refined uppercase sans eyebrow (editorial — no mono, no slash). */
 .label {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   text-transform: uppercase;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.16em;
   font-size: 11px;
+  font-weight: 600;
   line-height: 1;
   color: var(--muted-foreground);
 }
+/* accent eyebrows are gold, not chartreuse — gold reads on both surfaces and
+   chartreuse-as-text fails AA on the light app pages that use <Label accent>. */
 .label-accent {
-  color: var(--primary);
+  color: var(--gold);
 }
 .label-gold {
   color: var(--gold);
@@ -203,30 +266,19 @@
   box-shadow: 0 18px 50px -24px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(235, 255, 0, 0.04);
 }
 
-/* Live status dot. */
+/* Live status dot — softened (smaller, quieter pulse) for the editorial tone. */
 .live-dot {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 999px;
-  background: var(--primary);
-  box-shadow: 0 0 0 0 var(--glow);
-  animation: live-pulse 2.2s infinite;
+  background: var(--gold);
+  box-shadow: 0 0 0 0 rgba(200, 162, 74, 0.35);
+  animation: live-pulse 2.6s infinite;
 }
 @keyframes live-pulse {
-  0% { box-shadow: 0 0 0 0 rgba(235, 255, 0, 0.45); }
-  70% { box-shadow: 0 0 0 8px rgba(235, 255, 0, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(235, 255, 0, 0); }
-}
-
-/* Marquee for the trust ticker. */
-@keyframes marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-.marquee-track {
-  display: inline-flex;
-  white-space: nowrap;
-  animation: marquee 32s linear infinite;
+  0% { box-shadow: 0 0 0 0 rgba(200, 162, 74, 0.3); }
+  70% { box-shadow: 0 0 0 5px rgba(200, 162, 74, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(200, 162, 74, 0); }
 }
 
 /* Subtle rising-in animation for hero blocks. */

@@ -99,7 +99,7 @@ function LoginInner() {
             {mode === "in" ? "Need an account? Sign up" : "Have an account? Sign in"}
           </button>
         </div>
-        <p className="mt-6 text-center font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+        <p className="mt-6 text-center text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
           Official HUD data · No surprise charges
         </p>
       </div>

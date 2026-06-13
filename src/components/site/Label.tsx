@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-/** walkperro-style mono eyebrow: `// LIVE — V1`. */
+/** Refined uppercase sans eyebrow (gold/muted). Optional soft live dot. */
 export function Label({
   children,
   accent,
@@ -24,7 +24,6 @@ export function Label({
       )}
     >
       {live && <span className="live-dot" aria-hidden />}
-      <span aria-hidden className="opacity-60">//</span>
       {children}
     </span>
   );

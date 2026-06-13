@@ -168,8 +168,8 @@ export function Dashboard() {
         <div className="mx-auto flex h-14 max-w-[1400px] items-center justify-between px-5">
           <div className="flex items-center gap-3">
             <a href="/" aria-label="CloseHound home"><Logo /></a>
-            <span className="hidden font-mono text-[11px] uppercase tracking-wider text-muted-foreground sm:inline">
-              · Deal screener
+            <span className="hidden text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground sm:inline">
+              Deal screener
             </span>
           </div>
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
@@ -199,7 +199,7 @@ export function Dashboard() {
                   onClick={() => onMarket(z.id)}
                   className={`flex items-center justify-between rounded-md border px-2.5 py-1.5 text-left text-[13px] transition ${
                     market.id === z.id
-                      ? "border-primary/50 bg-primary/10"
+                      ? "border-primary/60 bg-primary/15"
                       : "border-hairline hover:bg-secondary"
                   }`}
                 >

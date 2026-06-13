@@ -50,7 +50,7 @@ export default async function AccountPage({
         <Card className="mt-6">
           <CardHeader>
             <CardTitle>Membership</CardTitle>
-            <span className="rounded-md bg-primary/12 px-2.5 py-1 text-sm font-semibold text-primary">
+            <span className="rounded-md border border-gold/30 bg-gold/10 px-2.5 py-1 text-sm font-semibold text-gold">
               {planName}
             </span>
           </CardHeader>
@@ -81,12 +81,12 @@ export default async function AccountPage({
             {/* Credits */}
             <div className="flex items-center justify-between rounded-lg border border-hairline bg-background px-4 py-3">
               <div>
-                <p className="font-mono text-[11px] uppercase tracking-wider text-gold">Pay-as-you-go credits</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-gold">Pay-as-you-go credits</p>
                 <p className="mt-0.5 text-[13px] text-muted-foreground">
                   Used automatically after your monthly screens run out. Never expire.
                 </p>
               </div>
-              <span className="tabular text-2xl font-semibold">{q.credits.toLocaleString()}</span>
+              <span className="tabular font-mono text-2xl font-semibold">{q.credits.toLocaleString()}</span>
             </div>
 
             <AccountActions plan={q.plan} />

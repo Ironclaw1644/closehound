@@ -33,7 +33,7 @@ export function SavedList() {
     return (
       <p className="text-sm text-muted-foreground">
         No saved deals yet — save deals from the{" "}
-        <a href="/screen" className="text-primary hover:underline">
+        <a href="/screen" className="font-semibold text-gold hover:underline">
           screener
         </a>
         .
@@ -46,7 +46,7 @@ export function SavedList() {
         <div key={d.id} className="flex items-center justify-between rounded-lg border border-border bg-card p-4">
           <div className="min-w-0">
             <p className="truncate font-medium">{d.listing?.address ?? "Listing"}</p>
-            <p className="tabular text-sm text-muted-foreground">
+            <p className="tabular font-mono text-[13px] text-muted-foreground">
               {fmtUSD(d.listing?.price)} · CoC {fmtPct(d.underwriting?.cashOnCashPct)} · cap{" "}
               {fmtPct(d.underwriting?.capRatePct)}
             </p>

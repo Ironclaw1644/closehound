@@ -34,7 +34,7 @@ export function PricingTable() {
           />
         </button>
         <span className={`text-sm ${annual ? "text-foreground" : "text-muted-foreground"}`}>
-          Annual <span className="font-mono text-[11px] text-primary">2 MONTHS FREE</span>
+          Annual <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-gold">2 months free</span>
         </span>
       </div>
 
@@ -42,7 +42,7 @@ export function PricingTable() {
       <div className="mt-10 grid gap-5 lg:grid-cols-4">
         {/* Free */}
         <div className="flex flex-col rounded-xl border border-hairline bg-surface-1 p-6">
-          <p className="font-mono text-[12px] uppercase tracking-wider text-muted-foreground">{PLANS.free.name}</p>
+          <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">{PLANS.free.name}</p>
           <p className="mt-3 font-display text-4xl">$0</p>
           <p className="mt-1 text-[13px] text-muted-foreground">{PLANS.free.screens} screens, one-time</p>
           <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground">{PLANS.free.blurb}</p>
@@ -73,11 +73,11 @@ export function PricingTable() {
               }`}
             >
               {p.popular && (
-                <span className="absolute -top-2.5 left-6 rounded-full bg-primary px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-primary-foreground">
+                <span className="absolute -top-2.5 left-6 rounded-full bg-primary px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-primary-foreground">
                   Most popular
                 </span>
               )}
-              <p className="font-mono text-[12px] uppercase tracking-wider text-muted-foreground">{p.name}</p>
+              <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">{p.name}</p>
               <p className="mt-3 font-display text-4xl">
                 ${price}
                 <span className="text-base text-muted-foreground">/{annual ? "yr" : "mo"}</span>
@@ -109,7 +109,7 @@ export function PricingTable() {
       <div className="mt-6 rounded-xl border border-hairline bg-surface-1 p-6">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="font-mono text-[12px] uppercase tracking-wider text-gold">Scout · pay as you go</p>
+            <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-gold">Scout · pay as you go</p>
             <p className="mt-2 text-[15px] font-semibold">No subscription. Credits never expire.</p>
             <p className="mt-1 text-[13px] text-muted-foreground">
               Perfect for hunting in bursts — top up only when you’re actively screening.

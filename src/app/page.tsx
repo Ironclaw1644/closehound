@@ -93,9 +93,7 @@ export default function HomePage() {
           <div aria-hidden className="grid-bg pointer-events-none absolute inset-0 opacity-70" />
           <div className="relative mx-auto max-w-6xl px-5 pt-20 pb-10 text-center sm:px-8 sm:pt-28">
             <div className="rise flex justify-center">
-              <Label accent live>
-                LIVE — SECTION 8 DEAL SCREENER
-              </Label>
+              <Label accent>The Section 8 deal screener</Label>
             </div>
             <h1 className="rise mt-6 font-display text-[3.4rem] leading-[0.92] tracking-tight sm:text-7xl md:text-[5.5rem]">
               <span className="text-gradient">Sniff out the deal</span>
@@ -120,20 +118,14 @@ export default function HomePage() {
                 <PlayIcon /> Watch the 60-sec demo
               </Link>
             </div>
-            <p className="mt-5 font-mono text-[12px] uppercase tracking-wider text-muted-foreground">
-              No card · {COUNT_STATES} states live · official HUD data
+            <p className="mt-5 text-[12px] uppercase tracking-[0.16em] text-muted-foreground">
+              No card · <span className="font-mono">{COUNT_STATES}</span> states · official HUD data
             </p>
           </div>
 
           {/* Framed app/video preview */}
           <div className="relative mx-auto max-w-5xl px-5 pb-8 sm:px-8">
-            <div className="lift overflow-hidden rounded-2xl border border-hairline bg-surface-1 shadow-[0_40px_120px_-40px_rgba(0,0,0,0.9)]">
-              <div className="flex items-center gap-2 border-b border-hairline bg-background/60 px-4 py-2.5">
-                <span className="h-2.5 w-2.5 rounded-full bg-destructive/60" />
-                <span className="h-2.5 w-2.5 rounded-full bg-warning/60" />
-                <span className="h-2.5 w-2.5 rounded-full bg-success/60" />
-                <span className="ml-3 font-mono text-[11px] text-muted-foreground">closehound.com/screen</span>
-              </div>
+            <div className="overflow-hidden rounded-2xl border border-gold/20 bg-surface-1 shadow-[0_40px_120px_-40px_rgba(0,0,0,0.9)]">
               <div className="relative aspect-[16/9] bg-background">
                 <video
                   className="absolute inset-0 h-full w-full object-cover"
@@ -155,30 +147,17 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ── Trust ticker ──────────────────────────────────────────────────── */}
-        <div className="border-y border-hairline bg-background/60 py-3.5">
-          <div className="relative overflow-hidden">
-            <div className="marquee-track gap-10 font-mono text-[12px] uppercase tracking-[0.18em] text-muted-foreground">
-              {[0, 1].map((dup) => (
-                <span key={dup} className="flex items-center gap-10">
-                  {[
-                    "Official HUD SAFMR data",
-                    `All ${COUNT_STATES}+ markets graded A–F`,
-                    "Deal Score underwriting",
-                    "No surprise charges",
-                    "Live for-sale listings",
-                    "Cash-on-cash · cap rate · DSCR",
-                    "Cleveland · Memphis · Detroit · Birmingham",
-                  ].map((t) => (
-                    <span key={t} className="flex items-center gap-10">
-                      <span>{t}</span>
-                      <span className="text-primary">✦</span>
-                    </span>
-                  ))}
-                </span>
-              ))}
-            </div>
-          </div>
+        {/* ── Credibility row (static) ──────────────────────────────────────── */}
+        <div className="border-y border-gold/15 bg-surface-1/30 py-4">
+          <p className="mx-auto max-w-5xl px-5 text-center text-[13px] leading-relaxed tracking-wide text-muted-foreground sm:px-8">
+            Built on official HUD SAFMR data
+            <span className="mx-2.5 text-gold/50">·</span>
+            <span className="font-mono text-foreground">{COUNT_STATES}</span> states graded A–F
+            <span className="mx-2.5 text-gold/50">·</span>
+            Cash-on-cash, cap rate &amp; DSCR on every listing
+            <span className="mx-2.5 text-gold/50">·</span>
+            Updated monthly
+          </p>
         </div>
 
         {/* ── Insight band ──────────────────────────────────────────────────── */}
@@ -201,7 +180,7 @@ export default function HomePage() {
             <div className="mt-12 grid gap-5 md:grid-cols-3">
               {STEPS.map((s) => (
                 <div key={s.n} className="lift rounded-xl border border-hairline bg-background p-6">
-                  <span className="font-mono text-3xl font-bold text-primary/80">{s.n}</span>
+                  <span className="font-mono text-3xl font-bold text-gold/70">{s.n}</span>
                   <h3 className="mt-4 text-lg font-semibold">{s.title}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{s.body}</p>
                 </div>
@@ -225,7 +204,7 @@ export default function HomePage() {
             </div>
             <Link
               href="/screen"
-              className="shrink-0 font-mono text-[12px] uppercase tracking-wider text-primary transition hover:brightness-110"
+              className="shrink-0 text-[12px] font-semibold uppercase tracking-[0.16em] text-gold transition hover:opacity-80"
             >
               See all markets →
             </Link>
@@ -248,7 +227,7 @@ export default function HomePage() {
                 <p className="mt-1.5 line-clamp-3 text-[13px] leading-relaxed text-muted-foreground">
                   {z.note ?? "Strong, reliable Section 8 cash flow on the right property."}
                 </p>
-                <span className="mt-4 font-mono text-[11px] uppercase tracking-wider text-primary opacity-0 transition group-hover:opacity-100">
+                <span className="mt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-gold opacity-0 transition group-hover:opacity-100">
                   Screen this market →
                 </span>
               </Link>
@@ -301,11 +280,11 @@ export default function HomePage() {
                 }`}
               >
                 {p.popular && (
-                  <span className="absolute -top-2.5 left-6 rounded-full bg-primary px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-primary-foreground">
+                  <span className="absolute -top-2.5 left-6 rounded-full bg-primary px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-primary-foreground">
                     Most popular
                   </span>
                 )}
-                <p className="font-mono text-[12px] uppercase tracking-wider text-muted-foreground">{p.name}</p>
+                <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">{p.name}</p>
                 <p className="mt-3 font-display text-4xl">
                   ${p.priceMonthly}
                   {p.priceMonthly > 0 && <span className="text-base text-muted-foreground">/mo</span>}
@@ -372,7 +351,7 @@ function SampleDealCard() {
     <div className="w-[min(86%,360px)] rounded-xl border border-hairline bg-surface-2/90 p-5 backdrop-blur">
       <div className="flex items-start justify-between">
         <div>
-          <p className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Cleveland, OH · 44105</p>
+          <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Cleveland, OH · <span className="font-mono">44105</span></p>
           <p className="mt-1 text-[15px] font-semibold">3-bed · 1,180 sqft</p>
         </div>
         <span className="grid h-12 w-12 place-items-center rounded-lg bg-primary text-lg font-bold text-primary-foreground">
@@ -386,8 +365,8 @@ function SampleDealCard() {
           ["Cash-on-cash", "11.8%"],
         ].map(([l, v]) => (
           <div key={l}>
-            <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{l}</p>
-            <p className="mt-1 text-[15px] font-semibold tabular">{v}</p>
+            <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{l}</p>
+            <p className="mt-1 font-mono text-[15px] font-semibold tabular">{v}</p>
           </div>
         ))}
       </div>

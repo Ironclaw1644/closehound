@@ -117,7 +117,7 @@ export function DealTable({
           ))}
         </thead>
         <tbody>
-          {table.getRowModel().rows.map((row) => {
+          {table.getRowModel().rows.map((row, ri) => {
             const d = row.original;
             const id = d.listing.rentcastId;
             return (
@@ -125,12 +125,13 @@ export function DealTable({
                 key={id}
                 onClick={() => onSelect(d)}
                 className={cn(
-                  "tabular cursor-pointer border-t border-border transition hover:bg-secondary/40",
-                  selectedId === id && "bg-primary/10"
+                  "tabular cursor-pointer border-t border-border transition hover:bg-secondary/50",
+                  ri % 2 === 1 && "bg-secondary/30",
+                  selectedId === id && "bg-primary/15"
                 )}
               >
                 {row.getVisibleCells().map((cell, i) => (
-                  <td key={cell.id} className={cn("whitespace-nowrap px-3 py-2", i === 0 ? "text-left" : "text-right")}>
+                  <td key={cell.id} className={cn("whitespace-nowrap px-3 py-2.5", i === 0 ? "text-left" : "text-right font-mono")}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
                 ))}
