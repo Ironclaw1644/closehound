@@ -1,6 +1,5 @@
 import React from "react";
-import { AbsoluteFill, Sequence, interpolate, useCurrentFrame } from "remotion";
-// import { Audio, staticFile } from "remotion"; // ← uncomment for voiceover (see README)
+import { AbsoluteFill, Audio, Sequence, interpolate, staticFile, useCurrentFrame } from "remotion";
 import { C, FONT_MONO, FONT_SANS } from "./theme";
 import { Background, Reticle, MonoLabel, Reveal, DealCard } from "./components";
 
@@ -129,8 +128,7 @@ const ZonesScene: React.FC = () => {
 export const Demo: React.FC = () => (
   <AbsoluteFill>
     <Background />
-    {/* Voiceover — generate public/voiceover.mp3 (npm run voiceover) then uncomment:
-    <Audio src={staticFile("voiceover.mp3")} /> */}
+    <Audio src={staticFile("voiceover.mp3")} />
     <Sequence durationInFrames={150}><TitleScene /></Sequence>
     <Sequence from={150} durationInFrames={150}><InsightScene /></Sequence>
     <Sequence from={300} durationInFrames={210}><HowScene /></Sequence>

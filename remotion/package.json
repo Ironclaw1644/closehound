@@ -5,9 +5,10 @@
   "description": "CloseHound explainer video — editable Remotion source. Renders the hero loop + the narrated demo.",
   "scripts": {
     "studio": "remotion studio",
-    "render:demo": "remotion render Demo ../public/demo.mp4 --codec=h264",
-    "render:loop": "remotion render Loop ../public/demo-loop.mp4 --codec=h264 --muted",
-    "voiceover": "node scripts/generate-voiceover.mjs"
+    "render:demo": "remotion render Demo ../public/demo.mp4 --codec=h264 --public-dir=../public",
+    "render:loop": "remotion render Loop ../public/demo-loop.mp4 --codec=h264 --muted --public-dir=../public",
+    "voiceover": "node scripts/generate-voiceover.mjs",
+    "voiceover:sa": "node scripts/generate-voiceover-sa.mjs"
   },
   "dependencies": {
     "@remotion/cli": "^4.0.0",
