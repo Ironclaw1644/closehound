@@ -11,6 +11,8 @@ export interface QuotaState {
   used: number;
   limit: number;
   plan: string;
+  /** Non-expiring pay-as-you-go credits available beyond the monthly allotment. */
+  credits: number;
 }
 
 /**
@@ -21,12 +23,13 @@ export async function getQuota(userId: string): Promise<QuotaState> {
   const db = getClosehoundAdminSchema();
   const { data: profile, error: pe } = await db
     .from("profiles")
-    .select("plan, status")
+    .select("plan, status, credit_balance")
     .eq("user_id", userId)
     .maybeSingle();
   if (pe) throw new Error(`profiles read failed: ${pe.message}`);
 
   const plan = planFor(profile?.plan, profile?.status);
+  const credits = profile?.credit_balance ?? 0;
   const { data: usage, error: ue } = await db
     .from("usage")
     .select("screens_used")
@@ -36,7 +39,8 @@ export async function getQuota(userId: string): Promise<QuotaState> {
   if (ue) throw new Error(`usage read failed: ${ue.message}`);
 
   const used = usage?.screens_used ?? 0;
-  return { ok: used < plan.screens, used, limit: plan.screens, plan: plan.id };
+  // Out of screens only when the monthly allotment AND credits are exhausted.
+  return { ok: used < plan.screens || credits > 0, used, limit: plan.screens, plan: plan.id, credits };
 }
 
 /**

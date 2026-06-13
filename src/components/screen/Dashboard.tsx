@@ -4,8 +4,11 @@ import { useCallback, useMemo, useState } from "react";
 import {
   DEFAULT_MARKETS,
   DEFAULT_WEIGHTS,
-  assumptionsForState,
+  assumptionsForMarket,
+  adhocMarket,
+  featuredZones,
   findMarket,
+  type Market,
 } from "@/lib/config/assumptions";
 import { underwrite } from "@/lib/underwriting/engine";
 import type { Assumptions } from "@/lib/underwriting/types";
@@ -20,6 +23,8 @@ import { DealDrawer } from "./DealDrawer";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Pill } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/site/Logo";
+import { GradeBadge } from "@/components/site/GradeBadge";
 
 const MOCK =
   process.env.NEXT_PUBLIC_MOCK_MODE === "1" ||
@@ -27,9 +32,10 @@ const MOCK =
 
 export function Dashboard() {
   const [marketId, setMarketId] = useState(DEFAULT_MARKETS[0].id);
-  const market = findMarket(marketId)!;
+  const [customMarket, setCustomMarket] = useState<Market | null>(null);
+  const market = customMarket ?? findMarket(marketId)!;
   const [bedrooms, setBedrooms] = useState(3);
-  const [assumptions, setAssumptions] = useState<Assumptions>(() => assumptionsForState(market.state));
+  const [assumptions, setAssumptions] = useState<Assumptions>(() => assumptionsForMarket(market));
 
   const [zipRows, setZipRows] = useState<ZipScreenRow[]>([]);
   const [running, setRunning] = useState(false);
@@ -41,13 +47,26 @@ export function Dashboard() {
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
 
-  const onMarket = (id: string) => {
-    setMarketId(id);
-    const m = findMarket(id);
-    if (m) setAssumptions((a) => ({ ...a, insuranceRatePct: assumptionsForState(m.state).insuranceRatePct }));
+  const resetResults = () => {
     setZipRows([]);
     setSelectedZip(null);
     setRaw(null);
+    setError(null);
+  };
+
+  const onMarket = (id: string) => {
+    setCustomMarket(null);
+    setMarketId(id);
+    const m = findMarket(id);
+    if (m) setAssumptions(assumptionsForMarket(m));
+    resetResults();
+  };
+
+  const onCustomZip = (zip: string) => {
+    const m = adhocMarket(zip);
+    setCustomMarket(m);
+    setAssumptions(assumptionsForMarket(m));
+    resetResults();
   };
 
   const runScreen = useCallback(async () => {
@@ -62,7 +81,7 @@ export function Dashboard() {
         body: JSON.stringify({ zips: market.zips, bedrooms }),
       });
       if (res.status === 402) {
-        setError("Out of screens for this period — upgrade to keep screening.");
+        setError("Out of screens for this period — upgrade or buy a credit pack to keep screening.");
         return;
       }
       const json = await res.json();
@@ -85,7 +104,7 @@ export function Dashboard() {
         body: JSON.stringify({ zip }),
       });
       if (res.status === 402) {
-        setError("Out of screens — upgrade to keep screening.");
+        setError("Out of screens — upgrade or buy a credit pack to keep screening.");
         return;
       }
       setRaw(await res.json());
@@ -120,8 +139,6 @@ export function Dashboard() {
       .sort((a, b) => b.underwriting.dealScore - a.underwriting.dealScore);
   }, [raw, assumptions]);
 
-  // Derive the open drawer deal from the live `deals` so assumption tweaks
-  // re-score the open drawer too (no stale snapshot).
   const selectedDeal = deals.find((d) => d.listing.rentcastId === selectedDealId) ?? null;
 
   const saveDeal = useCallback(async (d: ClientDeal) => {
@@ -141,23 +158,24 @@ export function Dashboard() {
     }
   }, []);
 
+  const zones = featuredZones().slice(0, 8);
+  const lowGrade = market.grade === "D" || market.grade === "F";
+
   return (
     <div className="min-h-screen">
       {/* Top bar */}
-      <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur">
+      <header className="sticky top-0 z-30 border-b border-hairline bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-[1400px] items-center justify-between px-5">
           <div className="flex items-center gap-3">
-            <span className="font-display text-xl">CloseHound</span>
-            <Pill tone="accent">Section 8 deal screener</Pill>
+            <a href="/" aria-label="CloseHound home"><Logo /></a>
+            <span className="hidden font-mono text-[11px] uppercase tracking-wider text-muted-foreground sm:inline">
+              · Deal screener
+            </span>
           </div>
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
             {MOCK && <Pill tone="warning">Mock data · 0 live calls</Pill>}
-            <a href="/saved" className="hover:text-foreground">
-              Saved
-            </a>
-            <a href="/account" className="hover:text-foreground">
-              Account
-            </a>
+            <a href="/saved" className="transition hover:text-foreground">Saved</a>
+            <a href="/account" className="transition hover:text-foreground">Account</a>
           </div>
         </div>
       </header>
@@ -165,9 +183,40 @@ export function Dashboard() {
       <div className="mx-auto grid max-w-[1400px] grid-cols-1 gap-5 p-5 lg:grid-cols-[300px_minmax(0,1fr)]">
         {/* Left: controls */}
         <div className="flex flex-col gap-4">
+          {/* Opportunity Zones quick pick */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Opportunity Zones</CardTitle>
+              <GradeBadge grade="A" />
+            </CardHeader>
+            <CardContent className="flex flex-col gap-1.5">
+              <p className="mb-1 text-[12px] leading-relaxed text-muted-foreground">
+                Prime cash-flow markets. Tap to load.
+              </p>
+              {zones.map((z) => (
+                <button
+                  key={z.id}
+                  onClick={() => onMarket(z.id)}
+                  className={`flex items-center justify-between rounded-md border px-2.5 py-1.5 text-left text-[13px] transition ${
+                    market.id === z.id
+                      ? "border-primary/50 bg-primary/10"
+                      : "border-hairline hover:bg-secondary"
+                  }`}
+                >
+                  <span className="font-medium">{z.label}</span>
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                    {z.state}
+                  </span>
+                </button>
+              ))}
+            </CardContent>
+          </Card>
+
           <MarketControls
-            marketId={marketId}
+            market={market}
+            marketId={customMarket ? "" : marketId}
             onMarket={onMarket}
+            onCustomZip={onCustomZip}
             bedrooms={bedrooms}
             onBedrooms={setBedrooms}
             onRun={runScreen}
@@ -183,9 +232,18 @@ export function Dashboard() {
               {error}
             </div>
           )}
-          {market.note && (
-            <div className="rounded-lg border border-warning/40 bg-warning/10 px-4 py-2.5 text-sm text-warning">
-              <strong className="font-semibold">Honesty note · {market.label}:</strong> {market.note}
+          {lowGrade && (
+            <div className="flex items-start gap-3 rounded-lg border border-warning/40 bg-warning/10 px-4 py-2.5 text-sm text-warning">
+              <GradeBadge grade={market.grade} />
+              <p>
+                <strong className="font-semibold">Heads up:</strong> {market.label} grades low for cash flow.
+                {market.note ? ` ${market.note}` : " Consider an Opportunity Zone instead so you don't waste a screen."}
+              </p>
+            </div>
+          )}
+          {!lowGrade && market.note && (
+            <div className="rounded-lg border border-hairline bg-surface-1 px-4 py-2.5 text-sm text-muted-foreground">
+              <strong className="font-semibold text-foreground">Note · {market.label}:</strong> {market.note}
             </div>
           )}
 
@@ -194,7 +252,7 @@ export function Dashboard() {
             <CardHeader>
               <CardTitle>Stage 1 — ZIP opportunity screen</CardTitle>
               <span className="text-[11px] text-muted-foreground">
-                {zipRows.length ? `${zipRows.filter((r) => !r.insufficient).length} ZIPs ranked` : "click a ZIP to underwrite"}
+                {zipRows.length ? `${zipRows.filter((r) => !r.insufficient).length} ZIPs ranked` : "run a screen to begin"}
               </span>
             </CardHeader>
             <CardContent className="grid grid-cols-1 gap-4 xl:grid-cols-2">
@@ -206,9 +264,7 @@ export function Dashboard() {
           {/* Stage 2 */}
           <Card>
             <CardHeader>
-              <CardTitle>
-                Stage 2 — deals {selectedZip ? `· ${selectedZip}` : ""}
-              </CardTitle>
+              <CardTitle>Stage 2 — deals {selectedZip ? `· ${selectedZip}` : ""}</CardTitle>
               <div className="flex items-center gap-3">
                 {loadingListings && <span className="text-[11px] text-muted-foreground">loading…</span>}
                 {deals.length > 0 && (

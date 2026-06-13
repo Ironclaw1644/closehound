@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Instrument_Serif } from "next/font/google";
+import { Inter, Instrument_Serif, JetBrains_Mono } from "next/font/google";
 import { Providers } from "./providers";
 import "./globals.css";
 
@@ -16,6 +16,12 @@ const instrumentSerif = Instrument_Serif({
   display: "swap",
 });
 
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains",
+  display: "swap",
+});
+
 const SITE_ORIGIN =
   process.env.NEXT_PUBLIC_SITE?.trim().replace(/\/+$/, "") ||
   "https://closehound.com";
@@ -23,15 +29,48 @@ const SITE_ORIGIN =
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_ORIGIN),
   title: {
-    default: "CloseHound — Sniff out the deal",
+    default: "CloseHound — Find Section 8 rental deals that cash flow",
     template: "%s · CloseHound",
   },
   description:
-    "CloseHound screens Section 8 (Housing Choice Voucher) rental deals — ranking for-sale properties by HUD voucher rent versus purchase price, underwritten and scored.",
+    "CloseHound screens for-sale homes against HUD Section 8 voucher rents (SAFMR), underwrites each one, and ranks them by Deal Score — so you find properties where the government check beats the mortgage. All 50 states, graded by cash-flow opportunity.",
   applicationName: "CloseHound",
+  keywords: [
+    "Section 8 investing",
+    "HUD voucher rent",
+    "SAFMR",
+    "Section 8 cash flow",
+    "rental property deal finder",
+    "Fair Market Rent calculator",
+    "real estate underwriting",
+    "Section 8 landlord",
+    "buy and hold rental deals",
+  ],
+  authors: [{ name: "CloseHound" }],
+  creator: "CloseHound",
+  publisher: "WalkPerro",
   alternates: { canonical: "/" },
-  // Pre-launch: keep the placeholder out of search indexes until the app ships.
-  robots: { index: false, follow: false },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
+  },
+  openGraph: {
+    type: "website",
+    siteName: "CloseHound",
+    title: "CloseHound — Find Section 8 rental deals that cash flow",
+    description:
+      "Screen homes against HUD voucher rents, underwrite every property, and rank by Deal Score. All 50 states, graded by opportunity.",
+    url: SITE_ORIGIN,
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "CloseHound — Sniff out the deal" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "CloseHound — Find Section 8 rental deals that cash flow",
+    description:
+      "Screen homes against HUD voucher rents, underwrite every property, rank by Deal Score. All 50 states, graded by opportunity.",
+    images: ["/og.png"],
+  },
 };
 
 export const viewport: Viewport = {
@@ -48,7 +87,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${instrumentSerif.variable}`}
+      className={`${inter.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable}`}
     >
       <body className="font-sans antialiased">
         <Providers>{children}</Providers>

@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/site/Logo";
+import { Label } from "@/components/site/Label";
 
 function LoginInner() {
   const router = useRouter();
@@ -44,18 +46,23 @@ function LoginInner() {
   }
 
   const inputCls =
-    "h-10 rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring";
+    "h-11 rounded-md border border-input bg-background px-3 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-ring";
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-6">
-      <div className="w-full max-w-sm">
-        <Link href="/" className="mb-8 block text-center font-display text-2xl">
-          CloseHound
+    <main className="relative flex min-h-screen items-center justify-center px-6">
+      <div aria-hidden className="glow-radial pointer-events-none absolute inset-0" />
+      <div aria-hidden className="grid-bg pointer-events-none absolute inset-0 opacity-60" />
+      <div className="relative w-full max-w-sm">
+        <Link href="/" className="mb-8 flex justify-center" aria-label="CloseHound home">
+          <Logo />
         </Link>
-        <div className="rounded-xl border border-border bg-card p-6">
-          <h1 className="text-lg font-semibold">{mode === "in" ? "Sign in" : "Create account"}</h1>
+        <div className="rounded-2xl border border-hairline bg-surface-1 p-6 shadow-[0_30px_80px_-40px_rgba(0,0,0,0.9)]">
+          <Label accent>{mode === "in" ? "SIGN IN" : "CREATE ACCOUNT"}</Label>
+          <h1 className="mt-3 font-display text-2xl">
+            {mode === "in" ? "Welcome back." : "Start hunting."}
+          </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {mode === "in" ? "Run your screens and save deals." : "Start with 10 free screens."}
+            {mode === "in" ? "Run your screens and save deals." : "10 free screens. No card required."}
           </p>
           <form onSubmit={submit} className="mt-5 flex flex-col gap-3">
             <input
@@ -77,13 +84,13 @@ function LoginInner() {
               minLength={6}
               autoComplete={mode === "in" ? "current-password" : "new-password"}
             />
-            <Button type="submit" disabled={busy}>
-              {busy ? "…" : mode === "in" ? "Sign in" : "Sign up"}
+            <Button type="submit" size="lg" disabled={busy} className="mt-1">
+              {busy ? "…" : mode === "in" ? "Sign in" : "Create free account"}
             </Button>
           </form>
           {msg && <p className="mt-3 text-sm text-warning">{msg}</p>}
           <button
-            className="mt-4 text-xs text-muted-foreground hover:text-foreground"
+            className="mt-4 text-xs text-muted-foreground transition hover:text-foreground"
             onClick={() => {
               setMode((m) => (m === "in" ? "up" : "in"));
               setMsg(null);
@@ -92,6 +99,9 @@ function LoginInner() {
             {mode === "in" ? "Need an account? Sign up" : "Have an account? Sign in"}
           </button>
         </div>
+        <p className="mt-6 text-center font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+          Official HUD data · No surprise charges
+        </p>
       </div>
     </main>
   );

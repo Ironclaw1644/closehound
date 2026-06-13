@@ -1,0 +1,22 @@
+{
+  "name": "closehound-remotion",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CloseHound explainer video — editable Remotion source. Renders the hero loop + the narrated demo.",
+  "scripts": {
+    "studio": "remotion studio",
+    "render:demo": "remotion render Demo ../public/demo.mp4 --codec=h264",
+    "render:loop": "remotion render Loop ../public/demo-loop.mp4 --codec=h264 --muted",
+    "voiceover": "node scripts/generate-voiceover.mjs"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "remotion": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.2",
+    "typescript": "^5.8.3"
+  }
+}

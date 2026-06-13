@@ -1,48 +1,40 @@
-import Link from "next/link";
-import { PLANS } from "@/lib/stripe/plans";
-import { CheckoutButton } from "@/components/billing/CheckoutButton";
+import type { Metadata } from "next";
+import { Header } from "@/components/site/Header";
+import { Footer } from "@/components/site/Footer";
+import { Label } from "@/components/site/Label";
+import { PricingTable } from "@/components/billing/PricingTable";
 
-export const metadata = { title: "Pricing" };
+export const metadata: Metadata = {
+  title: "Pricing — start free, scale when it pays you",
+  description:
+    "CloseHound pricing: 10 free Section 8 deal screens with no card, pay-as-you-go credit packs, and Hunter / Closer / Agency subscriptions. No surprise overages.",
+  alternates: { canonical: "/pricing" },
+};
 
 export default function PricingPage() {
   return (
-    <main className="mx-auto max-w-3xl px-6 py-16">
-      <Link href="/" className="block text-center font-display text-2xl">
-        CloseHound
-      </Link>
-      <h1 className="mt-8 text-center font-display text-4xl">Run your own screens.</h1>
-      <p className="mx-auto mt-3 max-w-md text-center text-sm text-muted-foreground">
-        Aggressive caching keeps API costs lean, so you screen your own markets without us
-        eating the bill — and you never run up a charge you can&apos;t see.
-      </p>
+    <>
+      <Header />
+      <main>
+        <section className="relative">
+          <div aria-hidden className="glow-radial pointer-events-none absolute inset-0" />
+          <div className="relative mx-auto max-w-6xl px-5 pt-16 pb-8 text-center sm:px-8">
+            <Label accent className="justify-center">PRICING</Label>
+            <h1 className="mt-5 font-display text-5xl leading-tight sm:text-6xl">
+              <span className="text-gradient">Run your own screens.</span>
+            </h1>
+            <p className="mx-auto mt-4 max-w-lg text-[16px] leading-relaxed text-muted-foreground">
+              Aggressive caching keeps API costs lean, so you screen your own markets without us
+              eating the bill — and you never run up a charge you can’t see.
+            </p>
+          </div>
+        </section>
 
-      <div className="mt-10 grid gap-5 sm:grid-cols-2">
-        <div className="rounded-xl border border-border bg-card p-6">
-          <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            {PLANS.free.name}
-          </p>
-          <p className="mt-3 font-display text-4xl">$0</p>
-          <p className="mt-1 text-sm text-muted-foreground">{PLANS.free.screens} screens / month</p>
-          <Link
-            href="/screen"
-            className="mt-6 inline-flex h-10 w-full items-center justify-center rounded-md border border-border text-sm font-semibold hover:bg-secondary"
-          >
-            Start screening
-          </Link>
-        </div>
-
-        <div className="rounded-xl border border-primary/50 bg-card p-6 ring-1 ring-primary/20">
-          <p className="text-sm font-semibold uppercase tracking-wide text-primary">{PLANS.pro.name}</p>
-          <p className="mt-3 font-display text-4xl">
-            ${PLANS.pro.pricePerMonth}
-            <span className="text-base font-normal text-muted-foreground">/mo</span>
-          </p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {PLANS.pro.screens} screens / month, then ${PLANS.pro.overagePerScreen}/screen
-          </p>
-          <CheckoutButton className="mt-6">Upgrade to Pro</CheckoutButton>
-        </div>
-      </div>
-    </main>
+        <section className="mx-auto max-w-6xl px-5 pb-24 sm:px-8">
+          <PricingTable />
+        </section>
+      </main>
+      <Footer />
+    </>
   );
 }

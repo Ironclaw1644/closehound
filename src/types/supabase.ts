@@ -99,6 +99,7 @@ export type Database = {
           status: string;
           stripe_customer_id: string | null;
           stripe_subscription_id: string | null;
+          credit_balance: number;
           created_at: Timestamp;
           updated_at: Timestamp;
         };
@@ -108,6 +109,7 @@ export type Database = {
           status?: string;
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
+          credit_balance?: number;
           created_at?: Timestamp;
           updated_at?: Timestamp;
         };
@@ -166,6 +168,18 @@ export type Database = {
         Update: Partial<Database["closehound"]["Tables"]["saved_deals"]["Insert"]>;
         Relationships: [];
       };
+      processed_events: {
+        Row: {
+          event_id: string;
+          created_at: Timestamp;
+        };
+        Insert: {
+          event_id: string;
+          created_at?: Timestamp;
+        };
+        Update: Partial<Database["closehound"]["Tables"]["processed_events"]["Insert"]>;
+        Relationships: [];
+      };
     };
     Views: { [_ in never]: never };
     Functions: {
@@ -176,6 +190,10 @@ export type Database = {
       refund_screens: {
         Args: { p_user: string; p_period: string; p_count: number };
         Returns: undefined;
+      };
+      grant_credits: {
+        Args: { p_user: string; p_count: number };
+        Returns: number;
       };
     };
     Enums: { [_ in never]: never };

@@ -1,12 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { CheckoutButton } from "@/components/billing/CheckoutButton";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
 
 export function AccountActions({ plan }: { plan: string }) {
   const router = useRouter();
+  const subscribed = plan !== "free";
 
   async function portal() {
     const res = await fetch("/api/stripe/portal", { method: "POST" });
@@ -22,12 +23,16 @@ export function AccountActions({ plan }: { plan: string }) {
 
   return (
     <div className="flex flex-wrap items-center gap-3">
-      {plan === "pro" ? (
+      <Link
+        href="/pricing"
+        className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:brightness-95"
+      >
+        {subscribed ? "Change plan" : "Upgrade · buy credits"}
+      </Link>
+      {subscribed && (
         <Button variant="outline" onClick={portal}>
           Manage billing
         </Button>
-      ) : (
-        <CheckoutButton>Upgrade to Pro</CheckoutButton>
       )}
       <Button variant="ghost" onClick={signOut}>
         Sign out
