@@ -1,0 +1,242 @@
+// English dictionary — the source of truth. `es.ts` mirrors this shape exactly
+// (TypeScript enforces it via `Dictionary = typeof en`). Brand names, ticker
+// symbols, and data values are NOT translated.
+
+export const en = {
+  common: {
+    nav: {
+      howItWorks: "How it works",
+      opportunityZones: "Opportunity Zones",
+      demo: "Demo",
+      pricing: "Pricing",
+    },
+    signIn: "Sign in",
+    startFree: "Start free",
+    // Language toggle
+    switchToLabel: "Español", // label shown to switch TO Spanish
+    languageEn: "EN",
+    languageEs: "ES",
+  },
+
+  footer: {
+    tagline: "The deal screener for Section 8 investors. Built on official HUD voucher data — so you find the homes where the government check beats the mortgage.",
+    walkperro: "A WALKPERRO PRODUCT",
+    product: "Product",
+    trust: "Trust",
+    links: {
+      openScreener: "Open the screener",
+      howItWorks: "How it works",
+      opportunityZones: "Opportunity Zones",
+      pricing: "Pricing",
+      watchDemo: "Watch the demo",
+      methodology: "Our methodology",
+      dataSource: "Where the data comes from",
+      faq: "FAQ",
+    },
+    disclaimer: "CloseHound is an analytics tool, not a licensed real-estate brokerage, lender, or financial, investment, or legal advisor. Deal Scores are estimates generated from public HUD Fair Market Rent / SAFMR data and third-party listing and market data, and may be incomplete or out of date. Always verify rents, costs, and condition and consult a qualified professional before buying. CloseHound is not affiliated with, endorsed by, or sponsored by the U.S. Department of Housing and Urban Development.",
+    copyright: "CloseHound · WalkPerro. All rights reserved.",
+    terms: "Terms",
+    privacy: "Privacy",
+    contact: "Contact",
+  },
+
+  home: {
+    eyebrow: "The Section 8 deal screener",
+    heroTitleA: "Sniff out the deal",
+    heroSubLead: "CloseHound finds homes where the ",
+    heroSubEmphasis: "Section 8 voucher check beats the mortgage",
+    heroSubTail: ". We pull HUD voucher rents, underwrite every property, and rank them by Deal Score — across all 50 states, graded so you never waste a screen.",
+    ctaPrimary: "Start free — 10 screens",
+    ctaSecondary: "Watch the 60-sec demo",
+    microNoCard: "No card",
+    microStates: "states",
+    microHud: "official HUD data",
+    credLead: "Built on official HUD SAFMR data",
+    credGraded: "states graded A–F",
+    credMetrics: "Cash-on-cash, cap rate & DSCR on every listing",
+    credUpdated: "Updated monthly",
+    insightEyebrow: "The edge",
+    insightLead: "In the right markets, the government will pay ",
+    insightEmphasis: "more than the open market",
+    insightTail: " for the same house. Most investors never check. CloseHound checks every listing, automatically.",
+    howEyebrow: "How it works",
+    howTitle: "From “maybe” to a ranked buy list in seconds.",
+    steps: [
+      { title: "Pick a market — or any ZIP", body: "Start with a graded Opportunity Zone or drop in any ZIP in the country. We instantly pull HUD's Section 8 voucher rent ceiling (SAFMR) for that area." },
+      { title: "We pull live listings + underwrite", body: "CloseHound matches for-sale homes to the voucher rent, then underwrites every property — mortgage, taxes, insurance, vacancy, management, capex — with assumptions you control." },
+      { title: "Rank by Deal Score", body: "Each property gets a 0–100 Deal Score from cash-on-cash, cap rate, rent-to-price and DSCR. The deals where the government check beats the mortgage rise to the top." },
+    ],
+    zonesEyebrow: "Opportunity Zones",
+    zonesTitle: "These are the areas with the most opportunity right now.",
+    zonesSub: "Prime cash-flow markets where Section 8 voucher rents reliably beat the mortgage. Every market is graded A–F, so you spend screens where the money is — not where it isn’t.",
+    seeAllMarkets: "See all markets →",
+    screenThisMarket: "Screen this market →",
+    zoneNote: "Strong, reliable Section 8 cash flow on the right property.",
+    trustEyebrow: "Built to be trusted",
+    trustCards: [
+      { title: "Official HUD data", body: "Voucher rent ceilings come straight from HUD's Small Area Fair Market Rent dataset — the same numbers the housing authority pays by. No made-up estimates." },
+      { title: "You can't overspend", body: "Every screen is metered against your plan. Run out and screening pauses — upgrade or grab a credit pack. You'll never run up a charge you can't see." },
+      { title: "Honest by design", body: "We grade markets A–F and tell you when a market is an appreciation trap, not a cash-flow play. The tool works for you, not the listing." },
+    ],
+    pricingEyebrow: "Pricing",
+    pricingTitle: "Try it free. Scale when it’s paying you.",
+    pricingSub: "Start with 10 free screens — no card. Buy credits as you go, or subscribe when you’re hunting weekly. No surprise overages, ever.",
+    mostPopular: "Most popular",
+    perMonth: "/mo",
+    screensPerMonth: "screens / mo",
+    seeFullPricing: "See full pricing →",
+    faqEyebrow: "FAQ",
+    faqTitle: "Straight answers.",
+    faq: [
+      { q: "What exactly does CloseHound do?", a: "It finds for-sale homes whose HUD Section 8 voucher rent is high relative to the purchase price, underwrites each one with realistic costs, and ranks them by Deal Score — so you spend your time on the deals that actually cash flow instead of guessing." },
+      { q: "Where does the data come from?", a: "Voucher rent ceilings come from HUD's official Small Area Fair Market Rent (SAFMR) dataset. For-sale listings and local market rents come from licensed third-party real-estate data. We cache aggressively so your screens stay cheap and fast." },
+      { q: "Why are some states graded low?", a: "Because we won't waste your money. In places like South Florida, ~2% insurance and high prices usually crush cash-on-cash — so we grade them honestly (D/F) and steer you to Prime markets like Cleveland, Memphis, Detroit, Birmingham and Indianapolis where the voucher reliably beats the market." },
+      { q: "Can I run up a surprise bill?", a: "No. Every screen is metered against your plan. When you run out, screening simply pauses until you upgrade or buy a credit pack. You can never run up a charge you can't see." },
+      { q: "Is CloseHound affiliated with HUD?", a: "No. CloseHound is an independent analytics tool that uses public HUD data. It is not a brokerage, lender, or financial advisor, and is not affiliated with or endorsed by HUD." },
+    ],
+    finalTitle: "The deal is out there.",
+    finalSub: "Run your first 10 screens free and see your first Prime-market deal today.",
+    finalCta: "Start free",
+    sample: { beds: "3-bed · 1,180 sqft", price: "Price", voucherRent: "Voucher rent", coc: "Cash-on-cash" },
+  },
+
+  howItWorks: {
+    eyebrow: "How it works",
+    title: "The voucher beats the mortgage. We prove it, listing by listing.",
+    intro: "Section 8 (the Housing Choice Voucher program) pays landlords a rent set by HUD — and in the right markets that government-backed rent is higher than what the open market pays for the same house. CloseHound finds those houses automatically and underwrites every one.",
+    scoreEyebrow: "The Deal Score",
+    scoreTitle: "How we score a deal, 0–100.",
+    scoreSub: "Every property is underwritten with your assumptions, then scored on four weighted fundamentals. The deals where the math works rise to the top.",
+    score: [
+      { k: "Cash-on-cash", d: "Annual pre-tax cash flow ÷ total cash invested. The number that actually pays you." },
+      { k: "Cap rate", d: "Net operating income ÷ price. How hard the asset works regardless of financing." },
+      { k: "Rent-to-price", d: "Voucher rent ÷ purchase price. The classic ‘1% rule’ lens, voucher-adjusted." },
+      { k: "DSCR", d: "Net operating income ÷ debt service. Whether the rent comfortably covers the mortgage." },
+    ],
+    dataEyebrow: "Where the data comes from",
+    dataTitle: "Official numbers. No guesswork.",
+    data: [
+      { k: "HUD SAFMR", d: "Small Area Fair Market Rents — the official, ZIP-level voucher rent ceilings published by the U.S. Department of Housing and Urban Development." },
+      { k: "Live listings", d: "For-sale properties and local market rents from licensed third-party real-estate data, refreshed and cached for speed." },
+      { k: "Your assumptions", d: "Down payment, rate, taxes, insurance, vacancy, management, maintenance and capex — every input is visible and editable." },
+    ],
+    gradesEyebrow: "Opportunity grades",
+    gradesTitle: "Every market, graded honestly.",
+    gradesSub: "We won’t waste your screens. Each market gets an A–F cash-flow grade so you spend your time where the voucher reliably beats the market — and skip the appreciation traps.",
+    anyZipLead: "Don’t see your market? You can screen ",
+    anyZipEmphasis: "any ZIP in the country",
+    anyZipTail: " from the screener — the curated list above is just where the opportunity is most concentrated.",
+    ctaTitle: "Ready to find one?",
+    cta: "Start free — 10 screens",
+    grades: {
+      A: { label: "Prime", blurb: "Voucher rent routinely beats market — strong cash-on-cash before financing." },
+      B: { label: "Strong", blurb: "Reliable cashflow with the right property. Worth screening regularly." },
+      C: { label: "Mixed", blurb: "Selective — prices or taxes have risen. Cherry-pick; don't carpet-screen." },
+      D: { label: "Thin", blurb: "Mostly an appreciation play. Cashflow is the exception, not the rule." },
+      F: { label: "Appreciation only", blurb: "Insurance/prices usually kill cash-on-cash. Screen only if you want appreciation, not yield." },
+    },
+  },
+
+  demo: {
+    eyebrow: "The 60-second demo",
+    title: "Watch it sniff out a deal.",
+    sub: "From an empty screen to a ranked buy list — this is the whole loop.",
+    videoFallback: "Your browser doesn’t support embedded video.",
+    stepsEyebrow: "What you’re seeing",
+    steps: [
+      "Pick a Prime Opportunity Zone — or drop in any ZIP.",
+      "CloseHound pulls the HUD voucher rent ceiling for that area.",
+      "It matches live for-sale listings and underwrites each one.",
+      "Deals rank by Deal Score — the voucher-beats-mortgage homes float to the top.",
+    ],
+    cta: "Try it free",
+  },
+
+  pricing: {
+    eyebrow: "Pricing",
+    title: "Run your own screens.",
+    subhead: "Aggressive caching keeps API costs lean, so you screen your own markets without us eating the bill — and you never run up a charge you can’t see.",
+    monthly: "Monthly",
+    annual: "Annual",
+    monthsFree: "2 months free",
+    startFree: "Start free",
+    mostPopular: "Most popular",
+    perMonthShort: "/mo",
+    perYearShort: "/yr",
+    screensOneTime: "screens, one-time",
+    screensPerMonth: "screens / month",
+    get: "Get", // "Get Hunter"
+    scoutEyebrow: "Scout · pay as you go",
+    scoutTitle: "No subscription. Credits never expire.",
+    scoutSub: "Perfect for hunting in bursts — top up only when you’re actively screening.",
+    screens: "screens",
+    buyPack: "Buy pack",
+    redirecting: "Redirecting…",
+    checkoutError: "Checkout unavailable — try again.",
+    disclaimer: "No surprise overages. Run out of screens and the screener simply pauses until you upgrade or buy a pack — you’ll never run up a charge you can’t see. Cancel anytime.",
+  },
+
+  // Per-plan marketing copy (billing IDs/prices live in plans.ts; keyed by plan id).
+  plans: {
+    free: { blurb: "Taste the hunt. No card.", features: ["10 deal screens", "All 50 states + opportunity grades", "Full Deal Score underwriting"] },
+    hunter: { blurb: "For the active investor working markets weekly.", features: ["300 screens / month", "Save deals + CSV export", "Opportunity Zone rankings", "Email support"] },
+    closer: { blurb: "Run volume across multiple markets.", features: ["1,500 screens / month", "Bulk CSV export + multi-market batch", "Early access to new markets", "Priority support"] },
+    agency: { blurb: "For funds + teams deploying capital at scale.", features: ["5,000 screens / month", "Team seats", "Priority data refresh", "Everything in Closer"] },
+  },
+
+  legal: {
+    eyebrow: "Legal",
+    updated: "Last updated June 2026.",
+    translationNote: "",
+    terms: {
+      title: "Terms of Service",
+      sections: [
+        { h: "1. What CloseHound is", p: [
+          "CloseHound is a software analytics tool that helps you research potential Section 8 (Housing Choice Voucher) rental investments by comparing HUD Fair Market Rent / SAFMR data and third-party listing and market data, and producing estimated underwriting metrics and a “Deal Score.”",
+          "CloseHound is not a real-estate brokerage, lender, property manager, or financial, investment, tax, or legal advisor. Nothing CloseHound outputs is an offer, solicitation, recommendation, or advice to buy, sell, or finance any property.",
+        ] },
+        { h: "2. No reliance; verify everything", p: [
+          "All figures are estimates generated from data that may be incomplete, delayed, or inaccurate. Voucher rents, payment standards, prices, taxes, insurance, and condition vary and change. You are solely responsible for independently verifying every number and consulting qualified professionals before making any decision.",
+        ] },
+        { h: "3. Accounts & acceptable use", p: [
+          "You are responsible for your account and for keeping your credentials secure. You agree not to scrape, resell, or redistribute data obtained through the service, not to exceed or circumvent plan limits, and not to use the service for any unlawful purpose, including unlawful housing discrimination.",
+        ] },
+        { h: "4. Plans, screens & billing", p: [
+          "Paid plans and pay-as-you-go credit packs are billed through Stripe. Subscriptions grant a monthly allotment of screens; credit packs add non-expiring screens used after your monthly allotment is exhausted. The service meters usage so you cannot incur charges beyond what you have purchased. Subscriptions renew until canceled; you can cancel anytime and manage billing through the customer portal. Except where required by law, payments are non-refundable.",
+        ] },
+        { h: "5. Data sources & trademarks", p: [
+          "CloseHound uses public HUD data and licensed third-party data. CloseHound is not affiliated with, endorsed by, or sponsored by the U.S. Department of Housing and Urban Development or any listing provider. All trademarks are the property of their respective owners.",
+        ] },
+        { h: "6. No warranty; limitation of liability", p: [
+          "The service is provided “as is” and “as available,” without warranties of any kind. To the maximum extent permitted by law, CloseHound and WalkPerro are not liable for any indirect, incidental, or consequential damages, or for any lost profits or investment losses, arising from your use of the service. Our total liability is limited to the amount you paid in the three months before the claim.",
+        ] },
+        { h: "7. Changes & contact", p: [
+          "We may update these terms; continued use means you accept the changes. Questions: walkperro@proton.me.",
+        ] },
+      ],
+    },
+    privacy: {
+      title: "Privacy Policy",
+      sections: [
+        { h: "What we collect", p: [
+          "Account data: your email address and authentication details (handled by Supabase). Usage data: the markets and ZIPs you screen and your screen counts, so we can meter your plan. Billing data: subscription and purchase records (handled by Stripe — we never store full card numbers).",
+        ] },
+        { h: "How we use it", p: [
+          "To operate the service: authenticate you, run and meter screens, deliver results, process payments, provide support, and improve the product. We do not sell your personal information.",
+        ] },
+        { h: "Third-party processors", p: [
+          "We rely on trusted providers to run CloseHound: Supabase (auth + database), Stripe (payments), Resend (transactional email), Vercel (hosting), and licensed real-estate and HUD data providers for the underwriting data itself. Each processes data only as needed to provide its service.",
+        ] },
+        { h: "Cookies", p: [
+          "We use only the cookies necessary to keep you signed in and run the app. We do not use advertising trackers.",
+        ] },
+        { h: "Your choices", p: [
+          "You can access or delete your account data by contacting us. Closing your account removes your profile and saved deals. Cached market data is anonymous and not tied to you.",
+        ] },
+        { h: "Contact", p: ["Questions or data requests: walkperro@proton.me."] },
+      ],
+    },
+  },
+};
+
+export type Dictionary = typeof en;

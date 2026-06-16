@@ -1,0 +1,241 @@
+// Spanish dictionary. Mirrors en.ts exactly (enforced by `Dictionary`).
+// Glossary: Section 8 → Sección 8 · voucher → vale · screen (noun) → análisis ·
+// screener → analizador · Deal Score → Puntuación de Oferta · Opportunity Zones
+// → Zonas de Oportunidad · mortgage → hipoteca. Brand/finance terms
+// (CloseHound, WalkPerro, cash-on-cash, cap rate, DSCR, SAFMR) kept as-is.
+import type { Dictionary } from "./en";
+
+export const es: Dictionary = {
+  common: {
+    nav: {
+      howItWorks: "Cómo funciona",
+      opportunityZones: "Zonas de Oportunidad",
+      demo: "Demo",
+      pricing: "Precios",
+    },
+    signIn: "Iniciar sesión",
+    startFree: "Empieza gratis",
+    switchToLabel: "English",
+    languageEn: "EN",
+    languageEs: "ES",
+  },
+
+  footer: {
+    tagline: "El analizador de ofertas para inversores de la Sección 8. Construido sobre datos oficiales de vales de HUD — para que encuentres las casas donde el cheque del gobierno supera a la hipoteca.",
+    walkperro: "UN PRODUCTO DE WALKPERRO",
+    product: "Producto",
+    trust: "Confianza",
+    links: {
+      openScreener: "Abrir el analizador",
+      howItWorks: "Cómo funciona",
+      opportunityZones: "Zonas de Oportunidad",
+      pricing: "Precios",
+      watchDemo: "Ver la demo",
+      methodology: "Nuestra metodología",
+      dataSource: "De dónde vienen los datos",
+      faq: "Preguntas frecuentes",
+    },
+    disclaimer: "CloseHound es una herramienta de análisis, no una correduría inmobiliaria con licencia, un prestamista, ni un asesor financiero, de inversiones o legal. Las Puntuaciones de Oferta son estimaciones generadas a partir de datos públicos de Renta Justa de Mercado / SAFMR de HUD y de datos de anuncios y de mercado de terceros, y pueden estar incompletas o desactualizadas. Verifica siempre las rentas, los costes y el estado, y consulta a un profesional cualificado antes de comprar. CloseHound no está afiliado, respaldado ni patrocinado por el Departamento de Vivienda y Desarrollo Urbano de EE. UU.",
+    copyright: "CloseHound · WalkPerro. Todos los derechos reservados.",
+    terms: "Términos",
+    privacy: "Privacidad",
+    contact: "Contacto",
+  },
+
+  home: {
+    eyebrow: "El analizador de ofertas de la Sección 8",
+    heroTitleA: "Olfatea la oferta",
+    heroSubLead: "CloseHound encuentra casas donde el ",
+    heroSubEmphasis: "cheque del vale de la Sección 8 supera a la hipoteca",
+    heroSubTail: ". Extraemos las rentas de los vales de HUD, evaluamos cada propiedad y las clasificamos por Puntuación de Oferta — en los 50 estados, calificadas para que nunca desperdicies un análisis.",
+    ctaPrimary: "Empieza gratis — 10 análisis",
+    ctaSecondary: "Mira la demo de 60 s",
+    microNoCard: "Sin tarjeta",
+    microStates: "estados",
+    microHud: "datos oficiales de HUD",
+    credLead: "Construido sobre datos oficiales SAFMR de HUD",
+    credGraded: "estados calificados de la A a la F",
+    credMetrics: "Cash-on-cash, cap rate y DSCR en cada propiedad",
+    credUpdated: "Actualizado cada mes",
+    insightEyebrow: "La ventaja",
+    insightLead: "En los mercados adecuados, el gobierno pagará ",
+    insightEmphasis: "más que el mercado abierto",
+    insightTail: " por la misma casa. La mayoría de los inversores nunca lo comprueban. CloseHound revisa cada propiedad, automáticamente.",
+    howEyebrow: "Cómo funciona",
+    howTitle: "De un “quizás” a una lista de compra clasificada en segundos.",
+    steps: [
+      { title: "Elige un mercado — o cualquier código postal", body: "Empieza con una Zona de Oportunidad calificada o introduce cualquier código postal del país. Extraemos al instante el tope de renta del vale de la Sección 8 de HUD (SAFMR) para esa zona." },
+      { title: "Extraemos propiedades en venta y las evaluamos", body: "CloseHound empareja las casas en venta con la renta del vale y luego evalúa cada propiedad — hipoteca, impuestos, seguro, vacancia, administración, capex — con supuestos que tú controlas." },
+      { title: "Clasifica por Puntuación de Oferta", body: "Cada propiedad recibe una Puntuación de Oferta de 0 a 100 a partir de cash-on-cash, cap rate, renta-precio y DSCR. Las ofertas donde el cheque del gobierno supera a la hipoteca suben a la cima." },
+    ],
+    zonesEyebrow: "Zonas de Oportunidad",
+    zonesTitle: "Estas son las áreas con más oportunidad ahora mismo.",
+    zonesSub: "Mercados principales de flujo de caja donde las rentas de los vales de la Sección 8 superan de forma fiable a la hipoteca. Cada mercado está calificado de la A a la F, para que gastes tus análisis donde está el dinero — no donde no lo está.",
+    seeAllMarkets: "Ver todos los mercados →",
+    screenThisMarket: "Analizar este mercado →",
+    zoneNote: "Flujo de caja sólido y fiable de la Sección 8 en la propiedad adecuada.",
+    trustEyebrow: "Diseñado para generar confianza",
+    trustCards: [
+      { title: "Datos oficiales de HUD", body: "Los topes de renta de los vales vienen directamente del conjunto de datos Small Area Fair Market Rent de HUD — los mismos números con los que paga la autoridad de vivienda. Sin estimaciones inventadas." },
+      { title: "No puedes gastar de más", body: "Cada análisis se descuenta de tu plan. Cuando se acaban, el análisis se pausa — mejora tu plan o consigue un paquete de créditos. Nunca acumularás un cargo que no puedas ver." },
+      { title: "Honesto por diseño", body: "Calificamos los mercados de la A a la F y te avisamos cuando un mercado es una trampa de apreciación, no una apuesta de flujo de caja. La herramienta trabaja para ti, no para el anuncio." },
+    ],
+    pricingEyebrow: "Precios",
+    pricingTitle: "Pruébalo gratis. Escala cuando te esté pagando.",
+    pricingSub: "Empieza con 10 análisis gratis — sin tarjeta. Compra créditos sobre la marcha, o suscríbete cuando caces cada semana. Sin sorpresas por exceso, nunca.",
+    mostPopular: "Más popular",
+    perMonth: "/mes",
+    screensPerMonth: "análisis / mes",
+    seeFullPricing: "Ver todos los precios →",
+    faqEyebrow: "Preguntas frecuentes",
+    faqTitle: "Respuestas directas.",
+    faq: [
+      { q: "¿Qué hace exactamente CloseHound?", a: "Encuentra casas en venta cuya renta del vale de la Sección 8 de HUD es alta en relación con el precio de compra, evalúa cada una con costes realistas y las clasifica por Puntuación de Oferta — para que dediques tu tiempo a las ofertas que de verdad generan flujo de caja en lugar de adivinar." },
+      { q: "¿De dónde vienen los datos?", a: "Los topes de renta de los vales vienen del conjunto de datos oficial Small Area Fair Market Rent (SAFMR) de HUD. Las propiedades en venta y las rentas locales del mercado vienen de datos inmobiliarios licenciados de terceros. Almacenamos en caché de forma agresiva para que tus análisis sean rápidos y económicos." },
+      { q: "¿Por qué algunos estados tienen baja calificación?", a: "Porque no malgastaremos tu dinero. En lugares como el sur de Florida, un seguro de ~2% y los precios altos suelen aplastar el cash-on-cash — así que los calificamos con honestidad (D/F) y te dirigimos a mercados principales como Cleveland, Memphis, Detroit, Birmingham e Indianápolis, donde el vale supera al mercado de forma fiable." },
+      { q: "¿Puedo acumular una factura sorpresa?", a: "No. Cada análisis se descuenta de tu plan. Cuando se acaban, el análisis simplemente se pausa hasta que mejores tu plan o compres un paquete de créditos. Nunca podrás acumular un cargo que no puedas ver." },
+      { q: "¿Está CloseHound afiliado a HUD?", a: "No. CloseHound es una herramienta de análisis independiente que usa datos públicos de HUD. No es una correduría, un prestamista ni un asesor financiero, y no está afiliado ni respaldado por HUD." },
+    ],
+    finalTitle: "La oferta está ahí fuera.",
+    finalSub: "Ejecuta tus primeros 10 análisis gratis y encuentra hoy tu primera oferta en un mercado principal.",
+    finalCta: "Empieza gratis",
+    sample: { beds: "3 hab · 1,180 ft²", price: "Precio", voucherRent: "Renta del vale", coc: "Cash-on-cash" },
+  },
+
+  howItWorks: {
+    eyebrow: "Cómo funciona",
+    title: "El vale supera a la hipoteca. Lo demostramos, anuncio por anuncio.",
+    intro: "La Sección 8 (el programa de Vales de Elección de Vivienda) paga a los propietarios una renta fijada por HUD — y en los mercados adecuados esa renta respaldada por el gobierno es mayor que lo que paga el mercado abierto por la misma casa. CloseHound encuentra esas casas automáticamente y evalúa cada una.",
+    scoreEyebrow: "La Puntuación de Oferta",
+    scoreTitle: "Cómo puntuamos una oferta, de 0 a 100.",
+    scoreSub: "Cada propiedad se evalúa con tus supuestos y luego se puntúa según cuatro fundamentos ponderados. Las ofertas donde las cuentas cuadran suben a la cima.",
+    score: [
+      { k: "Cash-on-cash", d: "Flujo de caja anual antes de impuestos ÷ efectivo total invertido. El número que de verdad te paga." },
+      { k: "Cap rate", d: "Ingreso operativo neto ÷ precio. Cuánto rinde el activo independientemente del financiamiento." },
+      { k: "Renta-precio", d: "Renta del vale ÷ precio de compra. La clásica ‘regla del 1%’, ajustada al vale." },
+      { k: "DSCR", d: "Ingreso operativo neto ÷ servicio de la deuda. Si la renta cubre cómodamente la hipoteca." },
+    ],
+    dataEyebrow: "De dónde vienen los datos",
+    dataTitle: "Números oficiales. Sin conjeturas.",
+    data: [
+      { k: "HUD SAFMR", d: "Small Area Fair Market Rents — los topes oficiales de renta de vales a nivel de código postal, publicados por el Departamento de Vivienda y Desarrollo Urbano de EE. UU. (HUD)." },
+      { k: "Propiedades en vivo", d: "Propiedades en venta y rentas locales del mercado, a partir de datos inmobiliarios licenciados de terceros, actualizados y en caché para mayor velocidad." },
+      { k: "Tus supuestos", d: "Pago inicial, tasa, impuestos, seguro, vacancia, administración, mantenimiento y capex — cada dato es visible y editable." },
+    ],
+    gradesEyebrow: "Calificaciones de oportunidad",
+    gradesTitle: "Cada mercado, calificado con honestidad.",
+    gradesSub: "No malgastaremos tus análisis. Cada mercado recibe una calificación de flujo de caja de la A a la F para que dediques tu tiempo donde el vale supera de forma fiable al mercado — y evites las trampas de apreciación.",
+    anyZipLead: "¿No ves tu mercado? Puedes analizar ",
+    anyZipEmphasis: "cualquier código postal del país",
+    anyZipTail: " desde el analizador — la lista curada de arriba es solo donde la oportunidad está más concentrada.",
+    ctaTitle: "¿Listo para encontrar una?",
+    cta: "Empieza gratis — 10 análisis",
+    grades: {
+      A: { label: "Principal", blurb: "La renta del vale supera al mercado de forma habitual — fuerte cash-on-cash antes de financiamiento." },
+      B: { label: "Sólido", blurb: "Flujo de caja fiable con la propiedad adecuada. Vale la pena analizarlo con regularidad." },
+      C: { label: "Mixto", blurb: "Selectivo — los precios o los impuestos han subido. Escoge con cuidado; no analices en masa." },
+      D: { label: "Escaso", blurb: "Mayormente una apuesta de apreciación. El flujo de caja es la excepción, no la regla." },
+      F: { label: "Solo apreciación", blurb: "El seguro y los precios suelen aniquilar el cash-on-cash. Analiza solo si buscas apreciación, no rendimiento." },
+    },
+  },
+
+  demo: {
+    eyebrow: "La demo de 60 segundos",
+    title: "Mira cómo olfatea una oferta.",
+    sub: "De una pantalla vacía a una lista de compra clasificada — este es todo el proceso.",
+    videoFallback: "Tu navegador no admite video incrustado.",
+    stepsEyebrow: "Lo que estás viendo",
+    steps: [
+      "Elige una Zona de Oportunidad principal — o introduce cualquier código postal.",
+      "CloseHound extrae el tope de renta del vale de HUD para esa zona.",
+      "Empareja propiedades en venta y evalúa cada una.",
+      "Las ofertas se clasifican por Puntuación de Oferta — las casas donde el vale supera a la hipoteca flotan a la cima.",
+    ],
+    cta: "Pruébalo gratis",
+  },
+
+  pricing: {
+    eyebrow: "Precios",
+    title: "Ejecuta tus propios análisis.",
+    subhead: "El almacenamiento en caché agresivo mantiene bajos los costes de API, así que analizas tus propios mercados sin que nosotros asumamos la factura — y nunca acumulas un cargo que no puedas ver.",
+    monthly: "Mensual",
+    annual: "Anual",
+    monthsFree: "2 meses gratis",
+    startFree: "Empieza gratis",
+    mostPopular: "Más popular",
+    perMonthShort: "/mes",
+    perYearShort: "/año",
+    screensOneTime: "análisis, pago único",
+    screensPerMonth: "análisis / mes",
+    get: "Obtén",
+    scoutEyebrow: "Scout · paga sobre la marcha",
+    scoutTitle: "Sin suscripción. Los créditos nunca caducan.",
+    scoutSub: "Perfecto para cazar por rachas — recarga solo cuando estés analizando activamente.",
+    screens: "análisis",
+    buyPack: "Comprar paquete",
+    redirecting: "Redirigiendo…",
+    checkoutError: "Pago no disponible — inténtalo de nuevo.",
+    disclaimer: "Sin cargos sorpresa por exceso. Si se te acaban los análisis, el analizador simplemente se pausa hasta que mejores tu plan o compres un paquete — nunca acumularás un cargo que no puedas ver. Cancela cuando quieras.",
+  },
+
+  plans: {
+    free: { blurb: "Prueba la caza. Sin tarjeta.", features: ["10 análisis de ofertas", "Los 50 estados + calificaciones de oportunidad", "Evaluación completa con Puntuación de Oferta"] },
+    hunter: { blurb: "Para el inversor activo que trabaja mercados cada semana.", features: ["300 análisis / mes", "Guarda ofertas + exporta a CSV", "Clasificaciones de Zonas de Oportunidad", "Soporte por correo"] },
+    closer: { blurb: "Maneja volumen en varios mercados.", features: ["1,500 análisis / mes", "Exportación masiva a CSV + lote multimercado", "Acceso anticipado a nuevos mercados", "Soporte prioritario"] },
+    agency: { blurb: "Para fondos y equipos que despliegan capital a escala.", features: ["5,000 análisis / mes", "Asientos de equipo", "Actualización de datos prioritaria", "Todo lo de Closer"] },
+  },
+
+  legal: {
+    eyebrow: "Legal",
+    updated: "Última actualización: junio de 2026.",
+    translationNote: "Traducción de cortesía. En caso de cualquier discrepancia, prevalece la versión en inglés.",
+    terms: {
+      title: "Términos del Servicio",
+      sections: [
+        { h: "1. Qué es CloseHound", p: [
+          "CloseHound es una herramienta de software de análisis que te ayuda a investigar posibles inversiones de alquiler de la Sección 8 (Vale de Elección de Vivienda) comparando datos de Renta Justa de Mercado / SAFMR de HUD y datos de anuncios y de mercado de terceros, y produciendo métricas de evaluación estimadas y una “Puntuación de Oferta.”",
+          "CloseHound no es una correduría inmobiliaria, un prestamista, un administrador de propiedades, ni un asesor financiero, de inversiones, fiscal o legal. Nada de lo que CloseHound produce constituye una oferta, solicitud, recomendación o consejo para comprar, vender o financiar ninguna propiedad.",
+        ] },
+        { h: "2. Sin dependencia; verifica todo", p: [
+          "Todas las cifras son estimaciones generadas a partir de datos que pueden estar incompletos, retrasados o ser inexactos. Las rentas de los vales, los estándares de pago, los precios, los impuestos, el seguro y el estado de la propiedad varían y cambian. Eres el único responsable de verificar de forma independiente cada número y de consultar a profesionales cualificados antes de tomar cualquier decisión.",
+        ] },
+        { h: "3. Cuentas y uso aceptable", p: [
+          "Eres responsable de tu cuenta y de mantener seguras tus credenciales. Aceptas no extraer (scraping), revender ni redistribuir los datos obtenidos a través del servicio, no exceder ni eludir los límites del plan, y no usar el servicio para ningún fin ilícito, incluida la discriminación ilegal en materia de vivienda.",
+        ] },
+        { h: "4. Planes, análisis y facturación", p: [
+          "Los planes de pago y los paquetes de créditos de pago por uso se facturan a través de Stripe. Las suscripciones otorgan una asignación mensual de análisis; los paquetes de créditos añaden análisis que no caducan, utilizados después de agotar tu asignación mensual. El servicio mide el uso para que no puedas incurrir en cargos más allá de lo que has comprado. Las suscripciones se renuevan hasta su cancelación; puedes cancelar en cualquier momento y gestionar la facturación a través del portal del cliente. Salvo cuando lo exija la ley, los pagos no son reembolsables.",
+        ] },
+        { h: "5. Fuentes de datos y marcas comerciales", p: [
+          "CloseHound utiliza datos públicos de HUD y datos licenciados de terceros. CloseHound no está afiliado, respaldado ni patrocinado por el Departamento de Vivienda y Desarrollo Urbano de EE. UU. ni por ningún proveedor de anuncios. Todas las marcas comerciales son propiedad de sus respectivos dueños.",
+        ] },
+        { h: "6. Sin garantía; limitación de responsabilidad", p: [
+          "El servicio se proporciona “tal cual” y “según disponibilidad”, sin garantías de ningún tipo. En la máxima medida permitida por la ley, CloseHound y WalkPerro no son responsables de ningún daño indirecto, incidental o consecuente, ni de ninguna pérdida de beneficios o pérdidas de inversión, derivados de tu uso del servicio. Nuestra responsabilidad total se limita al importe que pagaste en los tres meses anteriores a la reclamación.",
+        ] },
+        { h: "7. Cambios y contacto", p: [
+          "Podemos actualizar estos términos; el uso continuado significa que aceptas los cambios. Preguntas: walkperro@proton.me.",
+        ] },
+      ],
+    },
+    privacy: {
+      title: "Política de Privacidad",
+      sections: [
+        { h: "Qué recopilamos", p: [
+          "Datos de la cuenta: tu dirección de correo electrónico y detalles de autenticación (gestionados por Supabase). Datos de uso: los mercados y códigos postales que analizas y tu número de análisis, para poder medir tu plan. Datos de facturación: registros de suscripción y compra (gestionados por Stripe — nunca almacenamos números de tarjeta completos).",
+        ] },
+        { h: "Cómo lo usamos", p: [
+          "Para operar el servicio: autenticarte, ejecutar y medir análisis, entregar resultados, procesar pagos, brindar soporte y mejorar el producto. No vendemos tu información personal.",
+        ] },
+        { h: "Procesadores de terceros", p: [
+          "Confiamos en proveedores de confianza para operar CloseHound: Supabase (autenticación + base de datos), Stripe (pagos), Resend (correo transaccional), Vercel (alojamiento) y proveedores licenciados de datos inmobiliarios y de HUD para los datos de evaluación. Cada uno procesa los datos solo en la medida necesaria para prestar su servicio.",
+        ] },
+        { h: "Cookies", p: [
+          "Usamos solo las cookies necesarias para mantener tu sesión iniciada y operar la aplicación. No usamos rastreadores publicitarios.",
+        ] },
+        { h: "Tus opciones", p: [
+          "Puedes acceder a los datos de tu cuenta o eliminarlos contactándonos. Cerrar tu cuenta elimina tu perfil y tus ofertas guardadas. Los datos de mercado en caché son anónimos y no están vinculados a ti.",
+        ] },
+        { h: "Contacto", p: ["Preguntas o solicitudes de datos: walkperro@proton.me."] },
+      ],
+    },
+  },
+};

@@ -1,29 +1,35 @@
 import Link from "next/link";
 import { Logo } from "./Logo";
 import { Label } from "./Label";
+import { getDictionary } from "@/lib/i18n";
+import { localizedPath, type Locale } from "@/lib/i18n/config";
 
-const COLUMNS: { title: string; links: { href: string; label: string }[] }[] = [
-  {
-    title: "Product",
-    links: [
-      { href: "/screen", label: "Open the screener" },
-      { href: "/how-it-works", label: "How it works" },
-      { href: "/how-it-works#zones", label: "Opportunity Zones" },
-      { href: "/pricing", label: "Pricing" },
-      { href: "/demo", label: "Watch the demo" },
-    ],
-  },
-  {
-    title: "Trust",
-    links: [
-      { href: "/how-it-works#methodology", label: "Our methodology" },
-      { href: "/how-it-works#data", label: "Where the data comes from" },
-      { href: "/how-it-works#faq", label: "FAQ" },
-    ],
-  },
-];
+export function Footer({ locale = "en" }: { locale?: Locale }) {
+  const t = getDictionary(locale).footer;
+  const lp = (p: string) => localizedPath(p, locale);
+  const year = new Date().getFullYear();
 
-export function Footer() {
+  const COLUMNS = [
+    {
+      title: t.product,
+      links: [
+        { href: "/screen", label: t.links.openScreener },
+        { href: lp("/how-it-works"), label: t.links.howItWorks },
+        { href: `${lp("/how-it-works")}#zones`, label: t.links.opportunityZones },
+        { href: lp("/pricing"), label: t.links.pricing },
+        { href: lp("/demo"), label: t.links.watchDemo },
+      ],
+    },
+    {
+      title: t.trust,
+      links: [
+        { href: `${lp("/how-it-works")}#methodology`, label: t.links.methodology },
+        { href: `${lp("/how-it-works")}#data`, label: t.links.dataSource },
+        { href: `${lp("/how-it-works")}#faq`, label: t.links.faq },
+      ],
+    },
+  ];
+
   return (
     <footer className="border-t border-hairline bg-background">
       <div className="mx-auto max-w-6xl px-5 py-14 sm:px-8">
@@ -31,11 +37,10 @@ export function Footer() {
           <div>
             <Logo />
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
-              The deal screener for Section 8 investors. Built on official HUD voucher data —
-              so you find the homes where the government check beats the mortgage.
+              {t.tagline}
             </p>
             <Label className="mt-6" gold>
-              A WALKPERRO PRODUCT
+              {t.walkperro}
             </Label>
           </div>
 
@@ -59,22 +64,15 @@ export function Footer() {
         </div>
 
         <div className="mt-12 border-t border-hairline pt-6">
-          <p className="text-[12px] leading-relaxed text-muted-foreground">
-            CloseHound is an analytics tool, not a licensed real-estate brokerage, lender, or
-            financial, investment, or legal advisor. Deal Scores are estimates generated from
-            public HUD Fair Market Rent / SAFMR data and third-party listing and market data, and
-            may be incomplete or out of date. Always verify rents, costs, and condition and consult
-            a qualified professional before buying. CloseHound is not affiliated with, endorsed by,
-            or sponsored by the U.S. Department of Housing and Urban Development.
-          </p>
+          <p className="text-[12px] leading-relaxed text-muted-foreground">{t.disclaimer}</p>
           <div className="mt-5 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
             <p className="text-[12px] text-muted-foreground">
-              © {new Date().getFullYear()} CloseHound · WalkPerro. All rights reserved.
+              © {year} {t.copyright}
             </p>
             <div className="flex items-center gap-5 text-[12px] text-muted-foreground">
-              <Link href="/legal/terms" className="transition hover:text-foreground">Terms</Link>
-              <Link href="/legal/privacy" className="transition hover:text-foreground">Privacy</Link>
-              <a href="mailto:walkperro@proton.me" className="transition hover:text-foreground">Contact</a>
+              <Link href={lp("/legal/terms")} className="transition hover:text-foreground">{t.terms}</Link>
+              <Link href={lp("/legal/privacy")} className="transition hover:text-foreground">{t.privacy}</Link>
+              <a href="mailto:walkperro@proton.me" className="transition hover:text-foreground">{t.contact}</a>
             </div>
           </div>
         </div>

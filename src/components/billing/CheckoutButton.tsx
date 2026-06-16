@@ -9,6 +9,8 @@ export function CheckoutButton({
   price,
   variant,
   next = "/pricing",
+  busyLabel = "Redirecting…",
+  errorLabel = "Checkout unavailable",
 }: {
   children: React.ReactNode;
   className?: string;
@@ -17,6 +19,8 @@ export function CheckoutButton({
   variant?: "primary" | "secondary" | "ghost" | "outline";
   /** Where to send the user back after login if they're not signed in. */
   next?: string;
+  busyLabel?: string;
+  errorLabel?: string;
 }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -39,9 +43,9 @@ export function CheckoutButton({
         location.href = json.url;
         return;
       }
-      setErr(json.error || "Checkout unavailable");
+      setErr(json.error || errorLabel);
     } catch {
-      setErr("Checkout failed");
+      setErr(errorLabel);
     } finally {
       setBusy(false);
     }
@@ -50,7 +54,7 @@ export function CheckoutButton({
   return (
     <div className={className}>
       <Button onClick={go} disabled={busy} variant={variant} className="w-full">
-        {busy ? "Redirecting…" : children}
+        {busy ? busyLabel : children}
       </Button>
       {err && <p className="mt-2 text-xs text-destructive">{err}</p>}
     </div>
