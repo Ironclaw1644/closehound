@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { fmtUSD, fmtPct } from "@/lib/format";
 import { ScoreBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { getDictionary, localizedPath, type Locale } from "@/lib/i18n";
 
 interface SavedDeal {
   id: string;
@@ -13,7 +14,8 @@ interface SavedDeal {
   underwriting: { dealScore?: number; cashOnCashPct?: number; capRatePct?: number } | null;
 }
 
-export function SavedList() {
+export function SavedList({ locale = "en" }: { locale?: Locale }) {
+  const t = getDictionary(locale).app.saved;
   const [deals, setDeals] = useState<SavedDeal[] | null>(null);
 
   useEffect(() => {
@@ -28,13 +30,13 @@ export function SavedList() {
     setDeals((d) => d?.filter((x) => x.id !== id) ?? null);
   }
 
-  if (!deals) return <p className="text-sm text-muted-foreground">Loading…</p>;
+  if (!deals) return <p className="text-sm text-muted-foreground">{t.loading}</p>;
   if (deals.length === 0)
     return (
       <p className="text-sm text-muted-foreground">
-        No saved deals yet — save deals from the{" "}
-        <a href="/screen" className="font-semibold text-gold hover:underline">
-          screener
+        {t.emptyLead}{" "}
+        <a href={localizedPath("/screen", locale)} className="font-semibold text-gold hover:underline">
+          {t.emptyLink}
         </a>
         .
       </p>
@@ -47,15 +49,13 @@ export function SavedList() {
           <div className="min-w-0">
             <p className="truncate font-medium">{d.listing?.address ?? "Listing"}</p>
             <p className="tabular font-mono text-[13px] text-muted-foreground">
-              {fmtUSD(d.listing?.price)} · CoC {fmtPct(d.underwriting?.cashOnCashPct)} · cap{" "}
+              {fmtUSD(d.listing?.price)} · {t.coc} {fmtPct(d.underwriting?.cashOnCashPct)} · {t.cap}{" "}
               {fmtPct(d.underwriting?.capRatePct)}
             </p>
           </div>
           <div className="flex items-center gap-3">
             <ScoreBadge score={d.underwriting?.dealScore ?? 0} />
-            <Button size="sm" variant="ghost" onClick={() => remove(d.id)}>
-              Remove
-            </Button>
+            <Button size="sm" variant="ghost" onClick={() => remove(d.id)}>{t.remove}</Button>
           </div>
         </div>
       ))}

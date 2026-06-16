@@ -13,6 +13,7 @@ import type { ClientDeal } from "./types";
 import { fmtUSD, fmtPct, fmtDscr } from "@/lib/format";
 import { ScoreBadge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { getDictionary, type Locale } from "@/lib/i18n";
 
 const col = createColumnHelper<ClientDeal>();
 
@@ -20,68 +21,34 @@ export function DealTable({
   deals,
   onSelect,
   selectedId,
+  locale = "en",
 }: {
   deals: ClientDeal[];
   onSelect: (d: ClientDeal) => void;
   selectedId?: string | null;
+  locale?: Locale;
 }) {
+  const t = getDictionary(locale).app.dealTable;
   const [sorting, setSorting] = useState<SortingState>([{ id: "dealScore", desc: true }]);
 
   const columns = useMemo(
     () => [
-      col.accessor((d) => d.listing.address, {
-        id: "address",
-        header: "Address",
-        cell: (c) => <span className="font-medium">{c.getValue() ?? "—"}</span>,
-        enableSorting: false,
-      }),
-      col.accessor((d) => d.listing.price, {
-        id: "price",
-        header: "Price",
-        cell: (c) => fmtUSD(c.getValue()),
-      }),
-      col.accessor((d) => d.listing.beds, { id: "beds", header: "BR", cell: (c) => c.getValue() ?? "—" }),
-      col.accessor((d) => d.underwriting.grossRent, {
-        id: "rent",
-        header: "SAFMR rent",
-        cell: (c) => fmtUSD(c.getValue()),
-      }),
+      col.accessor((d) => d.listing.address, { id: "address", header: t.address, cell: (c) => <span className="font-medium">{c.getValue() ?? "—"}</span>, enableSorting: false }),
+      col.accessor((d) => d.listing.price, { id: "price", header: t.price, cell: (c) => fmtUSD(c.getValue()) }),
+      col.accessor((d) => d.listing.beds, { id: "beds", header: t.br, cell: (c) => c.getValue() ?? "—" }),
+      col.accessor((d) => d.underwriting.grossRent, { id: "rent", header: t.safmrRent, cell: (c) => fmtUSD(c.getValue()) }),
       col.accessor((d) => d.underwriting.netCashFlowMonthly, {
         id: "netcf",
-        header: "Net CF/mo",
-        cell: (c) => (
-          <span className={cn(c.getValue() >= 0 ? "text-success" : "text-destructive")}>
-            {fmtUSD(c.getValue())}
-          </span>
-        ),
+        header: t.netCf,
+        cell: (c) => <span className={cn(c.getValue() >= 0 ? "text-success" : "text-destructive")}>{fmtUSD(c.getValue())}</span>,
       }),
-      col.accessor((d) => d.underwriting.cashOnCashPct, {
-        id: "coc",
-        header: "Cash/cash",
-        cell: (c) => fmtPct(c.getValue()),
-      }),
-      col.accessor((d) => d.underwriting.capRatePct, {
-        id: "cap",
-        header: "Cap rate",
-        cell: (c) => fmtPct(c.getValue()),
-      }),
-      col.accessor((d) => d.underwriting.rentToPricePct, {
-        id: "rtp",
-        header: "Rent/price",
-        cell: (c) => fmtPct(c.getValue(), 2),
-      }),
-      col.accessor((d) => d.underwriting.dscr, {
-        id: "dscr",
-        header: "DSCR",
-        cell: (c) => fmtDscr(c.getValue()),
-      }),
-      col.accessor((d) => d.underwriting.dealScore, {
-        id: "dealScore",
-        header: "Score",
-        cell: (c) => <ScoreBadge score={c.getValue()} />,
-      }),
+      col.accessor((d) => d.underwriting.cashOnCashPct, { id: "coc", header: t.cashCash, cell: (c) => fmtPct(c.getValue()) }),
+      col.accessor((d) => d.underwriting.capRatePct, { id: "cap", header: t.capRate, cell: (c) => fmtPct(c.getValue()) }),
+      col.accessor((d) => d.underwriting.rentToPricePct, { id: "rtp", header: t.rentPrice, cell: (c) => fmtPct(c.getValue(), 2) }),
+      col.accessor((d) => d.underwriting.dscr, { id: "dscr", header: t.dscr, cell: (c) => fmtDscr(c.getValue()) }),
+      col.accessor((d) => d.underwriting.dealScore, { id: "dealScore", header: t.score, cell: (c) => <ScoreBadge score={c.getValue()} /> }),
     ],
-    []
+    [t]
   );
 
   const table = useReactTable({
@@ -141,7 +108,7 @@ export function DealTable({
           {deals.length === 0 && (
             <tr>
               <td colSpan={10} className="px-3 py-8 text-center text-sm text-muted-foreground">
-                Select a ZIP to underwrite its active listings.
+                {t.empty}
               </td>
             </tr>
           )}

@@ -1,12 +1,12 @@
 import { AccountView } from "@/components/views/AccountView";
 
-export const metadata = { title: "Account" };
+export const metadata = { title: "Cuenta" };
 export const dynamic = "force-dynamic";
 
-export default async function AccountPage({
+export default async function AccountPageEs({
   searchParams,
 }: {
   searchParams: Promise<{ upgraded?: string; credits?: string }>;
 }) {
-  return <AccountView locale="en" searchParams={searchParams} />;
+  return <AccountView locale="es" searchParams={searchParams} />;
 }

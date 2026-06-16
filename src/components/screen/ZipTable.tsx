@@ -3,25 +3,29 @@
 import type { ZipScreenRow } from "./types";
 import { fmtUSD, fmtPct } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { getDictionary, type Locale } from "@/lib/i18n";
 
 export function ZipTable({
   rows,
   selectedZip,
   onSelect,
+  locale = "en",
 }: {
   rows: ZipScreenRow[];
   selectedZip: string | null;
   onSelect: (zip: string) => void;
+  locale?: Locale;
 }) {
+  const t = getDictionary(locale).app.zipTable;
   return (
     <div className="overflow-hidden rounded-xl border border-border">
       <table className="w-full text-sm">
         <thead>
           <tr className="bg-secondary/60 text-[10.5px] uppercase tracking-[0.08em] text-muted-foreground">
-            <th className="px-3 py-2 text-left font-medium">ZIP</th>
-            <th className="px-3 py-2 text-right font-medium">SAFMR</th>
-            <th className="px-3 py-2 text-right font-medium">Median price</th>
-            <th className="px-3 py-2 text-right font-medium">Rent / price</th>
+            <th className="px-3 py-2 text-left font-medium">{t.zip}</th>
+            <th className="px-3 py-2 text-right font-medium">{t.safmr}</th>
+            <th className="px-3 py-2 text-right font-medium">{t.medianPrice}</th>
+            <th className="px-3 py-2 text-right font-medium">{t.rentPrice}</th>
           </tr>
         </thead>
         <tbody>
@@ -41,7 +45,7 @@ export function ZipTable({
               <td className="tabular px-3 py-2.5 text-right font-mono">{fmtUSD(r.medianSalePrice)}</td>
               <td className="tabular px-3 py-2.5 text-right font-mono font-semibold">
                 {r.insufficient ? (
-                  <span className="text-[11px] font-normal text-muted-foreground">insufficient data</span>
+                  <span className="text-[11px] font-normal text-muted-foreground">{t.insufficient}</span>
                 ) : (
                   <span className={cn((r.zipRentToPricePct ?? 0) >= 1 ? "text-success" : "text-foreground")}>
                     {fmtPct(r.zipRentToPricePct, 2)}
@@ -53,7 +57,7 @@ export function ZipTable({
           {rows.length === 0 && (
             <tr>
               <td colSpan={4} className="px-3 py-8 text-center text-sm text-muted-foreground">
-                Run a screen to rank ZIPs by voucher rent vs. price.
+                {t.empty}
               </td>
             </tr>
           )}

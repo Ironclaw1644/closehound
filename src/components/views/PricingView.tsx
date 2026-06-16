@@ -25,7 +25,7 @@ export function PricingView({ locale }: { locale: Locale }) {
         </section>
 
         <section className="mx-auto max-w-6xl px-5 pb-24 sm:px-8">
-          <PricingTable t={t} planCopy={d.plans} />
+          <PricingTable t={t} planCopy={d.plans} locale={locale} />
         </section>
       </main>
       <Footer locale={locale} />

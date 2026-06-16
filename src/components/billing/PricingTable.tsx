@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { PLANS, CREDIT_PACKS, type Plan } from "@/lib/stripe/plans";
 import { CheckoutButton } from "./CheckoutButton";
-import type { Dictionary } from "@/lib/i18n";
+import { type Dictionary, localizedPath, type Locale } from "@/lib/i18n";
 
 const PAID: Plan[] = [PLANS.hunter, PLANS.closer, PLANS.agency];
 
@@ -16,7 +16,7 @@ function Check() {
   );
 }
 
-export function PricingTable({ t, planCopy }: { t: Dictionary["pricing"]; planCopy: Dictionary["plans"] }) {
+export function PricingTable({ t, planCopy, locale = "en" }: { t: Dictionary["pricing"]; planCopy: Dictionary["plans"]; locale?: Locale }) {
   const [annual, setAnnual] = useState(false);
 
   return (
@@ -53,7 +53,7 @@ export function PricingTable({ t, planCopy }: { t: Dictionary["pricing"]; planCo
             ))}
           </ul>
           <Link
-            href="/screen"
+            href={localizedPath("/screen", locale)}
             className="mt-6 inline-flex h-10 w-full items-center justify-center rounded-md border border-border text-sm font-semibold transition hover:bg-secondary"
           >
             {t.startFree}

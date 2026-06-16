@@ -37,13 +37,13 @@ export function Header({ locale = "en" }: { locale?: Locale }) {
         <div className="flex items-center gap-2.5">
           <LocaleSwitch locale={locale} className="hidden sm:inline-flex" />
           <Link
-            href="/login"
+            href={lp("/login")}
             className="hidden h-9 items-center rounded-md px-3 text-[13.5px] font-semibold text-muted-foreground transition hover:text-foreground sm:inline-flex"
           >
             {t.signIn}
           </Link>
           <Link
-            href="/screen"
+            href={lp("/screen")}
             className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-[13.5px] font-semibold text-primary-foreground transition hover:brightness-95"
           >
             {t.startFree}

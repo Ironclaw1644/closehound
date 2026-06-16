@@ -102,7 +102,7 @@ export function HowItWorksView({ locale }: { locale: Locale }) {
         <section className="border-t border-hairline">
           <div className="mx-auto max-w-3xl px-5 py-16 text-center sm:px-8">
             <h2 className="font-display text-4xl">{t.ctaTitle}</h2>
-            <Link href="/screen" className="mt-6 inline-flex h-12 items-center justify-center rounded-md bg-primary px-8 text-[15px] font-semibold text-primary-foreground transition hover:brightness-95">
+            <Link href={lp("/screen")} className="mt-6 inline-flex h-12 items-center justify-center rounded-md bg-primary px-8 text-[15px] font-semibold text-primary-foreground transition hover:brightness-95">
               {t.cta}
             </Link>
           </div>

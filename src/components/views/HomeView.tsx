@@ -66,7 +66,7 @@ export function HomeView({ locale }: { locale: Locale }) {
             </p>
             <div className="rise mt-9 flex flex-wrap items-center justify-center gap-3">
               <Link
-                href="/screen"
+                href={lp("/screen")}
                 className="inline-flex h-12 items-center justify-center rounded-md bg-primary px-7 text-[15px] font-semibold text-primary-foreground shadow-[0_8px_30px_-8px_rgba(235,255,0,0.5)] transition hover:brightness-95"
               >
                 {t.ctaPrimary}
@@ -146,14 +146,14 @@ export function HomeView({ locale }: { locale: Locale }) {
               <h2 className="mt-4 max-w-2xl font-display text-4xl leading-tight sm:text-5xl">{t.zonesTitle}</h2>
               <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-muted-foreground">{t.zonesSub}</p>
             </div>
-            <Link href="/screen" className="shrink-0 text-[12px] font-semibold uppercase tracking-[0.16em] text-gold transition hover:opacity-80">
+            <Link href={lp("/screen")} className="shrink-0 text-[12px] font-semibold uppercase tracking-[0.16em] text-gold transition hover:opacity-80">
               {t.seeAllMarkets}
             </Link>
           </div>
 
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {zones.map((z) => (
-              <Link key={z.id} href="/screen" className="lift group flex flex-col rounded-xl border border-hairline bg-surface-1 p-5">
+              <Link key={z.id} href={lp("/screen")} className="lift group flex flex-col rounded-xl border border-hairline bg-surface-1 p-5">
                 <div className="flex items-center justify-between">
                   <GradeBadge grade={z.grade} />
                   <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">{z.state}</span>
@@ -238,7 +238,7 @@ export function HomeView({ locale }: { locale: Locale }) {
               <span className="text-gradient">{t.finalTitle}</span>
             </h2>
             <p className="mx-auto mt-5 max-w-md text-[16px] text-muted-foreground">{t.finalSub}</p>
-            <Link href="/screen" className="mt-8 inline-flex h-12 items-center justify-center rounded-md bg-primary px-8 text-[15px] font-semibold text-primary-foreground shadow-[0_8px_30px_-8px_rgba(235,255,0,0.5)] transition hover:brightness-95">
+            <Link href={lp("/screen")} className="mt-8 inline-flex h-12 items-center justify-center rounded-md bg-primary px-8 text-[15px] font-semibold text-primary-foreground shadow-[0_8px_30px_-8px_rgba(235,255,0,0.5)] transition hover:brightness-95">
               {t.finalCta}
             </Link>
           </div>

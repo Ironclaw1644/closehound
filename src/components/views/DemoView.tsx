@@ -3,10 +3,11 @@ import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { Label } from "@/components/site/Label";
 import { getDictionary } from "@/lib/i18n";
-import { type Locale } from "@/lib/i18n/config";
+import { localizedPath, type Locale } from "@/lib/i18n/config";
 
 export function DemoView({ locale }: { locale: Locale }) {
   const t = getDictionary(locale).demo;
+  const lp = (p: string) => localizedPath(p, locale);
 
   return (
     <>
@@ -43,7 +44,7 @@ export function DemoView({ locale }: { locale: Locale }) {
             ))}
           </ol>
           <div className="mt-10 text-center">
-            <Link href="/screen" className="inline-flex h-12 items-center justify-center rounded-md bg-primary px-8 text-[15px] font-semibold text-primary-foreground transition hover:brightness-95">
+            <Link href={lp("/screen")} className="inline-flex h-12 items-center justify-center rounded-md bg-primary px-8 text-[15px] font-semibold text-primary-foreground transition hover:brightness-95">
               {t.cta}
             </Link>
           </div>

@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { marketsByOpportunity, GRADE_META, type Market } from "@/lib/config/assumptions";
+import { marketsByOpportunity, type Market } from "@/lib/config/assumptions";
 import { GradeBadge } from "@/components/site/GradeBadge";
 import { Select } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { getDictionary, type Locale } from "@/lib/i18n";
 
 export function MarketControls({
   market,
@@ -16,6 +17,7 @@ export function MarketControls({
   onBedrooms,
   onRun,
   running,
+  locale = "en",
 }: {
   market: Market;
   marketId: string;
@@ -25,10 +27,13 @@ export function MarketControls({
   onBedrooms: (b: number) => void;
   onRun: () => void;
   running: boolean;
+  locale?: Locale;
 }) {
+  const t = getDictionary(locale).app.controls;
+  const grades = getDictionary(locale).howItWorks.grades;
   const [zip, setZip] = useState("");
   const ordered = marketsByOpportunity();
-  const meta = GRADE_META[market.grade];
+  const gm = grades[market.grade];
 
   function submitZip(e: React.FormEvent) {
     e.preventDefault();
@@ -39,11 +44,14 @@ export function MarketControls({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Market</CardTitle>
-        <GradeBadge grade={market.grade} withLabel />
+        <CardTitle>{t.title}</CardTitle>
+        <span className="inline-flex items-center gap-1.5">
+          <GradeBadge grade={market.grade} />
+          <span className="text-[11px] font-semibold text-muted-foreground">{gm.label}</span>
+        </span>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
-        <Select label="Target market (graded by cash-flow)" value={marketId} onChange={onMarket}>
+        <Select label={t.targetMarket} value={marketId} onChange={onMarket}>
           {ordered.map((m) => (
             <option key={m.id} value={m.id}>
               [{m.grade}] {m.label} · {m.state}
@@ -52,36 +60,36 @@ export function MarketControls({
         </Select>
 
         <p className="rounded-md border border-hairline bg-background px-3 py-2 text-[12px] leading-relaxed text-muted-foreground">
-          {meta.blurb}
+          {gm.blurb}
         </p>
 
-        <Select label="Bedrooms (voucher size)" value={String(bedrooms)} onChange={(v) => onBedrooms(Number(v))}>
+        <Select label={t.bedrooms} value={String(bedrooms)} onChange={(v) => onBedrooms(Number(v))}>
           {[0, 1, 2, 3, 4].map((b) => (
             <option key={b} value={b}>
-              {b === 0 ? "Studio" : `${b} Bedroom`}
+              {b === 0 ? t.studio : `${b} ${t.bedroom}`}
             </option>
           ))}
         </Select>
 
         <Button onClick={onRun} disabled={running}>
-          {running ? "Screening…" : "Run screen"}
+          {running ? t.screening : t.runScreen}
         </Button>
 
         {/* Any-ZIP escape hatch — reach all 50 states. */}
         <form onSubmit={submitZip} className="mt-1 border-t border-hairline pt-3">
           <span className="text-[10.5px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
-            Or screen any ZIP
+            {t.orAnyZip}
           </span>
           <div className="mt-1 flex gap-2">
             <input
               value={zip}
               onChange={(e) => setZip(e.target.value.replace(/\D/g, "").slice(0, 5))}
               inputMode="numeric"
-              placeholder="e.g. 44105"
+              placeholder={t.zipPlaceholder}
               className="tabular h-9 w-full rounded-md border border-input bg-background px-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
             />
             <Button type="submit" variant="outline" size="sm" disabled={zip.length !== 5}>
-              Load
+              {t.load}
             </Button>
           </div>
         </form>

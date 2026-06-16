@@ -25,12 +25,17 @@ import { Pill } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/site/Logo";
 import { GradeBadge } from "@/components/site/GradeBadge";
+import { LocaleSwitch } from "@/components/site/LocaleSwitch";
+import { getDictionary, localizedPath, type Locale } from "@/lib/i18n";
 
 const MOCK =
   process.env.NEXT_PUBLIC_MOCK_MODE === "1" ||
   process.env.NEXT_PUBLIC_MOCK_MODE === "true";
 
-export function Dashboard() {
+export function Dashboard({ locale = "en" }: { locale?: Locale }) {
+  const t = getDictionary(locale).app;
+  const lp = (p: string) => localizedPath(p, locale);
+
   const [marketId, setMarketId] = useState(DEFAULT_MARKETS[0].id);
   const [customMarket, setCustomMarket] = useState<Market | null>(null);
   const market = customMarket ?? findMarket(marketId)!;
@@ -81,17 +86,17 @@ export function Dashboard() {
         body: JSON.stringify({ zips: market.zips, bedrooms }),
       });
       if (res.status === 402) {
-        setError("Out of screens for this period — upgrade or buy a credit pack to keep screening.");
+        setError(t.errors.outOfScreensRun);
         return;
       }
       const json = await res.json();
       setZipRows(json.rows ?? []);
     } catch {
-      setError("Screen failed. Try again.");
+      setError(t.errors.screenFailed);
     } finally {
       setRunning(false);
     }
-  }, [market, bedrooms]);
+  }, [market, bedrooms, t]);
 
   const selectZip = useCallback(async (zip: string) => {
     setSelectedZip(zip);
@@ -104,16 +109,16 @@ export function Dashboard() {
         body: JSON.stringify({ zip }),
       });
       if (res.status === 402) {
-        setError("Out of screens — upgrade or buy a credit pack to keep screening.");
+        setError(t.errors.outOfScreensListings);
         return;
       }
       setRaw(await res.json());
     } catch {
-      setError("Could not load listings.");
+      setError(t.errors.couldNotLoad);
     } finally {
       setLoadingListings(false);
     }
-  }, []);
+  }, [t]);
 
   // Underwrite client-side — assumption tweaks re-score instantly, no re-billing.
   const deals: ClientDeal[] = useMemo(() => {
@@ -127,13 +132,7 @@ export function Dashboard() {
         return {
           listing: l,
           safmrMonthly,
-          underwriting: underwrite({
-            price: l.price!,
-            safmrMonthly,
-            annualPropertyTax: l.annualTax,
-            assumptions,
-            weights: DEFAULT_WEIGHTS,
-          }),
+          underwriting: underwrite({ price: l.price!, safmrMonthly, annualPropertyTax: l.annualTax, assumptions, weights: DEFAULT_WEIGHTS }),
         };
       })
       .sort((a, b) => b.underwriting.dealScore - a.underwriting.dealScore);
@@ -150,13 +149,13 @@ export function Dashboard() {
         body: JSON.stringify({ listing: d.listing, underwriting: d.underwriting, safmrMonthly: d.safmrMonthly }),
       });
       if (res.ok) setSavedIds((s) => new Set(s).add(d.listing.rentcastId));
-      else if (res.status === 401) setError("Sign in to save deals.");
+      else if (res.status === 401) setError(t.errors.signInToSave);
     } catch {
-      setError("Could not save.");
+      setError(t.errors.couldNotSave);
     } finally {
       setSaving(false);
     }
-  }, []);
+  }, [t]);
 
   const zones = featuredZones().slice(0, 8);
   const lowGrade = market.grade === "D" || market.grade === "F";
@@ -167,15 +166,16 @@ export function Dashboard() {
       <header className="sticky top-0 z-30 border-b border-hairline bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-[1400px] items-center justify-between px-5">
           <div className="flex items-center gap-3">
-            <a href="/" aria-label="CloseHound home"><Logo /></a>
+            <a href={lp("/")} aria-label="CloseHound home"><Logo /></a>
             <span className="hidden text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground sm:inline">
-              Deal screener
+              {t.nav.dealScreener}
             </span>
           </div>
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            {MOCK && <Pill tone="warning">Mock data · 0 live calls</Pill>}
-            <a href="/saved" className="transition hover:text-foreground">Saved</a>
-            <a href="/account" className="transition hover:text-foreground">Account</a>
+            {MOCK && <Pill tone="warning">{t.mock}</Pill>}
+            <LocaleSwitch locale={locale} className="hidden sm:inline-flex" />
+            <a href={lp("/saved")} className="transition hover:text-foreground">{t.nav.saved}</a>
+            <a href={lp("/account")} className="transition hover:text-foreground">{t.nav.account}</a>
           </div>
         </div>
       </header>
@@ -186,27 +186,21 @@ export function Dashboard() {
           {/* Opportunity Zones quick pick */}
           <Card>
             <CardHeader>
-              <CardTitle>Opportunity Zones</CardTitle>
+              <CardTitle>{t.zones.title}</CardTitle>
               <GradeBadge grade="A" />
             </CardHeader>
             <CardContent className="flex flex-col gap-1.5">
-              <p className="mb-1 text-[12px] leading-relaxed text-muted-foreground">
-                Prime cash-flow markets. Tap to load.
-              </p>
+              <p className="mb-1 text-[12px] leading-relaxed text-muted-foreground">{t.zones.sub}</p>
               {zones.map((z) => (
                 <button
                   key={z.id}
                   onClick={() => onMarket(z.id)}
                   className={`flex items-center justify-between rounded-md border px-2.5 py-1.5 text-left text-[13px] transition ${
-                    market.id === z.id
-                      ? "border-primary/60 bg-primary/15"
-                      : "border-hairline hover:bg-secondary"
+                    market.id === z.id ? "border-primary/60 bg-primary/15" : "border-hairline hover:bg-secondary"
                   }`}
                 >
                   <span className="font-medium">{z.label}</span>
-                  <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                    {z.state}
-                  </span>
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{z.state}</span>
                 </button>
               ))}
             </CardContent>
@@ -221,65 +215,60 @@ export function Dashboard() {
             onBedrooms={setBedrooms}
             onRun={runScreen}
             running={running}
+            locale={locale}
           />
-          <AssumptionsPanel a={assumptions} onChange={(patch) => setAssumptions((a) => ({ ...a, ...patch }))} />
+          <AssumptionsPanel a={assumptions} onChange={(patch) => setAssumptions((a) => ({ ...a, ...patch }))} locale={locale} />
         </div>
 
         {/* Main */}
         <div className="flex flex-col gap-5">
           {error && (
-            <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm text-destructive">
-              {error}
-            </div>
+            <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm text-destructive">{error}</div>
           )}
           {lowGrade && (
             <div className="flex items-start gap-3 rounded-lg border border-warning/40 bg-warning/10 px-4 py-2.5 text-sm text-warning">
               <GradeBadge grade={market.grade} />
               <p>
-                <strong className="font-semibold">Heads up:</strong> {market.label} grades low for cash flow.
-                {market.note ? ` ${market.note}` : " Consider an Opportunity Zone instead so you don't waste a screen."}
+                <strong className="font-semibold">{t.market.headsUp}</strong> {market.label} {t.market.lowGrade}{" "}
+                {locale === "en" && market.note ? market.note : t.market.considerZone}
               </p>
             </div>
           )}
-          {!lowGrade && market.note && (
+          {!lowGrade && market.note && locale === "en" && (
             <div className="rounded-lg border border-hairline bg-surface-1 px-4 py-2.5 text-sm text-muted-foreground">
-              <strong className="font-semibold text-foreground">Note · {market.label}:</strong> {market.note}
+              <strong className="font-semibold text-foreground">{t.market.note} · {market.label}:</strong> {market.note}
             </div>
           )}
 
           {/* Stage 1 */}
           <Card>
             <CardHeader>
-              <CardTitle>Stage 1 — ZIP opportunity screen</CardTitle>
+              <CardTitle>{t.stage1.title}</CardTitle>
               <span className="text-[11px] text-muted-foreground">
-                {zipRows.length ? `${zipRows.filter((r) => !r.insufficient).length} ZIPs ranked` : "run a screen to begin"}
+                {zipRows.length ? `${zipRows.filter((r) => !r.insufficient).length} ${t.stage1.ranked}` : t.stage1.runToBegin}
               </span>
             </CardHeader>
             <CardContent className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-              <OpportunityScatter rows={zipRows} selectedZip={selectedZip} onSelect={selectZip} />
-              <ZipTable rows={zipRows} selectedZip={selectedZip} onSelect={selectZip} />
+              <OpportunityScatter rows={zipRows} selectedZip={selectedZip} onSelect={selectZip} locale={locale} />
+              <ZipTable rows={zipRows} selectedZip={selectedZip} onSelect={selectZip} locale={locale} />
             </CardContent>
           </Card>
 
           {/* Stage 2 */}
           <Card>
             <CardHeader>
-              <CardTitle>Stage 2 — deals {selectedZip ? `· ${selectedZip}` : ""}</CardTitle>
+              <CardTitle>{t.stage2.title} {selectedZip ? `· ${selectedZip}` : ""}</CardTitle>
               <div className="flex items-center gap-3">
-                {loadingListings && <span className="text-[11px] text-muted-foreground">loading…</span>}
+                {loadingListings && <span className="text-[11px] text-muted-foreground">{t.stage2.loading}</span>}
                 {deals.length > 0 && (
                   <Button size="sm" variant="outline" onClick={() => downloadDealsCsv(deals, selectedZip ?? "all")}>
-                    Export CSV
+                    {t.stage2.exportCsv}
                   </Button>
                 )}
               </div>
             </CardHeader>
             <CardContent>
-              <DealTable
-                deals={deals}
-                onSelect={(d) => setSelectedDealId(d.listing.rentcastId)}
-                selectedId={selectedDealId}
-              />
+              <DealTable deals={deals} onSelect={(d) => setSelectedDealId(d.listing.rentcastId)} selectedId={selectedDealId} locale={locale} />
             </CardContent>
           </Card>
         </div>
@@ -291,6 +280,7 @@ export function Dashboard() {
         onSave={saveDeal}
         saving={saving}
         saved={selectedDeal ? savedIds.has(selectedDeal.listing.rentcastId) : false}
+        locale={locale}
       />
     </div>
   );

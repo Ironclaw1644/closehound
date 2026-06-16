@@ -237,6 +237,64 @@ export const en = {
       ],
     },
   },
+
+  // In-app screener UI (/screen, /account, /saved, /login).
+  app: {
+    nav: { dealScreener: "Deal screener", saved: "Saved", account: "Account", backToScreener: "← Screener" },
+    mock: "Mock data · 0 live calls",
+    zones: { title: "Opportunity Zones", sub: "Prime cash-flow markets. Tap to load." },
+    errors: {
+      outOfScreensRun: "Out of screens for this period — upgrade or buy a credit pack to keep screening.",
+      screenFailed: "Screen failed. Try again.",
+      outOfScreensListings: "Out of screens — upgrade or buy a credit pack to keep screening.",
+      couldNotLoad: "Could not load listings.",
+      signInToSave: "Sign in to save deals.",
+      couldNotSave: "Could not save.",
+    },
+    market: { headsUp: "Heads up:", lowGrade: "grades low for cash flow.", considerZone: "Consider an Opportunity Zone instead so you don't waste a screen.", note: "Note" },
+    stage1: { title: "Stage 1 — ZIP opportunity screen", ranked: "ZIPs ranked", runToBegin: "run a screen to begin" },
+    stage2: { title: "Stage 2 — deals", loading: "loading…", exportCsv: "Export CSV" },
+    controls: {
+      title: "Market", targetMarket: "Target market (graded by cash-flow)", bedrooms: "Bedrooms (voucher size)",
+      studio: "Studio", bedroom: "Bedroom", screening: "Screening…", runScreen: "Run screen",
+      orAnyZip: "Or screen any ZIP", zipPlaceholder: "e.g. 44105", load: "Load",
+    },
+    assumptions: {
+      title: "Assumptions", liveRescore: "live re-score", downPayment: "Down payment", interest: "Interest",
+      loanTerm: "Loan term", closing: "Closing", rehab: "Rehab", paymentStd: "Payment std", mgmt: "Mgmt",
+      vacancy: "Vacancy", maintenance: "Maintenance", capex: "CapEx", taxRate: "Tax rate", insurance: "Insurance", monthlyHOA: "Monthly HOA",
+    },
+    zipTable: { zip: "ZIP", safmr: "SAFMR", medianPrice: "Median price", rentPrice: "Rent / price", insufficient: "insufficient data", empty: "Run a screen to rank ZIPs by voucher rent vs. price." },
+    dealTable: { address: "Address", price: "Price", br: "BR", safmrRent: "SAFMR rent", netCf: "Net CF/mo", cashCash: "Cash/cash", capRate: "Cap rate", rentPrice: "Rent/price", dscr: "DSCR", score: "Score", empty: "Select a ZIP to underwrite its active listings." },
+    scatter: { medianPrice: "Median price", safmr: "SAFMR", rentPrice: "Rent/price", empty: "Opportunity map appears after a screen." },
+    drawer: {
+      listing: "Listing", br: "BR", ba: "BA", sqft: "sqft", built: "built", close: "Close",
+      monthlyCashflow: "Monthly cash-flow",
+      grossRent: "Gross rent (SAFMR × payment std)", varOpex: "− Variable opex (mgmt/vac/maint/capex)",
+      fixOpex: "− Fixed opex (tax/ins/HOA)", noi: "NOI / mo", pi: "− P&I (debt service)", netCf: "Net cash flow / mo",
+      cashOnCash: "Cash-on-cash", capRate: "Cap rate", rentToPrice: "Rent-to-price", dscr: "DSCR", cashIn: "Cash in", loan: "Loan",
+      dealScore: "Deal Score =",
+      sourceCeiling: "Rent ceiling from HUD SAFMR (FY2026) for", sourceBr: "BR:",
+      source5plus: " (5+ BR uses the 4 BR ceiling)", sourcePropertyTax: "Property tax",
+      sourceFromListing: "from listing", sourceEstimated: "estimated from tax-rate assumption",
+      saved: "Saved ✓", saving: "Saving…", saveDeal: "Save deal", printPdf: "Print / PDF",
+    },
+    account: {
+      eyebrow: "Account", title: "Plan & usage", creditsAdded: "Credits added — happy hunting.", upgraded: "You're upgraded. Go find some deals.",
+      membership: "Membership", signedInAs: "Signed in as", screensThisMonth: "Screens this month",
+      monthlyLeft: "monthly screens left · resets at the start of next month.", paygCredits: "Pay-as-you-go credits",
+      paygSub: "Used automatically after your monthly screens run out. Never expire.",
+      changePlan: "Change plan", upgradeBuy: "Upgrade · buy credits", manageBilling: "Manage billing", signOut: "Sign out",
+    },
+    saved: { eyebrow: "Saved", title: "Your saved deals", loading: "Loading…", emptyLead: "No saved deals yet — save deals from the", emptyLink: "screener", coc: "CoC", cap: "cap", remove: "Remove" },
+    login: {
+      signInEyebrow: "SIGN IN", createEyebrow: "CREATE ACCOUNT", welcomeBack: "Welcome back.", startHunting: "Start hunting.",
+      signInSub: "Run your screens and save deals.", createSub: "10 free screens. No card required.",
+      emailPlaceholder: "you@email.com", passwordPlaceholder: "Password", signInBtn: "Sign in", createBtn: "Create free account", busy: "…",
+      accountCreated: "Account created — check your email to confirm, then sign in.", authNotConfigured: "Auth is not configured.",
+      needAccount: "Need an account? Sign up", haveAccount: "Have an account? Sign in", footer: "Official HUD data · No surprise charges",
+    },
+  },
 };
 
 export type Dictionary = typeof en;
