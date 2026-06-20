@@ -85,6 +85,10 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ zips: market.zips, bedrooms }),
       });
+      if (res.status === 401) {
+        window.location.href = `${lp("/login")}?next=${encodeURIComponent(lp("/screen"))}`;
+        return;
+      }
       if (res.status === 402) {
         setError(t.errors.outOfScreensRun);
         return;
@@ -108,6 +112,10 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ zip }),
       });
+      if (res.status === 401) {
+        window.location.href = `${lp("/login")}?next=${encodeURIComponent(lp("/screen"))}`;
+        return;
+      }
       if (res.status === 402) {
         setError(t.errors.outOfScreensListings);
         return;
