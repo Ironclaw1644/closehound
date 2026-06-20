@@ -3,8 +3,14 @@ import { isMockMode } from "@/lib/env";
 import { hasSupabaseAdminEnv, getClosehoundAdminSchema } from "@/lib/supabase";
 import { isFresh, TTL } from "@/lib/cache/ttl";
 import { syntheticSafmr } from "@/lib/mock/synthetic";
-import { HudFmrResponseSchema, UspsCrosswalkSchema, HudSafmrRowSchema } from "./schema";
+import { HudSafmrRowSchema } from "./schema";
 import { recordCall } from "@/lib/metrics";
+import safmrData from "./safmr-data.json";
+
+// Bundled voucher-rent dataset, baked from HUD (scripts/build-safmr.mjs):
+// per-ZIP SAFMR for the ~38 SAFMR metros + county FMR for the rest. Replaces the
+// live HUD API, whose ZIP→metro crosswalk is unreliable across CBSA vintages.
+const SAFMR_DATA = safmrData as { fiscalYear: number; zips: Record<string, number[]> };
 
 /** HUD FMR fiscal year (FY starts Oct 1). Overridable via env. */
 export const HUD_FISCAL_YEAR = Number(process.env.HUD_FISCAL_YEAR) || 2026;
@@ -70,7 +76,7 @@ export async function getSafmr(zip: string): Promise<Safmr | null> {
 
   let fresh: Safmr | null = null;
   try {
-    fresh = isMockMode() ? mockSafmr(zip) : await liveSafmr(zip);
+    fresh = isMockMode() ? mockSafmr(zip) : staticSafmr(zip);
   } catch {
     fresh = null;
   }
@@ -99,45 +105,18 @@ function mockSafmr(zip: string): Safmr {
   return { zip, fiscalYear: HUD_FISCAL_YEAR, br: s.br, metroName: s.metroName, isSafmr: s.isSafmr };
 }
 
-// ── Live HUD path (best-effort per docs; primary path is MOCK_MODE) ──────────
-async function liveSafmr(zip: string): Promise<Safmr | null> {
-  const token = process.env.HUDUSER_API_KEY;
-  if (!token) throw new Error("HUDUSER_API_KEY missing");
-  const headers = { Authorization: `Bearer ${token}` };
-
-  // ZIP → CBSA via USPS crosswalk (type=5).
-  const xw = await fetch(
-    `https://www.huduser.gov/hudapi/public/usps?type=5&query=${zip}`,
-    { headers, cache: "no-store" }
-  );
-  if (!xw.ok) throw new Error(`HUD USPS ${xw.status}`);
-  const cbsa = UspsCrosswalkSchema.parse(await xw.json()).data.results[0]?.geoid;
+// ── Static SAFMR path (bundled HUD dataset; no live API call) ────────────────
+function staticSafmr(zip: string): Safmr | null {
+  const v = SAFMR_DATA.zips[zip];
+  if (!v || v.length < 5 || v.every((x) => !x)) return null;
   recordCall("hud", "live");
-  if (!cbsa) return null;
-
-  // SAFMR by ZIP for that metro.
-  const res = await fetch(
-    `https://www.huduser.gov/hudapi/public/fmr/data/${cbsa}?year=${HUD_FISCAL_YEAR}`,
-    { headers, cache: "no-store" }
-  );
-  if (!res.ok) throw new Error(`HUD FMR ${res.status}`);
-  recordCall("hud", "live");
-  const parsed = HudFmrResponseSchema.parse(await res.json());
-  const rows = parsed.data.basicdata;
-  const list = Array.isArray(rows) ? rows : rows ? [rows] : [];
-  const row = list.find((r) => r.zip_code === zip);
-  if (!row) return null;
-
-  const pick = (a?: number | null, b?: number | null) => a ?? b ?? 0;
-  const safmr: Safmr["br"] = [
-    pick(row["SAFMR 0BR"], row.Efficiency),
-    pick(row["SAFMR 1BR"], row["One-Bedroom"]),
-    pick(row["SAFMR 2BR"], row["Two-Bedroom"]),
-    pick(row["SAFMR 3BR"], row["Three-Bedroom"]),
-    pick(row["SAFMR 4BR"], row["Four-Bedroom"]),
-  ];
-  if (safmr.every((v) => v === 0)) return null;
-  return { zip, fiscalYear: HUD_FISCAL_YEAR, br: safmr, metroName: parsed.data.area_name ?? null, isSafmr: true };
+  return {
+    zip,
+    fiscalYear: SAFMR_DATA.fiscalYear,
+    br: [v[0], v[1], v[2], v[3], v[4]],
+    metroName: null,
+    isSafmr: true,
+  };
 }
 
 // Re-export for tests.
