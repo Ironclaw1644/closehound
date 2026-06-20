@@ -93,6 +93,10 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
         setError(t.errors.outOfScreensRun);
         return;
       }
+      if (!res.ok) {
+        setError(t.errors.screenFailed);
+        return;
+      }
       const json = await res.json();
       setZipRows(json.rows ?? []);
     } catch {
@@ -118,6 +122,10 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
       }
       if (res.status === 402) {
         setError(t.errors.outOfScreensListings);
+        return;
+      }
+      if (!res.ok) {
+        setError(t.errors.couldNotLoad);
         return;
       }
       setRaw(await res.json());
