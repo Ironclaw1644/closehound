@@ -86,13 +86,10 @@ export function HomeView({ locale }: { locale: Locale }) {
           {/* Framed video preview */}
           <div className="relative mx-auto max-w-5xl px-5 pb-8 sm:px-8">
             <div className="overflow-hidden rounded-2xl border border-gold/20 bg-surface-1 shadow-[0_40px_120px_-40px_rgba(0,0,0,0.9)]">
-              <div className="relative aspect-[16/9] bg-background">
-                <video className="absolute inset-0 h-full w-full object-cover" autoPlay muted loop playsInline poster="/demo-poster.jpg" preload="metadata">
+              <div className="aspect-[16/9] bg-background">
+                <video className="h-full w-full object-cover" autoPlay muted loop playsInline poster="/demo-poster.jpg" preload="metadata">
                   <source src="/demo-loop.mp4" type="video/mp4" />
                 </video>
-                <div className="absolute inset-0 -z-0 grid place-items-center">
-                  <SampleDealCard sample={t.sample} />
-                </div>
               </div>
             </div>
           </div>
@@ -247,32 +244,6 @@ export function HomeView({ locale }: { locale: Locale }) {
 
       <Footer locale={locale} />
     </>
-  );
-}
-
-function SampleDealCard({ sample }: { sample: { beds: string; price: string; voucherRent: string; coc: string } }) {
-  return (
-    <div className="w-[min(86%,360px)] rounded-xl border border-hairline bg-surface-2/90 p-5 backdrop-blur">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Cleveland, OH · <span className="font-mono">44105</span></p>
-          <p className="mt-1 text-[15px] font-semibold">{sample.beds}</p>
-        </div>
-        <span className="grid h-12 w-12 place-items-center rounded-lg bg-primary text-lg font-bold text-primary-foreground">86</span>
-      </div>
-      <div className="mt-4 grid grid-cols-3 gap-3 text-center">
-        {[
-          [sample.price, "$92k"],
-          [sample.voucherRent, "$1,485"],
-          [sample.coc, "11.8%"],
-        ].map(([l, v]) => (
-          <div key={l}>
-            <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{l}</p>
-            <p className="mt-1 font-mono text-[15px] font-semibold tabular">{v}</p>
-          </div>
-        ))}
-      </div>
-    </div>
   );
 }
 

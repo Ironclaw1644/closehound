@@ -35,7 +35,7 @@ export function Header({ locale = "en" }: { locale?: Locale }) {
         </nav>
 
         <div className="flex items-center gap-2.5">
-          <LocaleSwitch locale={locale} className="hidden sm:inline-flex" />
+          <LocaleSwitch locale={locale} />
           <Link
             href={lp("/login")}
             className="hidden h-9 items-center rounded-md px-3 text-[13.5px] font-semibold text-muted-foreground transition hover:text-foreground sm:inline-flex"

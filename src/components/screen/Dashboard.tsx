@@ -172,8 +172,8 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
             </span>
           </div>
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            {MOCK && <Pill tone="warning">{t.mock}</Pill>}
-            <LocaleSwitch locale={locale} className="hidden sm:inline-flex" />
+            {MOCK && <Pill tone="warning" className="hidden sm:inline-flex">{t.mock}</Pill>}
+            <LocaleSwitch locale={locale} />
             <a href={lp("/saved")} className="transition hover:text-foreground">{t.nav.saved}</a>
             <a href={lp("/account")} className="transition hover:text-foreground">{t.nav.account}</a>
           </div>
