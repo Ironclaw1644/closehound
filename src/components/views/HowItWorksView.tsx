@@ -9,6 +9,7 @@ import { localizedPath, type Locale } from "@/lib/i18n/config";
 
 export function HowItWorksView({ locale }: { locale: Locale }) {
   const t = getDictionary(locale).howItWorks;
+  const c = getDictionary(locale).common;
   const lp = (p: string) => localizedPath(p, locale);
   const ordered = marketsByOpportunity();
   const grades: Grade[] = ["A", "B", "C", "D", "F"];
@@ -67,6 +68,7 @@ export function HowItWorksView({ locale }: { locale: Locale }) {
           <Label accent>{t.gradesEyebrow}</Label>
           <h2 className="mt-4 font-display text-4xl">{t.gradesTitle}</h2>
           <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">{t.gradesSub}</p>
+          <p className="mt-2 max-w-2xl text-[12px] leading-relaxed text-muted-foreground/80">{c.notAdvice}</p>
 
           <div className="mt-8 space-y-8">
             {grades.map((g) => {

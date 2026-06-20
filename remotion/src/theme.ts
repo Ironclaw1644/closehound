@@ -5,8 +5,8 @@ export const C = {
   white: "#f5f1e8",
   muted: "#9a9a93",
   gold: "#c8a24a",
-  card: "#16161c",
-  hair: "#26262c",
+  card: "#1c1c24",
+  hair: "#2e2e36",
   green: "#6ee7a8",
 };
 

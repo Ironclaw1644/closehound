@@ -18,6 +18,9 @@ export const es: Dictionary = {
     switchToLabel: "English",
     languageEn: "EN",
     languageEs: "ES",
+    statTax: "Impuesto",
+    statIns: "Seguro",
+    notAdvice: "Un punto de partida para investigar — no es asesoramiento de inversión. Los mercados cambian; verifica cada oferta antes de comprar.",
   },
 
   footer: {
@@ -70,7 +73,7 @@ export const es: Dictionary = {
     ],
     zonesEyebrow: "Zonas de Oportunidad",
     zonesTitle: "Estas son las áreas con más oportunidad ahora mismo.",
-    zonesSub: "Mercados principales de flujo de caja donde las rentas de los vales de la Sección 8 superan de forma fiable a la hipoteca. Cada mercado está calificado de la A a la F, para que gastes tus análisis donde está el dinero — no donde no lo está.",
+    zonesSub: "Mercados donde las rentas de los vales de la Sección 8 a menudo superan a la hipoteca. Cada uno está calificado de la A a la F con datos públicos de costes (carga de impuesto + seguro) — una guía de dónde investigar primero, no una recomendación.",
     seeAllMarkets: "Ver todos los mercados →",
     screenThisMarket: "Analizar este mercado →",
     zoneNote: "Flujo de caja sólido y fiable de la Sección 8 en la propiedad adecuada.",

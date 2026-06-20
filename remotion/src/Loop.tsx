@@ -13,12 +13,12 @@ export const Loop: React.FC = () => {
       <AbsoluteFill
         style={{ alignItems: "center", justifyContent: "center", fontFamily: FONT_SANS, color: C.white }}
       >
-        <Reveal><MonoLabel>// DEAL SCORE</MonoLabel></Reveal>
+        <Reveal><MonoLabel>DEAL SCORE</MonoLabel></Reveal>
         <div style={{ marginTop: 24 }}>
           <DealCard />
         </div>
         <div style={{ marginTop: 24, fontSize: 28, fontWeight: 800, color: C.chart, opacity: tagline }}>
-          The voucher beats the mortgage.
+          Find where the voucher beats the mortgage.
         </div>
       </AbsoluteFill>
     </AbsoluteFill>

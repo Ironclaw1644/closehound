@@ -15,7 +15,7 @@ export const Background: React.FC = () => (
     {/* top chartreuse glow */}
     <AbsoluteFill
       style={{
-        background: `radial-gradient(620px 320px at 50% -6%, ${C.chart}22, transparent 62%)`,
+        background: `radial-gradient(700px 360px at 50% -6%, ${C.chart}33, transparent 64%)`,
       }}
     />
     {/* frame */}
@@ -40,16 +40,18 @@ export const Reticle: React.FC<{ size: number }> = ({ size }) => {
   );
 };
 
+/** Refined uppercase eyebrow (gold, no slash) — matches the site's editorial style. */
 export const MonoLabel: React.FC<{ children: React.ReactNode; color?: string }> = ({
   children,
-  color = C.chart,
+  color = C.gold,
 }) => (
   <div
     style={{
-      fontFamily: FONT_MONO,
+      fontFamily: FONT_SANS,
       textTransform: "uppercase",
-      letterSpacing: "0.2em",
-      fontSize: 22,
+      letterSpacing: "0.18em",
+      fontSize: 21,
+      fontWeight: 600,
       color,
     }}
   >

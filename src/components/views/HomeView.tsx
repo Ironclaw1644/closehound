@@ -3,7 +3,7 @@ import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { Label } from "@/components/site/Label";
 import { GradeBadge } from "@/components/site/GradeBadge";
-import { featuredZones, COUNT_STATES } from "@/lib/config/assumptions";
+import { featuredZones, assumptionsForMarket, COUNT_STATES } from "@/lib/config/assumptions";
 import { PLANS } from "@/lib/stripe/plans";
 import { getDictionary } from "@/lib/i18n";
 import { localizedPath, type Locale } from "@/lib/i18n/config";
@@ -12,6 +12,7 @@ const SITE = process.env.NEXT_PUBLIC_SITE?.trim().replace(/\/+$/, "") || "https:
 
 export function HomeView({ locale }: { locale: Locale }) {
   const t = getDictionary(locale).home;
+  const c = getDictionary(locale).common;
   const planCopy = getDictionary(locale).plans;
   const lp = (p: string) => localizedPath(p, locale);
   const zones = featuredZones().slice(0, 8);
@@ -149,22 +150,32 @@ export function HomeView({ locale }: { locale: Locale }) {
           </div>
 
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {zones.map((z) => (
-              <Link key={z.id} href={lp("/screen")} className="lift group flex flex-col rounded-xl border border-hairline bg-surface-1 p-5">
-                <div className="flex items-center justify-between">
-                  <GradeBadge grade={z.grade} />
-                  <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">{z.state}</span>
-                </div>
-                <h3 className="mt-4 text-[15px] font-semibold">{z.label}</h3>
-                <p className="mt-1.5 line-clamp-3 text-[13px] leading-relaxed text-muted-foreground">
-                  {locale === "en" ? z.note ?? t.zoneNote : t.zoneNote}
-                </p>
-                <span className="mt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-gold opacity-0 transition group-hover:opacity-100">
-                  {t.screenThisMarket}
-                </span>
-              </Link>
-            ))}
+            {zones.map((z) => {
+              const eff = assumptionsForMarket(z);
+              return (
+                <Link key={z.id} href={lp("/screen")} className="lift group flex flex-col rounded-xl border border-hairline bg-surface-1 p-5">
+                  <div className="flex items-center justify-between">
+                    <GradeBadge grade={z.grade} />
+                    <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">{z.state}</span>
+                  </div>
+                  <h3 className="mt-4 text-[15px] font-semibold">{z.label}</h3>
+                  <p className="mt-1.5 line-clamp-2 text-[13px] leading-relaxed text-muted-foreground">
+                    {locale === "en" ? z.note ?? t.zoneNote : t.zoneNote}
+                  </p>
+                  {/* Objective cost-driver signal — the data behind the grade. */}
+                  <div className="mt-3 flex items-center gap-2.5 border-t border-hairline pt-3 text-[11px] text-muted-foreground">
+                    <span>{c.statTax} <span className="font-mono text-foreground">{eff.taxRatePct}%</span></span>
+                    <span className="text-gold/40">·</span>
+                    <span>{c.statIns} <span className="font-mono text-foreground">{eff.insuranceRatePct}%</span></span>
+                  </div>
+                  <span className="mt-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-gold opacity-0 transition group-hover:opacity-100">
+                    {t.screenThisMarket}
+                  </span>
+                </Link>
+              );
+            })}
           </div>
+          <p className="mt-6 max-w-2xl text-[12px] leading-relaxed text-muted-foreground/80">{c.notAdvice}</p>
         </section>
 
         {/* Trust band */}

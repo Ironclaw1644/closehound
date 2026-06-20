@@ -25,7 +25,7 @@ const TitleScene: React.FC = () => (
       <div style={{ fontSize: 60, fontWeight: 800, color: C.chart }}>Sniff out the deal.</div>
     </Reveal>
     <Reveal delay={20} style={{ marginTop: 18 }}>
-      <MonoLabel>// SECTION 8 DEAL SCREENER</MonoLabel>
+      <MonoLabel>SECTION 8 DEAL SCREENER</MonoLabel>
     </Reveal>
   </AbsoluteFill>
 );
@@ -64,7 +64,7 @@ const Step: React.FC<{ n: string; t: string; s: string; delay: number }> = ({ n,
 
 const HowScene: React.FC = () => (
   <AbsoluteFill style={{ ...center, justifyContent: "flex-start", paddingTop: 90 }}>
-    <Reveal><MonoLabel>// HOW IT WORKS</MonoLabel></Reveal>
+    <Reveal><MonoLabel>HOW IT WORKS</MonoLabel></Reveal>
     <div style={{ marginTop: 40, width: 760 }}>
       <Step n="01" t="Pick a market — or any ZIP" s="Cleveland, OH · graded A for cash flow" delay={6} />
       <Step n="02" t="Pull the HUD voucher rent" s="The official SAFMR ceiling for that ZIP" delay={16} />
@@ -78,12 +78,12 @@ const DealScene: React.FC = () => {
   const tagline = interpolate(f, [150, 170], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   return (
     <AbsoluteFill style={{ ...center }}>
-      <Reveal><MonoLabel>// DEAL SCORE</MonoLabel></Reveal>
+      <Reveal><MonoLabel>DEAL SCORE</MonoLabel></Reveal>
       <div style={{ marginTop: 26 }}>
         <DealCard />
       </div>
       <div style={{ marginTop: 26, fontSize: 28, fontWeight: 800, color: C.chart, opacity: tagline }}>
-        The voucher beats the mortgage.
+        Here, the voucher beats the mortgage.
       </div>
     </AbsoluteFill>
   );
@@ -96,7 +96,7 @@ const ZonesScene: React.FC = () => {
   ];
   return (
     <AbsoluteFill style={{ ...center, justifyContent: "flex-start", paddingTop: 80 }}>
-      <Reveal><MonoLabel color={C.gold}>// OPPORTUNITY ZONES</MonoLabel></Reveal>
+      <Reveal><MonoLabel color={C.gold}>OPPORTUNITY ZONES</MonoLabel></Reveal>
       <Reveal delay={6} style={{ fontSize: 46, fontWeight: 800, marginTop: 14 }}>
         Where the deals actually are.
       </Reveal>

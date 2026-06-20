@@ -16,6 +16,9 @@ export const en = {
     switchToLabel: "Español", // label shown to switch TO Spanish
     languageEn: "EN",
     languageEs: "ES",
+    statTax: "Tax",
+    statIns: "Insurance",
+    notAdvice: "A research starting point — not investment advice. Markets change; verify every deal before you buy.",
   },
 
   footer: {
@@ -68,7 +71,7 @@ export const en = {
     ],
     zonesEyebrow: "Opportunity Zones",
     zonesTitle: "These are the areas with the most opportunity right now.",
-    zonesSub: "Prime cash-flow markets where Section 8 voucher rents reliably beat the mortgage. Every market is graded A–F, so you spend screens where the money is — not where it isn’t.",
+    zonesSub: "Markets where Section 8 voucher rents often beat the mortgage. Each is graded A–F from public cost data (tax + insurance drag) — a guide to where to research first, not a recommendation.",
     seeAllMarkets: "See all markets →",
     screenThisMarket: "Screen this market →",
     zoneNote: "Strong, reliable Section 8 cash flow on the right property.",
