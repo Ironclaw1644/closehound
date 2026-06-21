@@ -79,6 +79,28 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+const ORG_LD = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${SITE_ORIGIN}/#organization`,
+      name: "CloseHound",
+      url: SITE_ORIGIN,
+      logo: `${SITE_ORIGIN}/icon.png`,
+      description:
+        "CloseHound is a Section 8 (HUD housing-voucher) real-estate deal screener: it matches for-sale homes to HUD voucher rents, underwrites each one, and ranks them by Deal Score.",
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${SITE_ORIGIN}/#website`,
+      url: SITE_ORIGIN,
+      name: "CloseHound",
+      publisher: { "@id": `${SITE_ORIGIN}/#organization` },
+    },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -90,6 +112,10 @@ export default function RootLayout({
       className={`${inter.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable}`}
     >
       <body className="font-sans antialiased">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_LD) }}
+        />
         <Providers>{children}</Providers>
       </body>
     </html>
