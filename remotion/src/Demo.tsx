@@ -98,7 +98,7 @@ const ZonesScene: React.FC = () => {
     <AbsoluteFill style={{ ...center, justifyContent: "flex-start", paddingTop: 80 }}>
       <Reveal><MonoLabel color={C.gold}>OPPORTUNITY ZONES</MonoLabel></Reveal>
       <Reveal delay={6} style={{ fontSize: 46, fontWeight: 800, marginTop: 14 }}>
-        Where the deals actually are.
+        Where to start your hunt.
       </Reveal>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 30, width: 820 }}>
         {zones.map((z, i) => (

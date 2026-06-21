@@ -73,12 +73,14 @@ export const Reveal: React.FC<{
 
 export const DealCard: React.FC = () => {
   const f = useCurrentFrame();
-  const score = Math.round(interpolate(f, [10, 40], [0, 86], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }));
+  // Real Cleveland 44105 example: HUD FY2026 SAFMR $1,380/mo (3BR), $95k list,
+  // default assumptions → +$253/mo net, 13.9% cash-on-cash, Deal Score 96.
+  const score = Math.round(interpolate(f, [10, 40], [0, 96], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }));
   const rows: [string, string, number, boolean][] = [
-    ["Purchase price", "$92,000", 14, false],
-    ["HUD voucher rent", "$1,485 / mo", 22, false],
-    ["Monthly cash flow", "+$612", 30, true],
-    ["Cash-on-cash", "11.8%", 38, true],
+    ["Purchase price", "$95,000", 14, false],
+    ["HUD voucher rent", "$1,380 / mo", 22, false],
+    ["Monthly cash flow", "+$253", 30, true],
+    ["Cash-on-cash", "13.9%", 38, true],
   ];
   return (
     <div
