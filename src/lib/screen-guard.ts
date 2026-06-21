@@ -22,15 +22,19 @@ export async function guardBillable(count: number): Promise<{ userId: string | n
   if (!user) {
     return NextResponse.json({ error: "Sign in to screen live data." }, { status: 401 });
   }
-  await ensureProfile(user.id);
 
   let granted: boolean;
   let limit: number;
   try {
+    // Profile must exist before reserve_screens (usage FKs to profiles). Both
+    // run through the service-role admin client; an auth/permission failure here
+    // means we cannot prove quota, so we refuse rather than risk a runaway bill.
+    await ensureProfile(user.id);
     const r = await reserveScreens(user.id, count);
     granted = r.granted;
     limit = r.limit;
-  } catch {
+  } catch (e) {
+    console.error("[guardBillable] quota/profile error:", e);
     return NextResponse.json({ error: "Quota service unavailable — try again." }, { status: 503 });
   }
 
