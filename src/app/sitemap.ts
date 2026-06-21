@@ -1,8 +1,6 @@
 import type { MetadataRoute } from "next";
 import { localizedPath, locales } from "@/lib/i18n/config";
-
-const SITE =
-  process.env.NEXT_PUBLIC_SITE?.trim().replace(/\/+$/, "") || "https://closehound.com";
+import { MARKET_ENTRIES, STATE_ENTRIES, SITE } from "@/lib/markets/seo";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
@@ -15,8 +13,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/legal/privacy", priority: 0.3, freq: "yearly" },
   ];
 
-  // Emit every route in both locales, each carrying hreflang alternates.
-  return routes.flatMap((r) =>
+  // Bilingual marketing routes — each carries hreflang alternates.
+  const localized: MetadataRoute.Sitemap = routes.flatMap((r) =>
     locales.map((loc) => ({
       url: `${SITE}${localizedPath(r.path, loc)}`,
       lastModified: now,
@@ -30,4 +28,23 @@ export default function sitemap(): MetadataRoute.Sitemap {
       },
     }))
   );
+
+  // Programmatic /markets tree (English-only): hub → states → cities.
+  const markets: MetadataRoute.Sitemap = [
+    { url: `${SITE}/markets`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
+    ...STATE_ENTRIES.map((s) => ({
+      url: s.url,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
+    ...MARKET_ENTRIES.map((e) => ({
+      url: e.url,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    })),
+  ];
+
+  return [...localized, ...markets];
 }
