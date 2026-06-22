@@ -92,6 +92,26 @@ export type Database = {
         Update: Partial<Database["closehound"]["Tables"]["listings_cache"]["Insert"]>;
         Relationships: [];
       };
+      properties_cache: {
+        Row: {
+          address: string;
+          annual_tax: number | null;
+          last_sale_price: number | null;
+          last_sale_date: string | null;
+          raw: Json | null;
+          fetched_at: Timestamp;
+        };
+        Insert: {
+          address: string;
+          annual_tax?: number | null;
+          last_sale_price?: number | null;
+          last_sale_date?: string | null;
+          raw?: Json | null;
+          fetched_at?: Timestamp;
+        };
+        Update: Partial<Database["closehound"]["Tables"]["properties_cache"]["Insert"]>;
+        Relationships: [];
+      };
       profiles: {
         Row: {
           user_id: string;

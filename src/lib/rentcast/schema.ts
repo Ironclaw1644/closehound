@@ -63,3 +63,16 @@ export const RentCastListingSchema = z
 
 export const RentCastListingsSchema = z.array(RentCastListingSchema);
 export type RentCastListing = z.infer<typeof RentCastListingSchema>;
+
+// /properties response — the per-property record (true tax + last sale).
+// propertyTaxes is year-keyed: { "2023": { year, total } }.
+export const RentCastPropertySchema = z
+  .object({
+    propertyTaxes: z.record(z.string(), z.object({ total: num }).passthrough()).nullish(),
+    lastSalePrice: num,
+    lastSaleDate: z.string().nullish(),
+  })
+  .passthrough();
+
+export const RentCastPropertiesSchema = z.array(RentCastPropertySchema);
+export type RentCastProperty = z.infer<typeof RentCastPropertySchema>;

@@ -13,7 +13,7 @@ import {
 import { underwrite } from "@/lib/underwriting/engine";
 import type { Assumptions } from "@/lib/underwriting/types";
 import { downloadDealsCsv } from "@/lib/export-csv";
-import type { ZipScreenRow, ListingsResponse, ClientDeal } from "./types";
+import type { ZipScreenRow, ListingsResponse, ClientDeal, PropertyRecord } from "./types";
 import { MarketControls } from "./MarketControls";
 import { AssumptionsPanel } from "./AssumptionsPanel";
 import { ZipTable } from "./ZipTable";
@@ -48,6 +48,8 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
   const [raw, setRaw] = useState<ListingsResponse | null>(null);
   const [loadingListings, setLoadingListings] = useState(false);
   const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
+  const [propertyData, setPropertyData] = useState<Record<string, PropertyRecord>>({});
+  const [propertyLoadingId, setPropertyLoadingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
@@ -136,13 +138,42 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
     }
   }, [t]);
 
+  // Open a deal + lazily fetch its real property record (true tax + last sale),
+  // cached per id so we never re-fetch. Re-underwrite happens automatically once
+  // propertyData updates (the useMemo overlays the real tax below).
+  const selectDeal = useCallback(
+    async (d: ClientDeal) => {
+      const id = d.listing.rentcastId;
+      setSelectedDealId(id);
+      if (!d.listing.address || propertyData[id] !== undefined) return;
+      setPropertyLoadingId(id);
+      try {
+        const res = await fetch(
+          `/api/property?address=${encodeURIComponent(d.listing.address)}&zip=${d.listing.zip}`
+        );
+        if (res.ok) {
+          const pd: PropertyRecord = await res.json();
+          setPropertyData((m) => ({ ...m, [id]: pd }));
+        }
+      } catch {
+        /* non-fatal — keep the rate-based estimate */
+      } finally {
+        setPropertyLoadingId((cur) => (cur === id ? null : cur));
+      }
+    },
+    [propertyData]
+  );
+
   // Underwrite client-side — assumption tweaks re-score instantly, no re-billing.
+  // When a deal's real property tax has loaded, it overrides the rate estimate.
   const deals: ClientDeal[] = useMemo(() => {
     if (!raw?.safmr) return [];
     const safmr = raw.safmr;
     return raw.listings
       .filter((l) => l.price != null && l.price > 0 && l.beds != null)
-      .map((l): ClientDeal => {
+      .map((l0): ClientDeal => {
+        const pd = propertyData[l0.rentcastId];
+        const l = pd?.annualTax != null ? { ...l0, annualTax: pd.annualTax } : l0;
         const beds = Math.min(Math.max(l.beds ?? 3, 0), 4);
         const safmrMonthly = safmr.br[beds];
         return {
@@ -152,7 +183,7 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
         };
       })
       .sort((a, b) => b.underwriting.dealScore - a.underwriting.dealScore);
-  }, [raw, assumptions]);
+  }, [raw, assumptions, propertyData]);
 
   const selectedDeal = deals.find((d) => d.listing.rentcastId === selectedDealId) ?? null;
 
@@ -284,7 +315,7 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
               </div>
             </CardHeader>
             <CardContent>
-              <DealTable deals={deals} onSelect={(d) => setSelectedDealId(d.listing.rentcastId)} selectedId={selectedDealId} locale={locale} />
+              <DealTable deals={deals} onSelect={selectDeal} selectedId={selectedDealId} locale={locale} />
             </CardContent>
           </Card>
         </div>
@@ -292,6 +323,8 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
 
       <DealDrawer
         deal={selectedDeal}
+        property={selectedDeal ? propertyData[selectedDeal.listing.rentcastId] ?? null : null}
+        propertyLoading={propertyLoadingId != null && propertyLoadingId === selectedDealId}
         onClose={() => setSelectedDealId(null)}
         onSave={saveDeal}
         saving={saving}

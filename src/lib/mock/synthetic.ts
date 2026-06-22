@@ -100,6 +100,24 @@ const STREETS = [
   "Sunset", "Lakeview", "Hibiscus", "Palmetto", "Camellia",
 ];
 
+export interface SyntheticProperty {
+  annual_tax: number;
+  last_sale_price: number;
+  last_sale_date: string;
+}
+
+/** Deterministic per-property record for MOCK_MODE (seeded by address) — a
+ *  plausible assessed tax + an older last sale, so the demo shows the true-tax
+ *  re-underwrite + comps without any billable /properties call. */
+export function syntheticProperty(address: string): SyntheticProperty {
+  const r = rng(hashStr("property:" + address));
+  const annual_tax = Math.round(lerp(r(), 900, 4200) / 10) * 10;
+  const last_sale_price = Math.round(lerp(r(), 18000, 140000) / 1000) * 1000;
+  const yearsAgo = 2 + Math.floor(r() * 28);
+  const month = String(1 + Math.floor(r() * 12)).padStart(2, "0");
+  return { annual_tax, last_sale_price, last_sale_date: `${2026 - yearsAgo}-${month}-15` };
+}
+
 export function syntheticListings(zip: string, count = 8): SyntheticListing[] {
   const r = rng(hashStr("listings:" + zip));
   const state = stateForZip(zip);

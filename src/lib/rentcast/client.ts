@@ -2,9 +2,15 @@ import "server-only";
 import { isMockMode } from "@/lib/env";
 import { hasSupabaseAdminEnv, getClosehoundAdminSchema } from "@/lib/supabase";
 import { isFresh, TTL } from "@/lib/cache/ttl";
-import { syntheticMarket, syntheticListings } from "@/lib/mock/synthetic";
+import { syntheticMarket, syntheticListings, syntheticProperty } from "@/lib/mock/synthetic";
 import { recordCall } from "@/lib/metrics";
-import { RentCastMarketSchema, RentCastListingsSchema, type RentCastListing } from "./schema";
+import {
+  RentCastMarketSchema,
+  RentCastListingsSchema,
+  RentCastPropertiesSchema,
+  type RentCastListing,
+  type RentCastProperty,
+} from "./schema";
 
 const API = "https://api.rentcast.io/v1";
 
@@ -223,4 +229,75 @@ async function liveListings(zip: string): Promise<Listing[]> {
   recordCall("rentcast", "live");
   const parsed = RentCastListingsSchema.parse(await res.json());
   return parsed.map((l) => toListing(l, zip));
+}
+
+// ── Per-property record (true tax + last sale; 90-day TTL by address) ─────────
+// Fetched lazily when a user OPENS a deal — bounded to engaged deals + cached —
+// so underwriting uses the real assessed tax instead of a state-average rate.
+export interface PropertyRecord {
+  annualTax: number | null;
+  lastSalePrice: number | null;
+  lastSaleDate: string | null;
+}
+
+/** propertyTaxes is year-keyed ({ "2023": { total } }) — take the latest year. */
+function extractAnnualTax(taxes: RentCastProperty["propertyTaxes"]): number | null {
+  if (!taxes) return null;
+  const years = Object.keys(taxes).sort();
+  const latest = years.length ? taxes[years[years.length - 1]] : null;
+  const total = latest?.total;
+  return typeof total === "number" && total > 0 ? total : null;
+}
+
+export async function getPropertyRecord(address: string, _zip?: string): Promise<PropertyRecord> {
+  if (isMockMode()) {
+    recordCall("rentcast", "mock");
+    const p = syntheticProperty(address);
+    return { annualTax: p.annual_tax, lastSalePrice: p.last_sale_price, lastSaleDate: p.last_sale_date };
+  }
+
+  const db = hasSupabaseAdminEnv() ? getClosehoundAdminSchema() : null;
+  if (db) {
+    const { data: cached } = await db
+      .from("properties_cache")
+      .select("*")
+      .eq("address", address)
+      .maybeSingle();
+    if (cached && isFresh(cached.fetched_at, TTL.properties)) {
+      recordCall("rentcast", "cache");
+      return {
+        annualTax: cached.annual_tax,
+        lastSalePrice: cached.last_sale_price,
+        lastSaleDate: cached.last_sale_date,
+      };
+    }
+  }
+
+  const fresh = await liveProperty(address);
+  if (db) {
+    await db.from("properties_cache").upsert({
+      address,
+      annual_tax: fresh.annualTax,
+      last_sale_price: fresh.lastSalePrice,
+      last_sale_date: fresh.lastSaleDate,
+      fetched_at: new Date().toISOString(),
+    });
+  }
+  return fresh;
+}
+
+async function liveProperty(address: string): Promise<PropertyRecord> {
+  const res = await fetch(`${API}/properties?address=${encodeURIComponent(address)}`, {
+    headers: authHeaders(),
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error(`RentCast properties ${res.status}`);
+  recordCall("rentcast", "live");
+  const p = RentCastPropertiesSchema.parse(await res.json())[0];
+  if (!p) return { annualTax: null, lastSalePrice: null, lastSaleDate: null };
+  return {
+    annualTax: extractAnnualTax(p.propertyTaxes),
+    lastSalePrice: p.lastSalePrice,
+    lastSaleDate: p.lastSaleDate ?? null,
+  };
 }

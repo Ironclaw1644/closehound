@@ -8,6 +8,8 @@ export const TTL = {
   market: 30 * 24 * 60 * 60 * 1000,
   /** RentCast listings: 24-hour TTL. */
   listings: 24 * 60 * 60 * 1000,
+  /** RentCast per-property records (tax/last-sale change rarely): 90-day TTL. */
+  properties: 90 * 24 * 60 * 60 * 1000,
 } as const;
 
 export function isFresh(fetchedAt: string | null | undefined, ttlMs: number): boolean {

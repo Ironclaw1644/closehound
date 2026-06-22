@@ -1,6 +1,6 @@
 "use client";
 
-import type { ClientDeal } from "./types";
+import type { ClientDeal, PropertyRecord } from "./types";
 import { fmtUSD, fmtPct, fmtDscr } from "@/lib/format";
 import { ScoreBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,8 @@ function ScoreBar({ label, weight, norm }: { label: string; weight: number; norm
 
 export function DealDrawer({
   deal,
+  property,
+  propertyLoading,
   onClose,
   onSave,
   saving,
@@ -40,6 +42,8 @@ export function DealDrawer({
   locale = "en",
 }: {
   deal: ClientDeal | null;
+  property?: PropertyRecord | null;
+  propertyLoading?: boolean;
   onClose: () => void;
   onSave: (d: ClientDeal) => void;
   saving: boolean;
@@ -97,6 +101,13 @@ export function DealDrawer({
               {l.propertyType && <Row label={t.propertyType} value={l.propertyType} />}
               {l.daysOnMarket != null && <Row label={t.daysOnMarket} value={`${l.daysOnMarket}`} />}
               {l.priceCutFrom != null && <Row label={t.priceCut} value={fmtUSD(l.priceCutFrom)} tone="good" />}
+              {property?.lastSalePrice != null && (
+                <Row
+                  label={t.lastSale}
+                  value={`${fmtUSD(property.lastSalePrice)}${property.lastSaleDate ? ` · ${property.lastSaleDate.slice(0, 4)}` : ""}`}
+                />
+              )}
+              {propertyLoading && <p className="py-1 text-xs text-muted-foreground">{t.loadingProperty}</p>}
               {l.address && (
                 <a
                   href={`https://www.google.com/search?q=${encodeURIComponent(`${l.address} for sale`)}`}
@@ -122,7 +133,11 @@ export function DealDrawer({
             {t.sourceCeiling} {beds} {t.sourceBr}{" "}
             <span className="tabular font-semibold text-foreground">{fmtUSD(deal.safmrMonthly)}</span>/mo
             {(l.beds ?? 0) > 4 ? t.source5plus : ""}. {t.sourcePropertyTax}{" "}
-            {l.annualTax ? `${t.sourceFromListing} (${fmtUSD(l.annualTax)}/yr)` : t.sourceEstimated}.
+            {property?.annualTax != null
+              ? `${t.sourceFromRecord} (${fmtUSD(property.annualTax)}/yr)`
+              : l.annualTax
+                ? `${t.sourceFromListing} (${fmtUSD(l.annualTax)}/yr)`
+                : t.sourceEstimated}.
           </p>
         </div>
 
