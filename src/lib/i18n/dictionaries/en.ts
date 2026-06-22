@@ -256,7 +256,8 @@ export const en = {
     },
     market: { headsUp: "Heads up:", lowGrade: "grades low for cash flow.", considerZone: "Consider an Opportunity Zone instead so you don't waste a screen.", note: "Note" },
     stage1: { title: "Stage 1 — ZIP opportunity screen", ranked: "ZIPs ranked", runToBegin: "run a screen to begin" },
-    stage2: { title: "Stage 2 — deals", loading: "loading…", exportCsv: "Export CSV" },
+    stage2: { title: "Stage 2 — deals", loading: "loading…", exportCsv: "Export CSV", compare: "Compare" },
+    compare: { title: "Compare deals", best: "Best score" },
     controls: {
       title: "Market", targetMarket: "Target market (graded by cash-flow)", bedrooms: "Bedrooms (voucher size)",
       studio: "Studio", bedroom: "Bedroom", screening: "Screening…", runScreen: "Run screen",
@@ -283,6 +284,7 @@ export const en = {
       saved: "Saved ✓", saving: "Saving…", saveDeal: "Save deal", printPdf: "Print / PDF",
       listingFacts: "Listing facts", propertyType: "Type", daysOnMarket: "Days on market",
       priceCut: "Price cut from", searchListing: "Search this address →",
+      lastSale: "Last sold", loadingProperty: "Loading property record…", sourceFromRecord: "from county record",
     },
     account: {
       eyebrow: "Account", title: "Plan & usage", creditsAdded: "Credits added — happy hunting.", upgraded: "You're upgraded. Go find some deals.",

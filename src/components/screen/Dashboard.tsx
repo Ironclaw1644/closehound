@@ -20,6 +20,7 @@ import { ZipTable } from "./ZipTable";
 import { OpportunityScatter } from "./OpportunityScatter";
 import { DealTable } from "./DealTable";
 import { DealDrawer } from "./DealDrawer";
+import { DealCompare } from "./DealCompare";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Pill } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -52,14 +53,27 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
   const [propertyLoadingId, setPropertyLoadingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  const [compareIds, setCompareIds] = useState<Set<string>>(new Set());
+  const [showCompare, setShowCompare] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const resetResults = () => {
     setZipRows([]);
     setSelectedZip(null);
     setRaw(null);
+    setCompareIds(new Set());
+    setShowCompare(false);
     setError(null);
   };
+
+  const toggleCompare = useCallback((id: string) => {
+    setCompareIds((s) => {
+      const next = new Set(s);
+      if (next.has(id)) next.delete(id);
+      else if (next.size < 4) next.add(id);
+      return next;
+    });
+  }, []);
 
   const onMarket = (id: string) => {
     setCustomMarket(null);
@@ -112,6 +126,7 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
     setSelectedZip(zip);
     setLoadingListings(true);
     setRaw(null);
+    setCompareIds(new Set());
     try {
       const res = await fetch("/api/screen/listings", {
         method: "POST",
@@ -307,6 +322,11 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
               <CardTitle>{t.stage2.title} {selectedZip ? `· ${selectedZip}` : ""}</CardTitle>
               <div className="flex items-center gap-3">
                 {loadingListings && <span className="text-[11px] text-muted-foreground">{t.stage2.loading}</span>}
+                {compareIds.size >= 2 && (
+                  <Button size="sm" onClick={() => setShowCompare(true)}>
+                    {t.stage2.compare} ({compareIds.size})
+                  </Button>
+                )}
                 {deals.length > 0 && (
                   <Button size="sm" variant="outline" onClick={() => downloadDealsCsv(deals, selectedZip ?? "all")}>
                     {t.stage2.exportCsv}
@@ -315,7 +335,14 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
               </div>
             </CardHeader>
             <CardContent>
-              <DealTable deals={deals} onSelect={selectDeal} selectedId={selectedDealId} locale={locale} />
+              <DealTable
+                deals={deals}
+                onSelect={selectDeal}
+                selectedId={selectedDealId}
+                compareIds={compareIds}
+                onToggleCompare={toggleCompare}
+                locale={locale}
+              />
             </CardContent>
           </Card>
         </div>
@@ -331,6 +358,14 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
         saved={selectedDeal ? savedIds.has(selectedDeal.listing.rentcastId) : false}
         locale={locale}
       />
+
+      {showCompare && (
+        <DealCompare
+          deals={deals.filter((d) => compareIds.has(d.listing.rentcastId))}
+          onClose={() => setShowCompare(false)}
+          locale={locale}
+        />
+      )}
     </div>
   );
 }

@@ -256,7 +256,8 @@ export const es: Dictionary = {
     },
     market: { headsUp: "Atención:", lowGrade: "tiene baja calificación de flujo de caja.", considerZone: "Considera una Zona de Oportunidad para no desperdiciar un análisis.", note: "Nota" },
     stage1: { title: "Etapa 1 — análisis de oportunidad por código postal", ranked: "códigos postales clasificados", runToBegin: "ejecuta un análisis para empezar" },
-    stage2: { title: "Etapa 2 — ofertas", loading: "cargando…", exportCsv: "Exportar CSV" },
+    stage2: { title: "Etapa 2 — ofertas", loading: "cargando…", exportCsv: "Exportar CSV", compare: "Comparar" },
+    compare: { title: "Comparar ofertas", best: "Mejor puntuación" },
     controls: {
       title: "Mercado", targetMarket: "Mercado objetivo (calificado por flujo de caja)", bedrooms: "Habitaciones (tamaño del vale)",
       studio: "Estudio", bedroom: "Habitación", screening: "Analizando…", runScreen: "Ejecutar análisis",
@@ -283,6 +284,7 @@ export const es: Dictionary = {
       saved: "Guardada ✓", saving: "Guardando…", saveDeal: "Guardar oferta", printPdf: "Imprimir / PDF",
       listingFacts: "Datos del anuncio", propertyType: "Tipo", daysOnMarket: "Días en el mercado",
       priceCut: "Rebaja de precio desde", searchListing: "Buscar esta dirección →",
+      lastSale: "Última venta", loadingProperty: "Cargando registro de la propiedad…", sourceFromRecord: "del registro del condado",
     },
     account: {
       eyebrow: "Cuenta", title: "Plan y uso", creditsAdded: "Créditos añadidos — feliz caza.", upgraded: "Plan mejorado. Ve a encontrar ofertas.",

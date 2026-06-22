@@ -21,11 +21,15 @@ export function DealTable({
   deals,
   onSelect,
   selectedId,
+  compareIds,
+  onToggleCompare,
   locale = "en",
 }: {
   deals: ClientDeal[];
   onSelect: (d: ClientDeal) => void;
   selectedId?: string | null;
+  compareIds: Set<string>;
+  onToggleCompare: (id: string) => void;
   locale?: Locale;
 }) {
   const t = getDictionary(locale).app.dealTable;
@@ -33,6 +37,23 @@ export function DealTable({
 
   const columns = useMemo(
     () => [
+      col.display({
+        id: "cmp",
+        header: "",
+        cell: (c) => {
+          const id = c.row.original.listing.rentcastId;
+          return (
+            <input
+              type="checkbox"
+              checked={compareIds.has(id)}
+              onChange={() => onToggleCompare(id)}
+              onClick={(e) => e.stopPropagation()}
+              aria-label="compare"
+              className="h-3.5 w-3.5 cursor-pointer accent-primary"
+            />
+          );
+        },
+      }),
       col.accessor((d) => d.listing.address, { id: "address", header: t.address, cell: (c) => <span className="font-medium">{c.getValue() ?? "—"}</span>, enableSorting: false }),
       col.accessor((d) => d.listing.price, { id: "price", header: t.price, cell: (c) => fmtUSD(c.getValue()) }),
       col.accessor((d) => d.listing.beds, { id: "beds", header: t.br, cell: (c) => c.getValue() ?? "—" }),
@@ -49,7 +70,7 @@ export function DealTable({
       col.accessor((d) => d.listing.daysOnMarket, { id: "dom", header: t.dom, cell: (c) => c.getValue() ?? "—" }),
       col.accessor((d) => d.underwriting.dealScore, { id: "dealScore", header: t.score, cell: (c) => <ScoreBadge score={c.getValue()} /> }),
     ],
-    [t]
+    [t, compareIds, onToggleCompare]
   );
 
   const table = useReactTable({
@@ -73,7 +94,7 @@ export function DealTable({
                   onClick={h.column.getToggleSortingHandler()}
                   className={cn(
                     "whitespace-nowrap px-3 py-2 font-medium",
-                    i === 0 ? "text-left" : "text-right",
+                    h.column.id === "cmp" || h.column.id === "address" ? "text-left" : "text-right",
                     h.column.getCanSort() && "cursor-pointer select-none hover:text-foreground"
                   )}
                 >
@@ -98,8 +119,8 @@ export function DealTable({
                   selectedId === id && "bg-primary/15"
                 )}
               >
-                {row.getVisibleCells().map((cell, i) => (
-                  <td key={cell.id} className={cn("whitespace-nowrap px-3 py-2.5", i === 0 ? "text-left" : "text-right font-mono")}>
+                {row.getVisibleCells().map((cell) => (
+                  <td key={cell.id} className={cn("whitespace-nowrap px-3 py-2.5", cell.column.id === "cmp" || cell.column.id === "address" ? "text-left" : "text-right font-mono")}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
                 ))}
@@ -108,7 +129,7 @@ export function DealTable({
           })}
           {deals.length === 0 && (
             <tr>
-              <td colSpan={11} className="px-3 py-8 text-center text-sm text-muted-foreground">
+              <td colSpan={12} className="px-3 py-8 text-center text-sm text-muted-foreground">
                 {t.empty}
               </td>
             </tr>
