@@ -46,6 +46,7 @@ export function DealTable({
       col.accessor((d) => d.underwriting.capRatePct, { id: "cap", header: t.capRate, cell: (c) => fmtPct(c.getValue()) }),
       col.accessor((d) => d.underwriting.rentToPricePct, { id: "rtp", header: t.rentPrice, cell: (c) => fmtPct(c.getValue(), 2) }),
       col.accessor((d) => d.underwriting.dscr, { id: "dscr", header: t.dscr, cell: (c) => fmtDscr(c.getValue()) }),
+      col.accessor((d) => d.listing.daysOnMarket, { id: "dom", header: t.dom, cell: (c) => c.getValue() ?? "—" }),
       col.accessor((d) => d.underwriting.dealScore, { id: "dealScore", header: t.score, cell: (c) => <ScoreBadge score={c.getValue()} /> }),
     ],
     [t]
@@ -107,7 +108,7 @@ export function DealTable({
           })}
           {deals.length === 0 && (
             <tr>
-              <td colSpan={10} className="px-3 py-8 text-center text-sm text-muted-foreground">
+              <td colSpan={11} className="px-3 py-8 text-center text-sm text-muted-foreground">
                 {t.empty}
               </td>
             </tr>

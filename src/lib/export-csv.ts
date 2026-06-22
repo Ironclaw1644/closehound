@@ -9,11 +9,14 @@ function cell(v: unknown): string {
 export function downloadDealsCsv(deals: ClientDeal[], zip: string): void {
   const headers = [
     "Address", "ZIP", "Price", "Beds", "Baths", "Sqft", "YearBuilt",
+    "PropertyType", "DaysOnMarket", "PriceCutFrom",
     "SAFMR_Rent", "NetCF_mo", "CashOnCash_pct", "CapRate_pct", "RentToPrice_pct", "DSCR", "DealScore",
   ];
   const rows = deals.map((d) => [
     d.listing.address, d.listing.zip, d.listing.price, d.listing.beds, d.listing.baths,
-    d.listing.sqft, d.listing.yearBuilt, d.underwriting.grossRent, d.underwriting.netCashFlowMonthly,
+    d.listing.sqft, d.listing.yearBuilt,
+    d.listing.propertyType, d.listing.daysOnMarket, d.listing.priceCutFrom,
+    d.underwriting.grossRent, d.underwriting.netCashFlowMonthly,
     d.underwriting.cashOnCashPct, d.underwriting.capRatePct, d.underwriting.rentToPricePct,
     d.underwriting.dscr >= 999 ? "" : d.underwriting.dscr, d.underwriting.dealScore,
   ]);

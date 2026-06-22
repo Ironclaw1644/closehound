@@ -88,7 +88,12 @@ export interface SyntheticListing {
   sqft: number;
   year_built: number;
   annual_tax: number;
+  property_type: string;
+  days_on_market: number;
+  price_cut_from: number | null;
 }
+
+const PROPERTY_TYPES = ["Single Family", "Single Family", "Single Family", "Townhouse", "Multi-Family"];
 
 const STREETS = [
   "Oak", "Maple", "Pine", "Magnolia", "Peachtree", "Cypress", "Dogwood",
@@ -109,6 +114,9 @@ export function syntheticListings(zip: string, count = 8): SyntheticListing[] {
     const taxRate = state === "FL" ? lerp(r(), 0.9, 1.4) : lerp(r(), 0.7, 1.2);
     const annual_tax = Math.round((price * taxRate) / 100);
     const num = 100 + Math.floor(r() * 9800);
+    const days_on_market = Math.round(lerp(r(), 4, 210));
+    // ~30% of listings have been price-cut (a motivated-seller signal).
+    const price_cut_from = r() < 0.3 ? Math.round((price * lerp(r(), 1.04, 1.14)) / 500) * 500 : null;
     out.push({
       rentcast_id: `mock-${zip}-${i}`,
       zip,
@@ -119,6 +127,9 @@ export function syntheticListings(zip: string, count = 8): SyntheticListing[] {
       sqft,
       year_built,
       annual_tax,
+      property_type: PROPERTY_TYPES[Math.floor(r() * PROPERTY_TYPES.length)],
+      days_on_market,
+      price_cut_from,
     });
   }
   return out;

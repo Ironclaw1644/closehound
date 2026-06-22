@@ -51,6 +51,12 @@ export const RentCastListingSchema = z
     bathrooms: num,
     squareFootage: num,
     yearBuilt: num,
+    // Fields the /listings/sale endpoint actually returns (verified live). NOTE:
+    // it does NOT return property tax or last-sale price — those come only from
+    // the separate /properties endpoint. `history` is listing/price history.
+    propertyType: z.string().nullish(),
+    daysOnMarket: num,
+    history: z.record(z.string(), z.object({ price: num }).passthrough()).nullish(),
     taxAssessments: z.unknown().nullish(),
   })
   .passthrough();

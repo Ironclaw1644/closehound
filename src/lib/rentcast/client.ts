@@ -4,7 +4,7 @@ import { hasSupabaseAdminEnv, getClosehoundAdminSchema } from "@/lib/supabase";
 import { isFresh, TTL } from "@/lib/cache/ttl";
 import { syntheticMarket, syntheticListings } from "@/lib/mock/synthetic";
 import { recordCall } from "@/lib/metrics";
-import { RentCastMarketSchema, RentCastListingsSchema } from "./schema";
+import { RentCastMarketSchema, RentCastListingsSchema, type RentCastListing } from "./schema";
 
 const API = "https://api.rentcast.io/v1";
 
@@ -25,6 +25,49 @@ export interface Listing {
   sqft: number | null;
   yearBuilt: number | null;
   annualTax: number | null;
+  /** Real deal-signal fields from /listings/sale (null in older cache rows). */
+  propertyType: string | null;
+  daysOnMarket: number | null;
+  /** Highest prior list price when it exceeds the current ask (a price cut). */
+  priceCutFrom: number | null;
+}
+
+/** Extra deal-signal fields persisted in listings_cache.raw (jsonb) — no schema
+ *  migration needed; absent on pre-existing rows (→ null). */
+interface ListingExtras {
+  propertyType?: string | null;
+  daysOnMarket?: number | null;
+  priceCutFrom?: number | null;
+}
+
+/** Highest list price seen in the listing history, when it's above the current
+ *  ask → the property has been price-cut (a motivated-seller signal). */
+function priceCut(history: RentCastListing["history"], price: number | null): number | null {
+  if (!history || !price) return null;
+  const prices = Object.values(history)
+    .map((e) => e?.price)
+    .filter((p): p is number => typeof p === "number" && p > 0);
+  const max = prices.length ? Math.max(...prices) : null;
+  return max && max > price ? max : null;
+}
+
+/** The one canonical RentCast-listing → Listing mapper (used by live fetch and
+ *  cache-via-raw) so every field is mapped in exactly one place. */
+function toListing(l: RentCastListing, zip: string): Listing {
+  return {
+    rentcastId: l.id,
+    zip: l.zipCode ?? zip,
+    address: l.formattedAddress ?? l.addressLine1 ?? null,
+    price: l.price,
+    beds: l.bedrooms,
+    baths: l.bathrooms,
+    sqft: l.squareFootage,
+    yearBuilt: l.yearBuilt,
+    annualTax: null, // not returned by /listings/sale (only /properties)
+    propertyType: l.propertyType ?? null,
+    daysOnMarket: l.daysOnMarket,
+    priceCutFrom: priceCut(l.history, l.price),
+  };
 }
 
 function authHeaders() {
@@ -101,17 +144,23 @@ export async function getListings(zip: string): Promise<Listing[]> {
       // Filter the negative-cache sentinel (an empty ZIP still counts as fresh).
       return rows
         .filter((r) => !r.rentcast_id.startsWith("__empty__"))
-        .map((r) => ({
-          rentcastId: r.rentcast_id,
-          zip: r.zip,
-          address: r.address,
-          price: r.price,
-          beds: r.beds,
-          baths: r.baths,
-          sqft: r.sqft,
-          yearBuilt: r.year_built,
-          annualTax: r.annual_tax,
-        }));
+        .map((r) => {
+          const ex = (r.raw ?? {}) as ListingExtras;
+          return {
+            rentcastId: r.rentcast_id,
+            zip: r.zip,
+            address: r.address,
+            price: r.price,
+            beds: r.beds,
+            baths: r.baths,
+            sqft: r.sqft,
+            yearBuilt: r.year_built,
+            annualTax: r.annual_tax,
+            propertyType: ex.propertyType ?? null,
+            daysOnMarket: ex.daysOnMarket ?? null,
+            priceCutFrom: ex.priceCutFrom ?? null,
+          };
+        });
     }
   }
 
@@ -131,6 +180,11 @@ export async function getListings(zip: string): Promise<Listing[]> {
           sqft: l.sqft,
           year_built: l.yearBuilt,
           annual_tax: l.annualTax,
+          raw: {
+            propertyType: l.propertyType,
+            daysOnMarket: l.daysOnMarket,
+            priceCutFrom: l.priceCutFrom,
+          } satisfies ListingExtras,
           fetched_at: now,
         }))
       );
@@ -154,6 +208,9 @@ function mockListings(zip: string): Listing[] {
     sqft: l.sqft,
     yearBuilt: l.year_built,
     annualTax: l.annual_tax,
+    propertyType: l.property_type,
+    daysOnMarket: l.days_on_market,
+    priceCutFrom: l.price_cut_from,
   }));
 }
 
@@ -165,15 +222,5 @@ async function liveListings(zip: string): Promise<Listing[]> {
   if (!res.ok) throw new Error(`RentCast listings ${res.status}`);
   recordCall("rentcast", "live");
   const parsed = RentCastListingsSchema.parse(await res.json());
-  return parsed.map((l) => ({
-    rentcastId: l.id,
-    zip: l.zipCode ?? zip,
-    address: l.formattedAddress ?? l.addressLine1 ?? null,
-    price: l.price,
-    beds: l.bedrooms,
-    baths: l.bathrooms,
-    sqft: l.squareFootage,
-    yearBuilt: l.yearBuilt,
-    annualTax: null,
-  }));
+  return parsed.map((l) => toListing(l, zip));
 }

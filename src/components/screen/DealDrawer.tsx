@@ -91,6 +91,25 @@ export function DealDrawer({
             <Metric label={t.loan} value={fmtUSD(u.loan)} />
           </section>
 
+          {(l.propertyType || l.daysOnMarket != null || l.priceCutFrom != null || l.address) && (
+            <section className="space-y-1">
+              <h4 className="mb-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t.listingFacts}</h4>
+              {l.propertyType && <Row label={t.propertyType} value={l.propertyType} />}
+              {l.daysOnMarket != null && <Row label={t.daysOnMarket} value={`${l.daysOnMarket}`} />}
+              {l.priceCutFrom != null && <Row label={t.priceCut} value={fmtUSD(l.priceCutFrom)} tone="good" />}
+              {l.address && (
+                <a
+                  href={`https://www.google.com/search?q=${encodeURIComponent(`${l.address} for sale`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-1.5 inline-block text-xs font-medium text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                >
+                  {t.searchListing}
+                </a>
+              )}
+            </section>
+          )}
+
           <section className="space-y-2.5">
             <h4 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t.dealScore} {u.dealScore}</h4>
             <ScoreBar label={t.cashOnCash} weight={w.cashOnCash} norm={u.scoreBreakdown.cashOnCash} />

@@ -268,7 +268,7 @@ export const es: Dictionary = {
       vacancy: "Vacancia", maintenance: "Mantenim.", capex: "CapEx", taxRate: "Tasa fiscal", insurance: "Seguro", monthlyHOA: "HOA mensual",
     },
     zipTable: { zip: "Código postal", safmr: "SAFMR", medianPrice: "Precio medio", rentPrice: "Renta / precio", insufficient: "datos insuficientes", empty: "Ejecuta un análisis para clasificar los códigos postales por renta del vale frente al precio." },
-    dealTable: { address: "Dirección", price: "Precio", br: "Hab", safmrRent: "Renta SAFMR", netCf: "FC neto/mes", cashCash: "Cash/cash", capRate: "Cap rate", rentPrice: "Renta/precio", dscr: "DSCR", score: "Puntuación", empty: "Selecciona un código postal para evaluar sus propiedades activas." },
+    dealTable: { address: "Dirección", price: "Precio", br: "Hab", safmrRent: "Renta SAFMR", netCf: "FC neto/mes", cashCash: "Cash/cash", capRate: "Cap rate", rentPrice: "Renta/precio", dscr: "DSCR", dom: "Días", score: "Puntuación", empty: "Selecciona un código postal para evaluar sus propiedades activas." },
     scatter: { medianPrice: "Precio medio", safmr: "SAFMR", rentPrice: "Renta/precio", empty: "El mapa de oportunidad aparece tras un análisis." },
     drawer: {
       listing: "Propiedad", br: "Hab", ba: "Baños", sqft: "ft²", built: "construida en", close: "Cerrar",
@@ -281,6 +281,8 @@ export const es: Dictionary = {
       source5plus: " (5+ hab usa el tope de 4 hab)", sourcePropertyTax: "Impuesto sobre la propiedad",
       sourceFromListing: "del anuncio", sourceEstimated: "estimado a partir del supuesto de tasa fiscal",
       saved: "Guardada ✓", saving: "Guardando…", saveDeal: "Guardar oferta", printPdf: "Imprimir / PDF",
+      listingFacts: "Datos del anuncio", propertyType: "Tipo", daysOnMarket: "Días en el mercado",
+      priceCut: "Rebaja de precio desde", searchListing: "Buscar esta dirección →",
     },
     account: {
       eyebrow: "Cuenta", title: "Plan y uso", creditsAdded: "Créditos añadidos — feliz caza.", upgraded: "Plan mejorado. Ve a encontrar ofertas.",

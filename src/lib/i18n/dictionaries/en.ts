@@ -268,7 +268,7 @@ export const en = {
       vacancy: "Vacancy", maintenance: "Maintenance", capex: "CapEx", taxRate: "Tax rate", insurance: "Insurance", monthlyHOA: "Monthly HOA",
     },
     zipTable: { zip: "ZIP", safmr: "SAFMR", medianPrice: "Median price", rentPrice: "Rent / price", insufficient: "insufficient data", empty: "Run a screen to rank ZIPs by voucher rent vs. price." },
-    dealTable: { address: "Address", price: "Price", br: "BR", safmrRent: "SAFMR rent", netCf: "Net CF/mo", cashCash: "Cash/cash", capRate: "Cap rate", rentPrice: "Rent/price", dscr: "DSCR", score: "Score", empty: "Select a ZIP to underwrite its active listings." },
+    dealTable: { address: "Address", price: "Price", br: "BR", safmrRent: "SAFMR rent", netCf: "Net CF/mo", cashCash: "Cash/cash", capRate: "Cap rate", rentPrice: "Rent/price", dscr: "DSCR", dom: "DOM", score: "Score", empty: "Select a ZIP to underwrite its active listings." },
     scatter: { medianPrice: "Median price", safmr: "SAFMR", rentPrice: "Rent/price", empty: "Opportunity map appears after a screen." },
     drawer: {
       listing: "Listing", br: "BR", ba: "BA", sqft: "sqft", built: "built", close: "Close",
@@ -281,6 +281,8 @@ export const en = {
       source5plus: " (5+ BR uses the 4 BR ceiling)", sourcePropertyTax: "Property tax",
       sourceFromListing: "from listing", sourceEstimated: "estimated from tax-rate assumption",
       saved: "Saved ✓", saving: "Saving…", saveDeal: "Save deal", printPdf: "Print / PDF",
+      listingFacts: "Listing facts", propertyType: "Type", daysOnMarket: "Days on market",
+      priceCut: "Price cut from", searchListing: "Search this address →",
     },
     account: {
       eyebrow: "Account", title: "Plan & usage", creditsAdded: "Credits added — happy hunting.", upgraded: "You're upgraded. Go find some deals.",
