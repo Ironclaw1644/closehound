@@ -175,6 +175,8 @@ export type Database = {
           listing: Json;
           underwriting: Json;
           notes: string | null;
+          status: string;
+          safmr_monthly: number | null;
           created_at: Timestamp;
         };
         Insert: {
@@ -183,6 +185,8 @@ export type Database = {
           listing: Json;
           underwriting: Json;
           notes?: string | null;
+          status?: string;
+          safmr_monthly?: number | null;
           created_at?: Timestamp;
         };
         Update: Partial<Database["closehound"]["Tables"]["saved_deals"]["Insert"]>;

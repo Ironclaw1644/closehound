@@ -293,7 +293,7 @@ export const es: Dictionary = {
       paygSub: "Se usan automáticamente cuando se acaban tus análisis mensuales. Nunca caducan.",
       changePlan: "Cambiar plan", upgradeBuy: "Mejorar · comprar créditos", manageBilling: "Gestionar facturación", signOut: "Cerrar sesión",
     },
-    saved: { eyebrow: "Guardados", title: "Tus ofertas guardadas", loading: "Cargando…", emptyLead: "Aún no hay ofertas guardadas — guarda ofertas desde el", emptyLink: "analizador", coc: "CoC", cap: "cap", remove: "Eliminar" },
+    saved: { eyebrow: "Guardados", title: "Tus ofertas guardadas", loading: "Cargando…", emptyLead: "Aún no hay ofertas guardadas — guarda ofertas desde el", emptyLink: "analizador", coc: "CoC", cap: "cap", remove: "Eliminar", statusLabel: "Estado de la oferta", status: { new: "Nueva", reviewing: "En revisión", offer: "Oferta hecha", passed: "Descartada" } },
     login: {
       signInEyebrow: "INICIAR SESIÓN", createEyebrow: "CREAR CUENTA", welcomeBack: "Bienvenido de nuevo.", startHunting: "Empieza a cazar.",
       signInSub: "Ejecuta tus análisis y guarda ofertas.", createSub: "10 análisis gratis. Sin tarjeta.",

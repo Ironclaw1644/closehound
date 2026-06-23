@@ -293,7 +293,7 @@ export const en = {
       paygSub: "Used automatically after your monthly screens run out. Never expire.",
       changePlan: "Change plan", upgradeBuy: "Upgrade · buy credits", manageBilling: "Manage billing", signOut: "Sign out",
     },
-    saved: { eyebrow: "Saved", title: "Your saved deals", loading: "Loading…", emptyLead: "No saved deals yet — save deals from the", emptyLink: "screener", coc: "CoC", cap: "cap", remove: "Remove" },
+    saved: { eyebrow: "Saved", title: "Your saved deals", loading: "Loading…", emptyLead: "No saved deals yet — save deals from the", emptyLink: "screener", coc: "CoC", cap: "cap", remove: "Remove", statusLabel: "Deal status", status: { new: "New", reviewing: "Reviewing", offer: "Offer made", passed: "Passed" } },
     login: {
       signInEyebrow: "SIGN IN", createEyebrow: "CREATE ACCOUNT", welcomeBack: "Welcome back.", startHunting: "Start hunting.",
       signInSub: "Run your screens and save deals.", createSub: "10 free screens. No card required.",

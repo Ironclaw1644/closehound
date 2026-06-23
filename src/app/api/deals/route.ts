@@ -12,6 +12,14 @@ const SaveBody = z.object({
   notes: z.string().max(2000).optional(),
 });
 
+const DEAL_STATUSES = ["new", "reviewing", "offer", "passed"] as const;
+
+const PatchBody = z.object({
+  id: z.string().uuid(),
+  status: z.enum(DEAL_STATUSES).optional(),
+  notes: z.string().max(2000).optional(),
+});
+
 export async function POST(req: Request) {
   const user = await getUser();
   if (!user) return NextResponse.json({ error: "Sign in required" }, { status: 401 });
@@ -24,8 +32,27 @@ export async function POST(req: Request) {
     user_id: user.id,
     listing: parsed.data.listing as never,
     underwriting: parsed.data.underwriting as never,
+    safmr_monthly: parsed.data.safmrMonthly ?? null,
     notes: parsed.data.notes ?? null,
   });
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ ok: true });
+}
+
+// Update a saved deal's pipeline status (or notes). Owner-scoped via RLS.
+export async function PATCH(req: Request) {
+  const user = await getUser();
+  if (!user) return NextResponse.json({ error: "Sign in required" }, { status: 401 });
+
+  const parsed = PatchBody.safeParse(await req.json().catch(() => null));
+  if (!parsed.success) return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  const { id, ...patch } = parsed.data;
+  if (Object.keys(patch).length === 0) {
+    return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
+  }
+
+  const db = await getServerClosehound();
+  const { error } = await db.from("saved_deals").update(patch).eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
 }
