@@ -27,7 +27,10 @@ export function LeadForm({ source = "guide" }: { source?: string }) {
   if (state === "done") {
     return (
       <p className="text-sm font-medium text-success">
-        You&apos;re on the list — new Section 8 market drops + investing tips incoming.
+        You&apos;re in — check your inbox.{" "}
+        <a href="/section8-playbook.pdf" target="_blank" rel="noopener noreferrer" className="text-gold underline underline-offset-2">
+          Or download the playbook PDF now →
+        </a>
       </p>
     );
   }
@@ -44,7 +47,7 @@ export function LeadForm({ source = "guide" }: { source?: string }) {
         className="h-11 flex-1 rounded-md border border-hairline bg-surface-1 px-4 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-gold/40"
       />
       <Button type="submit" disabled={state === "loading"} className="h-11 shrink-0">
-        {state === "loading" ? "…" : "Get updates"}
+        {state === "loading" ? "…" : "Email me the PDF"}
       </Button>
       {state === "error" && <span className="text-xs text-destructive">Try again.</span>}
     </form>

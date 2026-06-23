@@ -76,9 +76,9 @@ export default function GuideHubPage() {
 
       <section className="mx-auto max-w-4xl px-5 pb-10 sm:px-8">
         <div className="rounded-2xl border border-gold/25 bg-surface-1 px-6 py-7 sm:px-8">
-          <h2 className="font-display text-2xl">Get new Section 8 market data + tips</h2>
+          <h2 className="font-display text-2xl">Get the free Section 8 playbook (PDF)</h2>
           <p className="mt-2 max-w-xl text-[15px] text-muted-foreground">
-            When we add markets or publish new playbook chapters, you&apos;ll be the first to know. No spam.
+            The full 5-chapter playbook as a printable PDF, plus new market drops when we add them. No spam.
           </p>
           <div className="mt-5 max-w-md">
             <LeadForm source="guide-hub" />
