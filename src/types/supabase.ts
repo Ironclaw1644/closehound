@@ -92,6 +92,22 @@ export type Database = {
         Update: Partial<Database["closehound"]["Tables"]["listings_cache"]["Insert"]>;
         Relationships: [];
       };
+      leads: {
+        Row: {
+          id: string;
+          email: string;
+          source: string | null;
+          created_at: Timestamp;
+        };
+        Insert: {
+          id?: string;
+          email: string;
+          source?: string | null;
+          created_at?: Timestamp;
+        };
+        Update: Partial<Database["closehound"]["Tables"]["leads"]["Insert"]>;
+        Relationships: [];
+      };
       properties_cache: {
         Row: {
           address: string;

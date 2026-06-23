@@ -220,6 +220,27 @@ export function faqLd(faqs: Array<{ q: string; a: string }>) {
   };
 }
 
+export function articleLd(opts: { headline: string; description: string; path: string }) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: opts.headline,
+    description: opts.description,
+    url: `${SITE}${opts.path}`,
+    publisher: { "@type": "Organization", name: "CloseHound", url: SITE },
+  };
+}
+
+export function howToLd(opts: { name: string; description: string; steps: Array<{ name: string; text: string }> }) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    name: opts.name,
+    description: opts.description,
+    step: opts.steps.map((s, i) => ({ "@type": "HowToStep", position: i + 1, name: s.name, text: s.text })),
+  };
+}
+
 /** Render a JSON-LD object as a <script> payload string. */
 export function ldJson(obj: unknown): string {
   return JSON.stringify(obj);

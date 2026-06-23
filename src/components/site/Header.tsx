@@ -11,7 +11,7 @@ export function Header({ locale = "en" }: { locale?: Locale }) {
   const NAV = [
     { href: lp("/how-it-works"), label: t.nav.howItWorks },
     { href: "/markets", label: locale === "es" ? "Mercados" : "Markets" },
-    { href: `${lp("/how-it-works")}#zones`, label: t.nav.opportunityZones },
+    { href: "/guide", label: locale === "es" ? "Guía" : "Playbook" },
     { href: lp("/demo"), label: t.nav.demo },
     { href: lp("/pricing"), label: t.nav.pricing },
   ];

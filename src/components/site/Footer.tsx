@@ -15,7 +15,8 @@ export function Footer({ locale = "en" }: { locale?: Locale }) {
       links: [
         { href: "/screen", label: t.links.openScreener },
         { href: lp("/how-it-works"), label: t.links.howItWorks },
-        { href: `${lp("/how-it-works")}#zones`, label: t.links.opportunityZones },
+        { href: "/markets", label: locale === "es" ? "Mercados" : "Markets" },
+        { href: "/guide", label: locale === "es" ? "Guía Sección 8" : "Section 8 Playbook" },
         { href: lp("/pricing"), label: t.links.pricing },
         { href: lp("/demo"), label: t.links.watchDemo },
       ],

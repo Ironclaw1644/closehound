@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { localizedPath, locales } from "@/lib/i18n/config";
 import { MARKET_ENTRIES, STATE_ENTRIES, SITE } from "@/lib/markets/seo";
+import { GUIDE_CHAPTERS } from "@/lib/guide/content";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
@@ -46,5 +47,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
   ];
 
-  return [...localized, ...markets];
+  // Section 8 execution playbook (English-only): hub + chapters.
+  const guide: MetadataRoute.Sitemap = GUIDE_CHAPTERS.length
+    ? [
+        { url: `${SITE}/guide`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
+        ...GUIDE_CHAPTERS.map((c) => ({
+          url: `${SITE}/guide/${c.slug}`,
+          lastModified: now,
+          changeFrequency: "monthly" as const,
+          priority: 0.7,
+        })),
+      ]
+    : [];
+
+  return [...localized, ...markets, ...guide];
 }
