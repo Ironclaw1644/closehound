@@ -119,7 +119,7 @@ const ZonesScene: React.FC = () => {
         Start free at closehound.com
       </Reveal>
       <Reveal delay={62} style={{ marginTop: 10 }}>
-        <MonoLabel color={C.muted}>10 SCREENS · NO CARD · ALL 50 STATES</MonoLabel>
+        <MonoLabel color={C.muted}>100 SCREENS · NO CARD · ALL 50 STATES</MonoLabel>
       </Reveal>
     </AbsoluteFill>
   );

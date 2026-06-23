@@ -46,14 +46,14 @@ export const PLANS: Record<PlanId, Plan> = {
   free: {
     id: "free",
     name: "Free",
-    screens: 10,
+    screens: 100,
     priceMonthly: 0,
     priceAnnual: 0,
     monthlyPriceId: null,
     annualPriceId: null,
     blurb: "Taste the hunt. No card.",
     features: [
-      "10 deal screens",
+      "100 deal screens",
       "All 50 states + opportunity grades",
       "Full Deal Score underwriting",
     ],
@@ -61,7 +61,7 @@ export const PLANS: Record<PlanId, Plan> = {
   hunter: {
     id: "hunter",
     name: "Hunter",
-    screens: 300,
+    screens: 1000,
     priceMonthly: 39,
     priceAnnual: 390,
     monthlyPriceId: STRIPE_PRICES.hunter_monthly,
@@ -78,7 +78,7 @@ export const PLANS: Record<PlanId, Plan> = {
   closer: {
     id: "closer",
     name: "Closer",
-    screens: 1500,
+    screens: 5000,
     priceMonthly: 129,
     priceAnnual: 1290,
     monthlyPriceId: STRIPE_PRICES.closer_monthly,
@@ -94,7 +94,7 @@ export const PLANS: Record<PlanId, Plan> = {
   agency: {
     id: "agency",
     name: "Agency",
-    screens: 5000,
+    screens: 25000,
     priceMonthly: 299,
     priceAnnual: 2990,
     monthlyPriceId: STRIPE_PRICES.agency_monthly,
@@ -131,12 +131,12 @@ export interface PriceInfo {
 }
 
 export const PRICE_REGISTRY: Record<string, PriceInfo> = {
-  [STRIPE_PRICES.hunter_monthly]: { kind: "subscription", plan: "hunter", cadence: "monthly", screens: 300 },
-  [STRIPE_PRICES.hunter_annual]: { kind: "subscription", plan: "hunter", cadence: "annual", screens: 300 },
-  [STRIPE_PRICES.closer_monthly]: { kind: "subscription", plan: "closer", cadence: "monthly", screens: 1500 },
-  [STRIPE_PRICES.closer_annual]: { kind: "subscription", plan: "closer", cadence: "annual", screens: 1500 },
-  [STRIPE_PRICES.agency_monthly]: { kind: "subscription", plan: "agency", cadence: "monthly", screens: 5000 },
-  [STRIPE_PRICES.agency_annual]: { kind: "subscription", plan: "agency", cadence: "annual", screens: 5000 },
+  [STRIPE_PRICES.hunter_monthly]: { kind: "subscription", plan: "hunter", cadence: "monthly", screens: 1000 },
+  [STRIPE_PRICES.hunter_annual]: { kind: "subscription", plan: "hunter", cadence: "annual", screens: 1000 },
+  [STRIPE_PRICES.closer_monthly]: { kind: "subscription", plan: "closer", cadence: "monthly", screens: 5000 },
+  [STRIPE_PRICES.closer_annual]: { kind: "subscription", plan: "closer", cadence: "annual", screens: 5000 },
+  [STRIPE_PRICES.agency_monthly]: { kind: "subscription", plan: "agency", cadence: "monthly", screens: 25000 },
+  [STRIPE_PRICES.agency_annual]: { kind: "subscription", plan: "agency", cadence: "annual", screens: 25000 },
   [STRIPE_PRICES.scout_40]: { kind: "credits", plan: "scout", screens: 40 },
   [STRIPE_PRICES.scout_150]: { kind: "credits", plan: "scout", screens: 150 },
 };

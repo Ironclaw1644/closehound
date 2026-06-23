@@ -51,7 +51,7 @@ export const es: Dictionary = {
     heroSubLead: "CloseHound encuentra casas donde el ",
     heroSubEmphasis: "cheque del vale de la Sección 8 supera a la hipoteca",
     heroSubTail: ". Extraemos las rentas de los vales de HUD, evaluamos cada propiedad y las clasificamos por Puntuación de Oferta — en los 50 estados, calificadas para que nunca desperdicies un análisis.",
-    ctaPrimary: "Empieza gratis — 10 análisis",
+    ctaPrimary: "Empieza gratis — 100 análisis",
     ctaSecondary: "Mira la demo de 60 s",
     microNoCard: "Sin tarjeta",
     microStates: "estados",
@@ -85,7 +85,7 @@ export const es: Dictionary = {
     ],
     pricingEyebrow: "Precios",
     pricingTitle: "Pruébalo gratis. Escala cuando te esté pagando.",
-    pricingSub: "Empieza con 10 análisis gratis — sin tarjeta. Compra créditos sobre la marcha, o suscríbete cuando caces cada semana. Sin sorpresas por exceso, nunca.",
+    pricingSub: "Empieza con 100 análisis gratis — sin tarjeta. Compra créditos sobre la marcha, o suscríbete cuando caces cada semana. Sin sorpresas por exceso, nunca.",
     mostPopular: "Más popular",
     perMonth: "/mes",
     screensPerMonth: "análisis / mes",
@@ -100,7 +100,7 @@ export const es: Dictionary = {
       { q: "¿Está CloseHound afiliado a HUD?", a: "No. CloseHound es una herramienta de análisis independiente que usa datos públicos de HUD. No es una correduría, un prestamista ni un asesor financiero, y no está afiliado ni respaldado por HUD." },
     ],
     finalTitle: "La oferta está ahí fuera.",
-    finalSub: "Ejecuta tus primeros 10 análisis gratis y encuentra hoy tu primera oferta en un mercado principal.",
+    finalSub: "Ejecuta tus primeros 100 análisis gratis y encuentra hoy tu primera oferta en un mercado principal.",
     finalCta: "Empieza gratis",
     sample: { beds: "3 hab · 1,180 ft²", price: "Precio", voucherRent: "Renta del vale", coc: "Cash-on-cash" },
   },
@@ -132,7 +132,7 @@ export const es: Dictionary = {
     anyZipEmphasis: "cualquier código postal del país",
     anyZipTail: " desde el analizador — la lista curada de arriba es solo donde la oportunidad está más concentrada.",
     ctaTitle: "¿Listo para encontrar una?",
-    cta: "Empieza gratis — 10 análisis",
+    cta: "Empieza gratis — 100 análisis",
     grades: {
       A: { label: "Principal", blurb: "La renta del vale supera al mercado de forma habitual — fuerte cash-on-cash antes de financiamiento." },
       B: { label: "Sólido", blurb: "Flujo de caja fiable con la propiedad adecuada. Vale la pena analizarlo con regularidad." },
@@ -159,8 +159,8 @@ export const es: Dictionary = {
 
   pricing: {
     eyebrow: "Precios",
-    title: "Ejecuta tus propios análisis.",
-    subhead: "El almacenamiento en caché agresivo mantiene bajos los costes de API, así que analizas tus propios mercados sin que nosotros asumamos la factura — y nunca acumulas un cargo que no puedas ver.",
+    title: "Una oferta se paga por años.",
+    subhead: "Analiza propiedades en venta contra rentas reales de vales HUD, encuentra las que generan flujo de caja y síguelas hasta cerrar. Una sola oferta de Sección 8 que rinde $400/mes cubre años de CloseHound — empieza gratis, sin tarjeta.",
     monthly: "Mensual",
     annual: "Anual",
     monthsFree: "2 meses gratis",
@@ -178,14 +178,14 @@ export const es: Dictionary = {
     buyPack: "Comprar paquete",
     redirecting: "Redirigiendo…",
     checkoutError: "Pago no disponible — inténtalo de nuevo.",
-    disclaimer: "Sin cargos sorpresa por exceso. Si se te acaban los análisis, el analizador simplemente se pausa hasta que mejores tu plan o compres un paquete — nunca acumularás un cargo que no puedas ver. Cancela cuando quieras.",
+    disclaimer: "Garantía de devolución de 30 días — encuentra una oferta que valga la pena o te devolvemos el dinero. Sin cargos sorpresa: si se te acaban los análisis, el analizador se pausa hasta que mejores tu plan. Cancela cuando quieras.",
   },
 
   plans: {
-    free: { blurb: "Prueba la caza. Sin tarjeta.", features: ["10 análisis de ofertas", "Los 50 estados + calificaciones de oportunidad", "Evaluación completa con Puntuación de Oferta"] },
-    hunter: { blurb: "Para el inversor activo que trabaja mercados cada semana.", features: ["300 análisis / mes", "Guarda ofertas + exporta a CSV", "Clasificaciones de Zonas de Oportunidad", "Soporte por correo"] },
-    closer: { blurb: "Maneja volumen en varios mercados.", features: ["1,500 análisis / mes", "Exportación masiva a CSV + lote multimercado", "Acceso anticipado a nuevos mercados", "Soporte prioritario"] },
-    agency: { blurb: "Para fondos y equipos que despliegan capital a escala.", features: ["5,000 análisis / mes", "Asientos de equipo", "Actualización de datos prioritaria", "Todo lo de Closer"] },
+    free: { blurb: "Encuentra tu primera oferta. Sin tarjeta.", features: ["100 análisis gratis", "Los 50 estados + calificaciones honestas A–F", "Impuesto real por propiedad + Puntuación de Oferta"] },
+    hunter: { blurb: "El plan de cada día — analiza sin límites, todas las funciones.", features: ["1,000 análisis / mes", "Guarda + sigue ofertas (pipeline)", "Impuesto real por propiedad + comparables de última venta", "Guía de Sección 8 + soporte por correo"] },
+    closer: { blurb: "Maneja volumen en varios mercados.", features: ["5,000 análisis / mes", "Exportación masiva a CSV + lote multimercado", "Acceso anticipado a nuevos mercados", "Soporte prioritario"] },
+    agency: { blurb: "Para fondos y equipos que despliegan capital a escala.", features: ["25,000 análisis / mes", "Asientos de equipo", "Actualización de datos prioritaria", "Todo lo de Closer"] },
   },
 
   legal: {
@@ -296,7 +296,7 @@ export const es: Dictionary = {
     saved: { eyebrow: "Guardados", title: "Tus ofertas guardadas", loading: "Cargando…", emptyLead: "Aún no hay ofertas guardadas — guarda ofertas desde el", emptyLink: "analizador", coc: "CoC", cap: "cap", remove: "Eliminar", statusLabel: "Estado de la oferta", status: { new: "Nueva", reviewing: "En revisión", offer: "Oferta hecha", passed: "Descartada" } },
     login: {
       signInEyebrow: "INICIAR SESIÓN", createEyebrow: "CREAR CUENTA", welcomeBack: "Bienvenido de nuevo.", startHunting: "Empieza a cazar.",
-      signInSub: "Ejecuta tus análisis y guarda ofertas.", createSub: "10 análisis gratis. Sin tarjeta.",
+      signInSub: "Ejecuta tus análisis y guarda ofertas.", createSub: "100 análisis gratis. Sin tarjeta.",
       emailPlaceholder: "tu@correo.com", passwordPlaceholder: "Contraseña", signInBtn: "Iniciar sesión", createBtn: "Crear cuenta gratis", busy: "…",
       accountCreated: "Cuenta creada — revisa tu correo para confirmar, luego inicia sesión.", authNotConfigured: "La autenticación no está configurada.",
       needAccount: "¿Necesitas una cuenta? Regístrate", haveAccount: "¿Ya tienes cuenta? Inicia sesión", footer: "Datos oficiales de HUD · Sin cargos sorpresa",

@@ -49,7 +49,7 @@ export const en = {
     heroSubLead: "CloseHound finds homes where the ",
     heroSubEmphasis: "Section 8 voucher check beats the mortgage",
     heroSubTail: ". We pull HUD voucher rents, underwrite every property, and rank them by Deal Score — across all 50 states, graded so you never waste a screen.",
-    ctaPrimary: "Start free — 10 screens",
+    ctaPrimary: "Start free — 100 screens",
     ctaSecondary: "Watch the 60-sec demo",
     microNoCard: "No card",
     microStates: "states",
@@ -83,7 +83,7 @@ export const en = {
     ],
     pricingEyebrow: "Pricing",
     pricingTitle: "Try it free. Scale when it’s paying you.",
-    pricingSub: "Start with 10 free screens — no card. Buy credits as you go, or subscribe when you’re hunting weekly. No surprise overages, ever.",
+    pricingSub: "Start with 100 free screens — no card. Buy credits as you go, or subscribe when you’re hunting weekly. No surprise overages, ever.",
     mostPopular: "Most popular",
     perMonth: "/mo",
     screensPerMonth: "screens / mo",
@@ -98,7 +98,7 @@ export const en = {
       { q: "Is CloseHound affiliated with HUD?", a: "No. CloseHound is an independent analytics tool that uses public HUD data. It is not a brokerage, lender, or financial advisor, and is not affiliated with or endorsed by HUD." },
     ],
     finalTitle: "The deal is out there.",
-    finalSub: "Run your first 10 screens free and see your first Prime-market deal today.",
+    finalSub: "Run your first 100 screens free and see your first Prime-market deal today.",
     finalCta: "Start free",
     sample: { beds: "3-bed · 1,180 sqft", price: "Price", voucherRent: "Voucher rent", coc: "Cash-on-cash" },
   },
@@ -130,7 +130,7 @@ export const en = {
     anyZipEmphasis: "any ZIP in the country",
     anyZipTail: " from the screener — the curated list above is just where the opportunity is most concentrated.",
     ctaTitle: "Ready to find one?",
-    cta: "Start free — 10 screens",
+    cta: "Start free — 100 screens",
     grades: {
       A: { label: "Prime", blurb: "Voucher rent routinely beats market — strong cash-on-cash before financing." },
       B: { label: "Strong", blurb: "Reliable cashflow with the right property. Worth screening regularly." },
@@ -157,8 +157,8 @@ export const en = {
 
   pricing: {
     eyebrow: "Pricing",
-    title: "Run your own screens.",
-    subhead: "Aggressive caching keeps API costs lean, so you screen your own markets without us eating the bill — and you never run up a charge you can’t see.",
+    title: "One deal pays for years.",
+    subhead: "Screen live listings against real HUD voucher rents, find the properties that actually cash-flow, and track them to close. A single Section 8 deal that nets $400/mo covers years of CloseHound — start free, no card.",
     monthly: "Monthly",
     annual: "Annual",
     monthsFree: "2 months free",
@@ -176,15 +176,15 @@ export const en = {
     buyPack: "Buy pack",
     redirecting: "Redirecting…",
     checkoutError: "Checkout unavailable — try again.",
-    disclaimer: "No surprise overages. Run out of screens and the screener simply pauses until you upgrade or buy a pack — you’ll never run up a charge you can’t see. Cancel anytime.",
+    disclaimer: "30-day money-back guarantee — find a deal worth acting on or get a full refund. No surprise overages: run out of screens and the screener simply pauses until you upgrade. Cancel anytime.",
   },
 
   // Per-plan marketing copy (billing IDs/prices live in plans.ts; keyed by plan id).
   plans: {
-    free: { blurb: "Taste the hunt. No card.", features: ["10 deal screens", "All 50 states + opportunity grades", "Full Deal Score underwriting"] },
-    hunter: { blurb: "For the active investor working markets weekly.", features: ["300 screens / month", "Save deals + CSV export", "Opportunity Zone rankings", "Email support"] },
-    closer: { blurb: "Run volume across multiple markets.", features: ["1,500 screens / month", "Bulk CSV export + multi-market batch", "Early access to new markets", "Priority support"] },
-    agency: { blurb: "For funds + teams deploying capital at scale.", features: ["5,000 screens / month", "Team seats", "Priority data refresh", "Everything in Closer"] },
+    free: { blurb: "Find your first deal. No card.", features: ["100 free screens", "All 50 states + honest A–F grades", "Real per-property tax + Deal Score"] },
+    hunter: { blurb: "The everyday plan — screen freely, all features.", features: ["1,000 screens / month", "Save + track deals (pipeline)", "True per-property tax + last-sale comps", "Section 8 playbook + email support"] },
+    closer: { blurb: "Run volume across multiple markets.", features: ["5,000 screens / month", "Bulk CSV export + multi-market batch", "Early access to new markets", "Priority support"] },
+    agency: { blurb: "For funds + teams deploying capital at scale.", features: ["25,000 screens / month", "Team seats", "Priority data refresh", "Everything in Closer"] },
   },
 
   legal: {
@@ -296,7 +296,7 @@ export const en = {
     saved: { eyebrow: "Saved", title: "Your saved deals", loading: "Loading…", emptyLead: "No saved deals yet — save deals from the", emptyLink: "screener", coc: "CoC", cap: "cap", remove: "Remove", statusLabel: "Deal status", status: { new: "New", reviewing: "Reviewing", offer: "Offer made", passed: "Passed" } },
     login: {
       signInEyebrow: "SIGN IN", createEyebrow: "CREATE ACCOUNT", welcomeBack: "Welcome back.", startHunting: "Start hunting.",
-      signInSub: "Run your screens and save deals.", createSub: "10 free screens. No card required.",
+      signInSub: "Run your screens and save deals.", createSub: "100 free screens. No card required.",
       emailPlaceholder: "you@email.com", passwordPlaceholder: "Password", signInBtn: "Sign in", createBtn: "Create free account", busy: "…",
       accountCreated: "Account created — check your email to confirm, then sign in.", authNotConfigured: "Auth is not configured.",
       needAccount: "Need an account? Sign up", haveAccount: "Have an account? Sign in", footer: "Official HUD data · No surprise charges",
