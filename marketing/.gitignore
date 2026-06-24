@@ -1,0 +1,6 @@
+# Generated marketing media (regenerable; deployed via Vercel CLI, not git).
+*.mp4
+*.gif
+*.mov
+*.png
+*.jpg

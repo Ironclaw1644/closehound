@@ -23,3 +23,7 @@ lead_exports/
 # HTML/JSON that embed session/viewstate/telemetry tokens. Keep out of git
 # (preserved on local disk; no preservation value on a pushed branch).
 lead_ingestion/notes/
+
+# Marketing audio (regenerable)
+/public/ad-voiceover.mp3
+/CLAUDE_CODE_HANDOFF.md

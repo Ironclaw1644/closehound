@@ -37,7 +37,12 @@ if (!sa.client_email || !sa.private_key) {
   process.exit(1);
 }
 
-const SCRIPT = `Most real estate investors are guessing. But in the right markets, the Section 8 housing voucher pays more than the open market — for the exact same house. CloseHound checks every listing for you. Pick a market, and we pull the official HUD voucher rent, match live for-sale listings, and underwrite every property, ranking them by Deal Score. The deals where the government check beats the mortgage rise to the top. These are the markets where the opportunity is. Start free, at closehound dot com.`;
+// Override the script + output via env to render other voiceovers (e.g. the ad)
+// without touching the explainer default:
+//   VOICEOVER_TEXT="…" VOICEOVER_OUT=../../public/ad-voiceover.mp3 node scripts/generate-voiceover-sa.mjs
+const SCRIPT =
+  process.env.VOICEOVER_TEXT ||
+  `Most real estate investors are guessing. But in the right markets, the Section 8 housing voucher pays more than the open market — for the exact same house. CloseHound checks every listing for you. Pick a market, and we pull the official HUD voucher rent, match live for-sale listings, and underwrite every property, ranking them by Deal Score. The deals where the government check beats the mortgage rise to the top. These are the markets where the opportunity is. Start free, at closehound dot com.`;
 
 const b64url = (buf) =>
   Buffer.from(buf).toString("base64").replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
@@ -92,7 +97,7 @@ if (!res.ok) {
 
 const { audioContent } = await res.json();
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const out = resolve(__dirname, "../../public/voiceover.mp3");
+const out = resolve(__dirname, process.env.VOICEOVER_OUT || "../../public/voiceover.mp3");
 mkdirSync(dirname(out), { recursive: true });
 writeFileSync(out, Buffer.from(audioContent, "base64"));
 console.log("Wrote", out);

@@ -71,9 +71,14 @@ export function MarketControls({
           ))}
         </Select>
 
-        <Button onClick={onRun} disabled={running}>
-          {running ? t.screening : t.runScreen}
-        </Button>
+        <div className="flex flex-col gap-1.5">
+          <Button onClick={onRun} disabled={running}>
+            {running ? t.screening : t.runScreen}
+          </Button>
+          <span className="text-center text-[11px] text-muted-foreground">
+            {market.zips.length === 1 ? t.usesOneScreen : t.usesScreens.replace("{n}", String(market.zips.length))}
+          </span>
+        </div>
 
         {/* Any-ZIP escape hatch — reach all 50 states. */}
         <form onSubmit={submitZip} className="mt-1 border-t border-hairline pt-3">

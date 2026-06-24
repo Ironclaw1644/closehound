@@ -262,6 +262,25 @@ export const es: Dictionary = {
       title: "Mercado", targetMarket: "Mercado objetivo (calificado por flujo de caja)", bedrooms: "Habitaciones (tamaño del vale)",
       studio: "Estudio", bedroom: "Habitación", screening: "Analizando…", runScreen: "Ejecutar análisis",
       orAnyZip: "O analiza cualquier código postal", zipPlaceholder: "ej. 44105", load: "Cargar",
+      usesScreens: "Usa ~{n} análisis", usesOneScreen: "Usa ~1 análisis",
+    },
+    quota: {
+      screensLeft: "análisis restantes", oneLeft: "análisis restante", credits: "{n} créditos", help: "Cómo funciona",
+    },
+    onboarding: {
+      title: "Cómo funciona CloseHound",
+      subtitle: "Encuentra propiedades de Sección 8 donde el vale supera la hipoteca — en cuatro pasos.",
+      steps: [
+        { n: "01", title: "Elige un mercado — o cualquier código postal", body: "Empieza con una Zona de Oportunidad calificada o analiza cualquier código postal de 5 dígitos del país. Cada mercado se califica de la A a la F por flujo de caja antes de gastar nada." },
+        { n: "02", title: "Ejecuta el análisis", body: "CloseHound obtiene el alquiler real del vale de HUD y las propiedades a la venta en vivo de cada código postal del mercado — eso es alrededor de un análisis por código postal." },
+        { n: "03", title: "Lee el Deal Score", body: "Cada propiedad se evalúa al instante. Las propiedades donde el vale supera la hipoteca suben a la cima — un puntaje de 100 es una máquina de flujo de caja." },
+        { n: "04", title: "Guarda y compara", body: "Conserva las ganadoras, compáralas lado a lado y obtén el impuesto real del condado + la última venta antes de hacer una oferta." },
+      ],
+      footer: "Tienes 100 análisis gratis este mes — sin tarjeta.",
+      guideCta: "Lee la guía",
+      howCta: "Cómo funciona el puntaje",
+      cta: "Empezar a analizar",
+      reopen: "Cómo funciona",
     },
     assumptions: {
       title: "Supuestos", liveRescore: "recálculo en vivo", downPayment: "Pago inicial", interest: "Interés",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   DEFAULT_MARKETS,
   DEFAULT_WEIGHTS,
@@ -21,6 +21,7 @@ import { OpportunityScatter } from "./OpportunityScatter";
 import { DealTable } from "./DealTable";
 import { DealDrawer } from "./DealDrawer";
 import { DealCompare } from "./DealCompare";
+import { Onboarding } from "./Onboarding";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Pill } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -56,6 +57,34 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
   const [compareIds, setCompareIds] = useState<Set<string>>(new Set());
   const [showCompare, setShowCompare] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [quota, setQuota] = useState<{ used: number; limit: number; credits: number } | null>(null);
+  const [showIntro, setShowIntro] = useState(false);
+
+  // Live "screens left" — read-only, non-billable. Refreshed after each screen.
+  const fetchQuota = useCallback(async () => {
+    try {
+      const r = await fetch("/api/quota");
+      if (r.ok) setQuota(await r.json());
+    } catch {
+      /* non-fatal — just hide the badge */
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchQuota();
+  }, [fetchQuota]);
+
+  // First-run walkthrough (once per browser); the "?" button reopens it anytime.
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem("ch_seen_intro")) {
+        setShowIntro(true);
+        localStorage.setItem("ch_seen_intro", "1");
+      }
+    } catch {
+      /* private mode / no storage — skip */
+    }
+  }, []);
 
   const resetResults = () => {
     setZipRows([]);
@@ -115,12 +144,13 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
       }
       const json = await res.json();
       setZipRows(json.rows ?? []);
+      fetchQuota();
     } catch {
       setError(t.errors.screenFailed);
     } finally {
       setRunning(false);
     }
-  }, [market, bedrooms, t]);
+  }, [market, bedrooms, t, fetchQuota]);
 
   const selectZip = useCallback(async (zip: string) => {
     setSelectedZip(zip);
@@ -146,12 +176,13 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
         return;
       }
       setRaw(await res.json());
+      fetchQuota();
     } catch {
       setError(t.errors.couldNotLoad);
     } finally {
       setLoadingListings(false);
     }
-  }, [t]);
+  }, [t, fetchQuota]);
 
   // Open a deal + lazily fetch its real property record (true tax + last sale),
   // cached per id so we never re-fetch. Re-underwrite happens automatically once
@@ -222,6 +253,10 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
   const zones = featuredZones().slice(0, 8);
   const lowGrade = market.grade === "D" || market.grade === "F";
 
+  // "Screens left" badge: accent when healthy, warning under ~1 market, danger at 0.
+  const screensLeft = quota ? Math.max(0, quota.limit - quota.used) : null;
+  const quotaTone = screensLeft == null ? "muted" : screensLeft <= 0 ? "danger" : screensLeft < 12 ? "warning" : "accent";
+
   return (
     <div className="min-h-screen">
       {/* Top bar */}
@@ -235,8 +270,22 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
           </div>
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
             {MOCK && <Pill tone="warning" className="hidden sm:inline-flex">{t.mock}</Pill>}
+            {screensLeft != null && (
+              <Pill tone={quotaTone} className="tabular">
+                {screensLeft} {screensLeft === 1 ? t.quota.oneLeft : t.quota.screensLeft}
+                {quota && quota.credits > 0 ? ` · ${t.quota.credits.replace("{n}", String(quota.credits))}` : ""}
+              </Pill>
+            )}
+            <button
+              onClick={() => setShowIntro(true)}
+              aria-label={t.onboarding.reopen}
+              title={t.onboarding.reopen}
+              className="flex h-6 w-6 items-center justify-center rounded-full border border-hairline font-semibold transition hover:border-primary/50 hover:text-foreground"
+            >
+              ?
+            </button>
             <LocaleSwitch locale={locale} />
-            <a href={lp("/saved")} className="transition hover:text-foreground">{t.nav.saved}</a>
+            <a href={lp("/saved")} className="hidden transition hover:text-foreground sm:inline">{t.nav.saved}</a>
             <a href={lp("/account")} className="transition hover:text-foreground">{t.nav.account}</a>
           </div>
         </div>
@@ -366,6 +415,8 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
           locale={locale}
         />
       )}
+
+      <Onboarding open={showIntro} onClose={() => setShowIntro(false)} locale={locale} />
     </div>
   );
 }

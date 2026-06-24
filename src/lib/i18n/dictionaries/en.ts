@@ -262,6 +262,25 @@ export const en = {
       title: "Market", targetMarket: "Target market (graded by cash-flow)", bedrooms: "Bedrooms (voucher size)",
       studio: "Studio", bedroom: "Bedroom", screening: "Screening…", runScreen: "Run screen",
       orAnyZip: "Or screen any ZIP", zipPlaceholder: "e.g. 44105", load: "Load",
+      usesScreens: "Uses ~{n} screens", usesOneScreen: "Uses ~1 screen",
+    },
+    quota: {
+      screensLeft: "screens left", oneLeft: "screen left", credits: "{n} credits", help: "How it works",
+    },
+    onboarding: {
+      title: "How CloseHound works",
+      subtitle: "Find Section 8 deals where the voucher beats the mortgage — in four steps.",
+      steps: [
+        { n: "01", title: "Pick a market — or any ZIP", body: "Start with a graded Opportunity Zone or screen any 5-digit ZIP in the country. Every market is graded A–F for cash flow before you spend a thing." },
+        { n: "02", title: "Run the screen", body: "CloseHound pulls the real HUD voucher rent and live for-sale listings for each ZIP in the market — that's about one screen per ZIP." },
+        { n: "03", title: "Read the Deal Score", body: "Every listing is underwritten instantly. Deals where the voucher beats the mortgage rise to the top — a Score of 100 is a cash-flow machine." },
+        { n: "04", title: "Save & compare", body: "Keep the winners, compare them side-by-side, and pull the true county tax + last-sale before you ever make an offer." },
+      ],
+      footer: "You have 100 free screens this month — no card required.",
+      guideCta: "Read the playbook",
+      howCta: "How scoring works",
+      cta: "Start screening",
+      reopen: "How it works",
     },
     assumptions: {
       title: "Assumptions", liveRescore: "live re-score", downPayment: "Down payment", interest: "Interest",
