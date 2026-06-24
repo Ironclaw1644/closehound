@@ -53,7 +53,7 @@ export const PLANS: Record<PlanId, Plan> = {
     annualPriceId: null,
     blurb: "Taste the hunt. No card.",
     features: [
-      "100 deal screens",
+      "100 credits (~10 markets)",
       "All 50 states + opportunity grades",
       "Full Deal Score underwriting",
     ],
@@ -69,7 +69,7 @@ export const PLANS: Record<PlanId, Plan> = {
     blurb: "For the active investor working markets weekly.",
     popular: true,
     features: [
-      "300 screens / month",
+      "1,000 credits / month",
       "Save deals + CSV export",
       "Opportunity Zone rankings",
       "Email support",
@@ -85,7 +85,7 @@ export const PLANS: Record<PlanId, Plan> = {
     annualPriceId: STRIPE_PRICES.closer_annual,
     blurb: "Run volume across multiple markets.",
     features: [
-      "1,500 screens / month",
+      "5,000 credits / month",
       "Bulk CSV export + multi-market batch",
       "Early access to new markets",
       "Priority support",
@@ -101,7 +101,7 @@ export const PLANS: Record<PlanId, Plan> = {
     annualPriceId: STRIPE_PRICES.agency_annual,
     blurb: "For funds + teams deploying capital at scale.",
     features: [
-      "5,000 screens / month",
+      "25,000 credits / month",
       "Team seats",
       "Priority data refresh",
       "Everything in Closer",

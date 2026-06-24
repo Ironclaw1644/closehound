@@ -1,3 +1,5 @@
+> SUPERSEDED by veo3-ad-v2.md (terminology: credits, not screens).
+
 # CloseHound — Paid Ad v1 (Veo 3 hook + real screen capture)
 
 **Format:** 9:16 vertical (Reels / TikTok / Shorts), ~24s. Also export 1:1 + 16:9 cuts.

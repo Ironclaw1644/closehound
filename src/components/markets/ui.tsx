@@ -132,7 +132,7 @@ export function CtaBand({
         >
           {cta}
         </Link>
-        <p className="mt-3 text-xs text-muted-foreground">100 free screens · no card · all 50 states</p>
+        <p className="mt-3 text-xs text-muted-foreground">100 free credits · ~10 markets · no card</p>
       </div>
     </section>
   );
