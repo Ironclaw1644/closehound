@@ -5,7 +5,7 @@ import json, os, time, urllib.request, urllib.error, sys
 
 GK = os.environ["GOOGLE_API_KEY"]
 op = os.environ.get("VEO_OP") or open("/tmp/veo-op.txt").read().strip()
-OUT = "marketing/closehound-hook.mp4"
+OUT = os.environ.get("VEO_OUT", "marketing/closehound-hook.mp4")
 
 
 def get(url):

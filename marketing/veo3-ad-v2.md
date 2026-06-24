@@ -6,18 +6,18 @@
 **No face, no human voice.** AI voiceover (Google SA TTS path) + burned-in captions for sound-off viewing.
 **One promise:** *the government voucher can pay more than the mortgage — and CloseHound finds those houses for you.*
 
-> **Numbers policy (guardrail):** every figure on screen must match the real app. The reference figures below are from the v1 demo capture (Cleveland, ZIP 44110, Deal Score 100): **voucher rent $1,925/mo · P&I −$708 · net cash flow +$462/mo**. Net cash flow moves with the assumptions, so **re-confirm the exact number on the final re-record and update the VO + captions to match.** The voucher rent ($1,925) and Deal Score (100) are stable, verifiable outputs. No invented stats, scarcity, or testimonials.
+> **Numbers policy (guardrail):** every figure on screen must match the real app. The reference figures below are from the v1 demo capture (Cleveland, ZIP 44110, Deal Score 100): **voucher rent $1,925/mo · P&I −$708 · net cash flow +$480/mo**. Net cash flow moves with the assumptions, so **re-confirm the exact number on the final re-record and update the VO + captions to match.** The voucher rent ($1,925) and Deal Score (100) are stable, verifiable outputs. No invented stats, scarcity, or testimonials.
 
 ---
 
 ## Why this converts (the persuasion levers — all honest)
-This isn't trickery; it's the legitimate high-conversion toolkit, every claim backed by the real $462/mo deal:
+This isn't trickery; it's the legitimate high-conversion toolkit, every claim backed by the real $480/mo deal:
 
 1. **Pattern interrupt + specificity (0–1s):** open on a precise dollar figure, not a slogan. "$1,925 a month for a $133,000 house" *sounds* true because it is. Specific numbers out-pull round ones.
 2. **Loss aversion / FOMO:** "most investors never check, so they overpay" — the viewer feels they're *already losing* money by not knowing this. Stronger than promising a gain.
 3. **Authority / trust anchor:** "the official HUD voucher," "real listings" — defuses the "too good to be true" reflex that kills financial ads.
 4. **Curiosity gap:** the hook states the *what* ($1,925 guaranteed) but withholds the *how* (which ZIPs, how to find them) — you keep watching to close the loop.
-5. **Value anchoring:** $5,544/yr from one deal vs **$39** for the tool. The price feels trivial next to the outcome ("one deal pays for years").
+5. **Value anchoring:** $5,760/yr from one deal vs **$39** for the tool. The price feels trivial next to the outcome ("one deal pays for years").
 6. **Friction removal / soft urgency:** "100 free credits, no card" — the smallest possible yes. No fake countdowns, no fake scarcity (those torch trust on money products).
 7. **Proof by demonstration:** the middle is the *real app* doing the work on screen. Show, don't claim.
 
@@ -31,8 +31,8 @@ Sound-off rule: it must land with **captions only** — 80%+ of feed views are m
 |---|---|---|---|
 | 0:00–0:03 | **Hook** — bold $ claim over cinematic home | Veo 3 (have hook.mp4) | Stop the scroll in 1s |
 | 0:03–0:09 | **Agitation** — "you're overpaying; the voucher beats the mortgage" | Veo 3 (street b-roll) | Create the gap / stakes |
-| 0:09–0:23 | **Proof / demo** — the app finds the +$462/mo deal | Real screen capture | Make it believable |
-| 0:23–0:30 | **Value + CTA** — $5,544/yr vs $39, start free | Endcard (static) | Convert |
+| 0:09–0:23 | **Proof / demo** — the app finds the +$480/mo deal | Real screen capture | Make it believable |
+| 0:23–0:30 | **Value + CTA** — $5,760/yr vs $39, start free | Endcard (static) | Convert |
 
 ---
 
@@ -53,21 +53,21 @@ Record this exact flow (re-use / re-cut `marketing/closehound-demo.mp4`):
 2. ZIP grid fills → click ZIP **44110**.  *(caption: "Real HUD voucher rents — every ZIP.")*
 3. Deal table fills, ranked by Deal Score → click the **top deal (Score 100, ~$133k)**.  *(caption: "Live listings, underwritten instantly.")*
 4. Drawer opens — hold ~2.5s on the numbers.
-   - **VO (over the demo):** "CloseHound checks every listing against the real HUD voucher and underwrites it. This Cleveland house: voucher rent nineteen twenty-five, every cost covered, net cash flow four hundred sixty-two dollars a month. Deal Score: one hundred."
-   - **Caption punches, timed to the lines:** `$1,925/mo voucher` · `+$462/mo net cash flow` · `SCORE 100`
+   - **VO (over the demo):** "CloseHound checks every listing against the real HUD voucher and underwrites it. This Cleveland house: voucher rent nineteen twenty-five, every cost covered, net cash flow four hundred eighty dollars a month. Deal Score: one hundred."
+   - **Caption punches, timed to the lines:** `$1,925/mo voucher` · `+$480/mo net cash flow` · `SCORE 100`
 
 ### 0:23–0:30 — VALUE + CTA  *(static endcard, reticle logo, dimmed last app frame behind)*
-- **VO:** "That's over five thousand dollars a year — from one deal. CloseHound is thirty-nine dollars. One deal pays for years. Screen your first market free at closehound dot com."
+- **VO:** "That's over five thousand seven hundred dollars a year — from one deal. CloseHound is thirty-nine dollars. One deal pays for years. Screen your first market free at closehound dot com."
 - **Endcard text:**
   - Line 1: **One deal pays for years.**
-  - Line 2: `$5,544/yr from one house  ·  CloseHound $39/mo`
+  - Line 2: `$5,760/yr from one house  ·  CloseHound $39/mo`
   - Line 3 (CTA, chartreuse): **closehound.com**
   - Line 4 (small mono): `100 free credits · ~10 markets · no card`
 
 ---
 
 ## Full voiceover script (TTS-ready — one take, calm-confident, ~28s)
-> "The government will pay nineteen twenty-five a month to rent this hundred-and-thirty-three-thousand-dollar house. In the right markets, the Section 8 voucher pays more than the open market — for the exact same house. Most investors never check, so they overpay for rentals that barely break even. CloseHound checks every listing against the real HUD voucher and underwrites it. This Cleveland house: voucher rent nineteen twenty-five, every cost covered, net cash flow four hundred sixty-two dollars a month. Deal Score: one hundred. That's over five thousand dollars a year — from one deal. CloseHound is thirty-nine dollars. One deal pays for years. Screen your first market free at closehound dot com."
+> "The government will pay nineteen twenty-five a month to rent this hundred-and-thirty-three-thousand-dollar house. In the right markets, the Section 8 voucher pays more than the open market — for the exact same house. Most investors never check, so they overpay for rentals that barely break even. CloseHound checks every listing against the real HUD voucher and underwrites it. This Cleveland house: voucher rent nineteen twenty-five, every cost covered, net cash flow four hundred eighty dollars a month. Deal Score: one hundred. That's over five thousand seven hundred dollars a year — from one deal. CloseHound is thirty-nine dollars. One deal pays for years. Screen your first market free at closehound dot com."
 
 *(If it runs long, trim the "barely break even" clause. Numbers must match the final demo capture.)*
 
@@ -78,7 +78,7 @@ Swap only the hook line + first caption; keep the rest identical.
 
 - **A — Specificity / authority (lead):** "The government will pay $1,925 a month to rent this $133,000 house."  caption `$1,925/mo guaranteed`
 - **B — Curiosity / dream:** "What if the rent showed up every month — guaranteed by the government — and beat your mortgage?"  caption `Rent that beats the mortgage?`
-- **C — Loss aversion:** "Most investors leave five thousand dollars a year on the table. Here's the deal they miss."  caption `You're losing $5k/yr.`
+- **C — Loss aversion:** "Most investors leave five thousand seven hundred dollars a year on the table. Here's the deal they miss."  caption `You're losing $5k/yr.`
 
 Run all three to the same demo+CTA; keep the winner by 3-second hold-rate / hook-through.
 
