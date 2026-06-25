@@ -255,7 +255,7 @@ export const es: Dictionary = {
       couldNotSave: "No se pudo guardar.",
     },
     market: { headsUp: "Atención:", lowGrade: "tiene baja calificación de flujo de caja.", considerZone: "Considera una Zona de Oportunidad para no desperdiciar un crédito.", note: "Nota" },
-    stage1: { title: "Etapa 1 — análisis de oportunidad por código postal", ranked: "códigos postales clasificados", runToBegin: "ejecuta un análisis para empezar" },
+    stage1: { title: "Etapa 1 — análisis de oportunidad por código postal", ranked: "códigos postales clasificados", runToBegin: "ejecuta un análisis para empezar", tapHint: "Toca un código postal para ver sus anuncios en vivo" },
     stage2: { title: "Etapa 2 — ofertas", loading: "cargando…", exportCsv: "Exportar CSV", compare: "Comparar" },
     compare: { title: "Comparar ofertas", best: "Mejor puntuación" },
     controls: {
@@ -287,7 +287,7 @@ export const es: Dictionary = {
       loanTerm: "Plazo", closing: "Cierre", rehab: "Reparación", paymentStd: "Estándar de pago", mgmt: "Admin.",
       vacancy: "Vacancia", maintenance: "Mantenim.", capex: "CapEx", taxRate: "Tasa fiscal", insurance: "Seguro", monthlyHOA: "HOA mensual",
     },
-    zipTable: { zip: "Código postal", safmr: "SAFMR", medianPrice: "Precio medio", rentPrice: "Renta / precio", insufficient: "datos insuficientes", empty: "Ejecuta un análisis para clasificar los códigos postales por renta del vale frente al precio." },
+    zipTable: { zip: "Código postal", safmr: "SAFMR", medianPrice: "Precio medio", rentPrice: "Renta / precio", insufficient: "datos insuficientes", empty: "Ejecuta un análisis para clasificar los códigos postales por renta del vale frente al precio.", tapToOpen: "Ver anuncios" },
     dealTable: { address: "Dirección", price: "Precio", br: "Hab", safmrRent: "Renta SAFMR", netCf: "FC neto/mes", cashCash: "Cash/cash", capRate: "Cap rate", rentPrice: "Renta/precio", dscr: "DSCR", dom: "Días", score: "Puntuación", empty: "Selecciona un código postal para evaluar sus propiedades activas." },
     scatter: { medianPrice: "Precio medio", safmr: "SAFMR", rentPrice: "Renta/precio", empty: "El mapa de oportunidad aparece tras un análisis." },
     drawer: {

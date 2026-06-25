@@ -26,6 +26,7 @@ export function ZipTable({
             <th className="px-3 py-2 text-right font-medium">{t.safmr}</th>
             <th className="px-3 py-2 text-right font-medium">{t.medianPrice}</th>
             <th className="px-3 py-2 text-right font-medium">{t.rentPrice}</th>
+            <th className="w-7 px-2 py-2" aria-hidden />
           </tr>
         </thead>
         <tbody>
@@ -52,11 +53,24 @@ export function ZipTable({
                   </span>
                 )}
               </td>
+              <td className="px-2 py-2.5 text-right">
+                {!r.insufficient && (
+                  <span
+                    className={cn(
+                      "text-base leading-none",
+                      selectedZip === r.zip ? "text-primary" : "text-muted-foreground"
+                    )}
+                    aria-label={t.tapToOpen}
+                  >
+                    ›
+                  </span>
+                )}
+              </td>
             </tr>
           ))}
           {rows.length === 0 && (
             <tr>
-              <td colSpan={4} className="px-3 py-8 text-center text-sm text-muted-foreground">
+              <td colSpan={5} className="px-3 py-8 text-center text-sm text-muted-foreground">
                 {t.empty}
               </td>
             </tr>

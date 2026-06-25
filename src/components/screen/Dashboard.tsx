@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   DEFAULT_MARKETS,
   DEFAULT_WEIGHTS,
@@ -59,6 +59,17 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
   const [error, setError] = useState<string | null>(null);
   const [quota, setQuota] = useState<{ used: number; limit: number; credits: number } | null>(null);
   const [showIntro, setShowIntro] = useState(false);
+  const stage1Ref = useRef<HTMLDivElement>(null);
+  const stage2Ref = useRef<HTMLDivElement>(null);
+
+  // On phones, controls and results are stacked far apart — so after a run, jump
+  // the viewport to the fresh ZIP results; after a ZIP is tapped, jump to the
+  // listings. Only on the stacked (<lg) layout; desktop shows them side-by-side.
+  const scrollStackedTo = useCallback((el: HTMLElement | null) => {
+    if (el && typeof window !== "undefined" && window.matchMedia("(max-width: 1023px)").matches) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, []);
 
   // Live "screens left" — read-only, non-billable. Refreshed after each screen.
   const fetchQuota = useCallback(async () => {
@@ -85,6 +96,14 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
       /* private mode / no storage — skip */
     }
   }, []);
+
+  // Snap to results after a run, and to listings after a ZIP is tapped (mobile).
+  useEffect(() => {
+    if (zipRows.length) scrollStackedTo(stage1Ref.current);
+  }, [zipRows, scrollStackedTo]);
+  useEffect(() => {
+    if (selectedZip) scrollStackedTo(stage2Ref.current);
+  }, [selectedZip, scrollStackedTo]);
 
   const resetResults = () => {
     setZipRows([]);
@@ -352,6 +371,7 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
           )}
 
           {/* Stage 1 */}
+          <div ref={stage1Ref} className="scroll-mt-20">
           <Card>
             <CardHeader>
               <CardTitle>{t.stage1.title}</CardTitle>
@@ -359,13 +379,26 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
                 {zipRows.length ? `${zipRows.filter((r) => !r.insufficient).length} ${t.stage1.ranked}` : t.stage1.runToBegin}
               </span>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-              <OpportunityScatter rows={zipRows} selectedZip={selectedZip} onSelect={selectZip} locale={locale} />
-              <ZipTable rows={zipRows} selectedZip={selectedZip} onSelect={selectZip} locale={locale} />
+            <CardContent>
+              {zipRows.length > 0 && !selectedZip && (
+                <div className="mb-4 flex items-center gap-2.5 rounded-lg border border-primary/40 bg-primary/10 px-4 py-3 text-sm font-semibold text-foreground">
+                  <span className="relative flex h-2.5 w-2.5 shrink-0">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary" />
+                  </span>
+                  {t.stage1.tapHint}
+                </div>
+              )}
+              <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+                <OpportunityScatter rows={zipRows} selectedZip={selectedZip} onSelect={selectZip} locale={locale} />
+                <ZipTable rows={zipRows} selectedZip={selectedZip} onSelect={selectZip} locale={locale} />
+              </div>
             </CardContent>
           </Card>
+          </div>
 
           {/* Stage 2 */}
+          <div ref={stage2Ref} className="scroll-mt-20">
           <Card>
             <CardHeader>
               <CardTitle>{t.stage2.title} {selectedZip ? `· ${selectedZip}` : ""}</CardTitle>
@@ -394,6 +427,7 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
               />
             </CardContent>
           </Card>
+          </div>
         </div>
       </div>
 

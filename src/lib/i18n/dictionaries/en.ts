@@ -255,7 +255,7 @@ export const en = {
       couldNotSave: "Could not save.",
     },
     market: { headsUp: "Heads up:", lowGrade: "grades low for cash flow.", considerZone: "Consider an Opportunity Zone instead so you don't waste a credit.", note: "Note" },
-    stage1: { title: "Stage 1 — ZIP opportunity screen", ranked: "ZIPs ranked", runToBegin: "run a screen to begin" },
+    stage1: { title: "Stage 1 — ZIP opportunity screen", ranked: "ZIPs ranked", runToBegin: "run a screen to begin", tapHint: "Tap a ZIP to load its live listings" },
     stage2: { title: "Stage 2 — deals", loading: "loading…", exportCsv: "Export CSV", compare: "Compare" },
     compare: { title: "Compare deals", best: "Best score" },
     controls: {
@@ -287,7 +287,7 @@ export const en = {
       loanTerm: "Loan term", closing: "Closing", rehab: "Rehab", paymentStd: "Payment std", mgmt: "Mgmt",
       vacancy: "Vacancy", maintenance: "Maintenance", capex: "CapEx", taxRate: "Tax rate", insurance: "Insurance", monthlyHOA: "Monthly HOA",
     },
-    zipTable: { zip: "ZIP", safmr: "SAFMR", medianPrice: "Median price", rentPrice: "Rent / price", insufficient: "insufficient data", empty: "Run a screen to rank ZIPs by voucher rent vs. price." },
+    zipTable: { zip: "ZIP", safmr: "SAFMR", medianPrice: "Median price", rentPrice: "Rent / price", insufficient: "insufficient data", empty: "Run a screen to rank ZIPs by voucher rent vs. price.", tapToOpen: "Open listings" },
     dealTable: { address: "Address", price: "Price", br: "BR", safmrRent: "SAFMR rent", netCf: "Net CF/mo", cashCash: "Cash/cash", capRate: "Cap rate", rentPrice: "Rent/price", dscr: "DSCR", dom: "DOM", score: "Score", empty: "Select a ZIP to underwrite its active listings." },
     scatter: { medianPrice: "Median price", safmr: "SAFMR", rentPrice: "Rent/price", empty: "Opportunity map appears after a screen." },
     drawer: {
