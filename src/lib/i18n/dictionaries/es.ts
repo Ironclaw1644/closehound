@@ -253,7 +253,9 @@ export const es: Dictionary = {
       couldNotLoad: "No se pudieron cargar las propiedades.",
       signInToSave: "Inicia sesión para guardar ofertas.",
       couldNotSave: "No se pudo guardar.",
+      noZipCoverage: "No se encontró un código postal con cobertura cerca — prueba otro.",
     },
+    zipSearch: { nearest: "El código {req} no tiene cobertura — mostrando el área más cercana, {got}." },
     market: { headsUp: "Atención:", lowGrade: "tiene baja calificación de flujo de caja.", considerZone: "Considera una Zona de Oportunidad para no desperdiciar un crédito.", note: "Nota" },
     stage1: { title: "Etapa 1 — análisis de oportunidad por código postal", ranked: "códigos postales clasificados", runToBegin: "ejecuta un análisis para empezar", tapHint: "Toca un código postal para ver sus anuncios en vivo" },
     stage2: { title: "Etapa 2 — ofertas", loading: "cargando…", exportCsv: "Exportar CSV", compare: "Comparar" },
@@ -261,7 +263,7 @@ export const es: Dictionary = {
     controls: {
       title: "Mercado", targetMarket: "Mercado objetivo (calificado por flujo de caja)", bedrooms: "Habitaciones (tamaño del vale)",
       studio: "Estudio", bedroom: "Habitación", screening: "Analizando…", runScreen: "Ejecutar análisis",
-      orAnyZip: "O analiza cualquier código postal", zipPlaceholder: "ej. 44105", load: "Cargar",
+      orAnyZip: "O busca cualquier código postal de EE. UU.", zipPlaceholder: "ej. 44105", load: "Cargar", screenZip: "Analizar",
       usesScreens: "Usa ~{n} créditos", usesOneScreen: "Usa ~1 crédito",
     },
     quota: {

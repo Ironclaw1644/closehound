@@ -28,6 +28,48 @@ export function safmrForBeds(s: Safmr, beds: number): number {
   return s.br[Math.min(Math.max(beds, 0), 4)];
 }
 
+// Lazily-cached list of every ZIP with voucher coverage, for nearest-ZIP search.
+let COVERED_ZIPS: string[] | null = null;
+const coveredZips = (): string[] => (COVERED_ZIPS ??= Object.keys(SAFMR_DATA.zips));
+
+const commonPrefixLen = (a: string, b: string): number => {
+  let n = 0;
+  while (n < a.length && n < b.length && a[n] === b[n]) n++;
+  return n;
+};
+
+export interface ZipResolution {
+  /** The ZIP we'll actually screen (== requested when exact). */
+  zip: string;
+  /** True when the requested ZIP itself has coverage. */
+  exact: boolean;
+}
+
+/**
+ * Resolve a 5-digit ZIP to itself if it has SAFMR voucher coverage, otherwise to
+ * the NEAREST covered ZIP — preferring the same area (longest shared ZIP prefix),
+ * then numeric proximity. Pure data lookup over the bundled dataset; not billable.
+ */
+export function resolveZip(zip: string): ZipResolution | null {
+  if (!/^\d{5}$/.test(zip)) return null;
+  if (SAFMR_DATA.zips[zip]) return { zip, exact: true };
+  const target = parseInt(zip, 10);
+  let best: string | null = null;
+  let bestPrefix = -1;
+  let bestDist = Infinity;
+  for (const z of coveredZips()) {
+    const p = commonPrefixLen(z, zip);
+    if (p < bestPrefix) continue;
+    const d = Math.abs(parseInt(z, 10) - target);
+    if (p > bestPrefix || d < bestDist) {
+      best = z;
+      bestPrefix = p;
+      bestDist = d;
+    }
+  }
+  return best ? { zip: best, exact: false } : null;
+}
+
 function rowToSafmr(row: {
   zip: string;
   fiscal_year: number;

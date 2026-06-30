@@ -57,6 +57,7 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
   const [compareIds, setCompareIds] = useState<Set<string>>(new Set());
   const [showCompare, setShowCompare] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [zipNote, setZipNote] = useState<string | null>(null);
   const [quota, setQuota] = useState<{ used: number; limit: number; credits: number } | null>(null);
   const [showIntro, setShowIntro] = useState(false);
   const stage1Ref = useRef<HTMLDivElement>(null);
@@ -112,6 +113,7 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
     setCompareIds(new Set());
     setShowCompare(false);
     setError(null);
+    setZipNote(null);
   };
 
   const toggleCompare = useCallback((id: string) => {
@@ -131,14 +133,10 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
     resetResults();
   };
 
-  const onCustomZip = (zip: string) => {
-    const m = adhocMarket(zip);
-    setCustomMarket(m);
-    setAssumptions(assumptionsForMarket(m));
-    resetResults();
-  };
 
-  const runScreen = useCallback(async () => {
+  // Core screen for an explicit set of ZIPs — used by both "Run screen" (the
+  // selected market) and the ZIP search (a single resolved ZIP). Returns the rows.
+  const runScreenFor = useCallback(async (zips: string[]): Promise<ZipScreenRow[]> => {
     setRunning(true);
     setError(null);
     setSelectedZip(null);
@@ -147,29 +145,36 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
       const res = await fetch("/api/screen/zips", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ zips: market.zips, bedrooms }),
+        body: JSON.stringify({ zips, bedrooms }),
       });
       if (res.status === 401) {
         window.location.href = `${lp("/login")}?next=${encodeURIComponent(lp("/screen"))}`;
-        return;
+        return [];
       }
       if (res.status === 402) {
         setError(t.errors.outOfScreensRun);
-        return;
+        return [];
       }
       if (!res.ok) {
         setError(t.errors.screenFailed);
-        return;
+        return [];
       }
       const json = await res.json();
-      setZipRows(json.rows ?? []);
+      const rows: ZipScreenRow[] = json.rows ?? [];
+      setZipRows(rows);
       fetchQuota();
+      return rows;
     } catch {
       setError(t.errors.screenFailed);
+      return [];
     } finally {
       setRunning(false);
     }
-  }, [market, bedrooms, t, fetchQuota]);
+  }, [bedrooms, t, fetchQuota]);
+
+  const runScreen = useCallback(() => {
+    void runScreenFor(market.zips);
+  }, [runScreenFor, market.zips]);
 
   const selectZip = useCallback(async (zip: string) => {
     setSelectedZip(zip);
@@ -202,6 +207,38 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
       setLoadingListings(false);
     }
   }, [t, fetchQuota]);
+
+  // ZIP search: resolve the typed ZIP to itself (if covered) or the nearest
+  // covered ZIP (non-billable), screen it, and auto-open its listings.
+  const screenZip = useCallback(async (rawZip: string) => {
+    setError(null);
+    setZipNote(null);
+    let z = rawZip;
+    try {
+      const r = await fetch(`/api/screen/resolve-zip?zip=${rawZip}`);
+      if (r.status === 401) {
+        window.location.href = `${lp("/login")}?next=${encodeURIComponent(lp("/screen"))}`;
+        return;
+      }
+      if (r.status === 404) {
+        setError(t.errors.noZipCoverage);
+        return;
+      }
+      if (r.ok) {
+        const j: { zip: string; exact: boolean } = await r.json();
+        z = j.zip;
+        if (!j.exact) setZipNote(t.zipSearch.nearest.replace("{req}", rawZip).replace("{got}", z));
+      }
+    } catch {
+      /* resolver unavailable — fall through and try the typed ZIP directly */
+    }
+    const m = adhocMarket(z);
+    setCustomMarket(m);
+    setAssumptions(assumptionsForMarket(m));
+    const rows = await runScreenFor([z]);
+    // Single typed ZIP → jump straight to its listings if it screened cleanly.
+    if (rows.some((row) => row.zip === z && !row.insufficient)) void selectZip(z);
+  }, [runScreenFor, selectZip, t]);
 
   // Open a deal + lazily fetch its real property record (true tax + last sale),
   // cached per id so we never re-fetch. Re-underwrite happens automatically once
@@ -340,7 +377,7 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
             market={market}
             marketId={customMarket ? "" : marketId}
             onMarket={onMarket}
-            onCustomZip={onCustomZip}
+            onScreenZip={screenZip}
             bedrooms={bedrooms}
             onBedrooms={setBedrooms}
             onRun={runScreen}
@@ -354,6 +391,9 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
         <div className="flex flex-col gap-5">
           {error && (
             <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm text-destructive">{error}</div>
+          )}
+          {zipNote && (
+            <div className="rounded-lg border border-primary/40 bg-primary/10 px-4 py-2.5 text-sm text-foreground">{zipNote}</div>
           )}
           {lowGrade && (
             <div className="flex items-start gap-3 rounded-lg border border-warning/40 bg-warning/10 px-4 py-2.5 text-sm text-warning">

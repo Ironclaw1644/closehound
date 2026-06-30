@@ -12,7 +12,7 @@ export function MarketControls({
   market,
   marketId,
   onMarket,
-  onCustomZip,
+  onScreenZip,
   bedrooms,
   onBedrooms,
   onRun,
@@ -22,7 +22,7 @@ export function MarketControls({
   market: Market;
   marketId: string;
   onMarket: (id: string) => void;
-  onCustomZip: (zip: string) => void;
+  onScreenZip: (zip: string) => void;
   bedrooms: number;
   onBedrooms: (b: number) => void;
   onRun: () => void;
@@ -38,7 +38,7 @@ export function MarketControls({
   function submitZip(e: React.FormEvent) {
     e.preventDefault();
     const z = zip.trim();
-    if (/^\d{5}$/.test(z)) onCustomZip(z);
+    if (/^\d{5}$/.test(z)) onScreenZip(z);
   }
 
   return (
@@ -52,6 +52,13 @@ export function MarketControls({
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         <Select label={t.targetMarket} value={marketId} onChange={onMarket}>
+          {/* When a typed ZIP is active, marketId is "" — surface it so the dropdown
+              reflects what's actually being screened instead of a stale preset. */}
+          {!marketId && (
+            <option value="" disabled>
+              {market.label}
+            </option>
+          )}
           {ordered.map((m) => (
             <option key={m.id} value={m.id}>
               [{m.grade}] {m.label} · {m.state}
@@ -80,7 +87,7 @@ export function MarketControls({
           </span>
         </div>
 
-        {/* Any-ZIP escape hatch — reach all 50 states. */}
+        {/* Search any ZIP in the U.S. — one tap screens it (or the nearest covered ZIP). */}
         <form onSubmit={submitZip} className="mt-1 border-t border-hairline pt-3">
           <span className="text-[10.5px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
             {t.orAnyZip}
@@ -90,11 +97,13 @@ export function MarketControls({
               value={zip}
               onChange={(e) => setZip(e.target.value.replace(/\D/g, "").slice(0, 5))}
               inputMode="numeric"
+              enterKeyHint="search"
               placeholder={t.zipPlaceholder}
+              aria-label={t.orAnyZip}
               className="tabular h-9 w-full rounded-md border border-input bg-background px-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
             />
-            <Button type="submit" variant="outline" size="sm" disabled={zip.length !== 5}>
-              {t.load}
+            <Button type="submit" size="sm" disabled={zip.length !== 5 || running}>
+              {t.screenZip}
             </Button>
           </div>
         </form>

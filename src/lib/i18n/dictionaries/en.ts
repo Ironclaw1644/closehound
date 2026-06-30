@@ -253,7 +253,9 @@ export const en = {
       couldNotLoad: "Could not load listings.",
       signInToSave: "Sign in to save deals.",
       couldNotSave: "Could not save.",
+      noZipCoverage: "No covered ZIP found near that one — try another.",
     },
+    zipSearch: { nearest: "ZIP {req} isn't covered — showing the nearest area, {got}." },
     market: { headsUp: "Heads up:", lowGrade: "grades low for cash flow.", considerZone: "Consider an Opportunity Zone instead so you don't waste a credit.", note: "Note" },
     stage1: { title: "Stage 1 — ZIP opportunity screen", ranked: "ZIPs ranked", runToBegin: "run a screen to begin", tapHint: "Tap a ZIP to load its live listings" },
     stage2: { title: "Stage 2 — deals", loading: "loading…", exportCsv: "Export CSV", compare: "Compare" },
@@ -261,7 +263,7 @@ export const en = {
     controls: {
       title: "Market", targetMarket: "Target market (graded by cash-flow)", bedrooms: "Bedrooms (voucher size)",
       studio: "Studio", bedroom: "Bedroom", screening: "Screening…", runScreen: "Run screen",
-      orAnyZip: "Or screen any ZIP", zipPlaceholder: "e.g. 44105", load: "Load",
+      orAnyZip: "Or search any ZIP in the U.S.", zipPlaceholder: "e.g. 44105", load: "Load", screenZip: "Screen",
       usesScreens: "Uses ~{n} credits", usesOneScreen: "Uses ~1 credit",
     },
     quota: {
