@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { isDemoMode } from "@/lib/env";
 import { getStripeClient } from "@/lib/stripe/client";
 import { priceInfo } from "@/lib/stripe/plans";
-import { getUser } from "@/lib/supabase/server";
+import { getSessionUser } from "@/lib/auth/getSessionUser";
 import { getClosehoundAdminSchema } from "@/lib/supabase";
 
 export const runtime = "nodejs";
@@ -11,7 +12,11 @@ export const dynamic = "force-dynamic";
 const Body = z.object({ price: z.string().min(1) });
 
 export async function POST(req: Request) {
-  const user = await getUser();
+  // Billing is hard-disabled in demo — no checkout session may ever be created
+  // for the synthetic user, regardless of what the client sends.
+  if (isDemoMode()) return NextResponse.json({ error: "demo" }, { status: 403 });
+
+  const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Sign in required" }, { status: 401 });
 
   const parsed = Body.safeParse(await req.json().catch(() => ({})));

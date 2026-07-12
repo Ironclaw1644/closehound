@@ -1,6 +1,24 @@
 import "server-only";
 
 import { Resend } from "resend";
+import { isDemoMode } from "@/lib/env";
+
+/** ALL outbound email goes through here. DEMO_MODE stubs the send to a
+ *  console.log — the public demo must never email anyone. */
+export async function sendEmail(opts: {
+  from: string;
+  to: string;
+  subject: string;
+  html: string;
+}): Promise<unknown> {
+  if (isDemoMode()) {
+    console.log(
+      `[demo] outbound email stubbed — to: ${opts.to}, subject: ${opts.subject}`
+    );
+    return { data: { id: "demo-stub" }, error: null };
+  }
+  return getResendClient().emails.send(opts);
+}
 
 function getRequiredEnv(name: "RESEND_API_KEY" | "RESEND_FROM") {
   const value = process.env[name];

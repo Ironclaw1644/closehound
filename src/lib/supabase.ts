@@ -2,6 +2,7 @@ import "server-only";
 import { createClient } from "@supabase/supabase-js";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
+import { isDemoMode } from "@/lib/env";
 
 let client: SupabaseClient<Database> | undefined;
 let adminClient: SupabaseClient<Database> | undefined;
@@ -74,14 +75,27 @@ export function getSupabaseClient() {
 
 export const supabase = getSupabaseClient;
 
-export function getClosehoundSchema() {
-  return getSupabaseClient().schema("closehound");
+/**
+ * The ONE place the Postgres schema is selected. Every query in the app flows
+ * through this: SUPABASE_SCHEMA env override first, then demo_closehound when
+ * DEMO_MODE, else the production `closehound` schema. The demo schema mirrors
+ * closehound's tables (supabase/demo-schema.sql), so the generated Database
+ * types stay accurate — hence the cast.
+ */
+export function getSchemaName(): "closehound" {
+  return (process.env.SUPABASE_SCHEMA?.trim() ||
+    (isDemoMode() ? "demo_closehound" : "closehound")) as "closehound";
 }
 
-/** Service-role client scoped to the closehound schema. Server-only — used for
- *  cache reads/writes and metering, which bypass RLS. Never import client-side. */
+export function getClosehoundSchema() {
+  return getSupabaseClient().schema(getSchemaName());
+}
+
+/** Service-role client scoped to the active schema (closehound, or
+ *  demo_closehound in DEMO_MODE). Server-only — used for cache reads/writes and
+ *  metering, which bypass RLS. Never import client-side. */
 export function getClosehoundAdminSchema() {
-  return getSupabaseAdminClient().schema("closehound");
+  return getSupabaseAdminClient().schema(getSchemaName());
 }
 
 export function getSupabaseAdminClient() {

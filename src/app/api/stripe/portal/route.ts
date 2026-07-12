@@ -1,13 +1,17 @@
 import { NextResponse } from "next/server";
+import { isDemoMode } from "@/lib/env";
 import { getStripeClient } from "@/lib/stripe/client";
-import { getUser } from "@/lib/supabase/server";
+import { getSessionUser } from "@/lib/auth/getSessionUser";
 import { getClosehoundAdminSchema } from "@/lib/supabase";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
-  const user = await getUser();
+  // Billing is hard-disabled in demo — the synthetic user has no Stripe customer.
+  if (isDemoMode()) return NextResponse.json({ error: "demo" }, { status: 403 });
+
+  const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Sign in required" }, { status: 401 });
 
   const db = getClosehoundAdminSchema();

@@ -2,7 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { isDemoMode } from "@/lib/env";
 import { Button } from "@/components/ui/button";
+import { DemoBillingLink } from "@/components/billing/CheckoutButton";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
 import { getDictionary, localizedPath, type Locale } from "@/lib/i18n";
 
@@ -11,6 +13,7 @@ export function AccountActions({ plan, locale = "en" }: { plan: string; locale?:
   const t = getDictionary(locale).app.account;
   const lp = (p: string) => localizedPath(p, locale);
   const subscribed = plan !== "free";
+  const demo = isDemoMode();
 
   async function portal() {
     const res = await fetch("/api/stripe/portal", { method: "POST" });
@@ -22,6 +25,16 @@ export function AccountActions({ plan, locale = "en" }: { plan: string; locale?:
     await getBrowserSupabase().auth.signOut();
     router.push(lp("/"));
     router.refresh();
+  }
+
+  // Demo mode: billing actions collapse into the one disabled CTA (the portal
+  // API 403s server-side anyway); sign-out is pointless — there's no session.
+  if (demo) {
+    return (
+      <div className="flex flex-wrap items-center gap-3">
+        <DemoBillingLink className="!w-auto px-5" />
+      </div>
+    );
   }
 
   return (

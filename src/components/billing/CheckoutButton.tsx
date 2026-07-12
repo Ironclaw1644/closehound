@@ -1,7 +1,27 @@
 "use client";
 
 import { useState } from "react";
+import { isDemoMode } from "@/lib/env";
 import { Button } from "@/components/ui/button";
+
+/** Where a disabled demo billing CTA points instead of Stripe. */
+export const DEMO_BILLING_URL = "https://www.walkperro.com/websites/ai-directory";
+
+/** The one disabled-billing CTA used across demo mode: styled like a disabled
+ *  button, links out to the walkperro listing instead of Stripe. */
+export function DemoBillingLink({ className }: { className?: string }) {
+  return (
+    <a
+      href={DEMO_BILLING_URL}
+      className={
+        "inline-flex h-10 w-full cursor-not-allowed items-center justify-center rounded-md border border-border bg-secondary/60 px-4 text-sm font-semibold text-muted-foreground opacity-60 transition hover:opacity-80 " +
+        (className ?? "")
+      }
+    >
+      demo — billing disabled
+    </a>
+  );
+}
 
 export function CheckoutButton({
   children,
@@ -24,6 +44,16 @@ export function CheckoutButton({
 }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+
+  // Demo mode: billing is disabled server-side too (the checkout API 403s) —
+  // this renders the honest disabled state and links out to walkperro instead.
+  if (isDemoMode()) {
+    return (
+      <div className={className}>
+        <DemoBillingLink />
+      </div>
+    );
+  }
 
   async function go() {
     setBusy(true);

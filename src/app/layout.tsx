@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Instrument_Serif, JetBrains_Mono } from "next/font/google";
+import { isDemoMode } from "@/lib/env";
+import { DemoTourguide } from "@/components/DemoTourguide";
 import { Providers } from "./providers";
 import "./globals.css";
 
@@ -26,6 +28,9 @@ const SITE_ORIGIN =
   process.env.NEXT_PUBLIC_SITE?.trim().replace(/\/+$/, "") ||
   "https://closehound.com";
 
+// Demo deployments must never be indexed (duplicate of the real closehound).
+const IS_DEMO = process.env.DEMO_MODE === "1";
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_ORIGIN),
   title: {
@@ -51,9 +56,9 @@ export const metadata: Metadata = {
   publisher: "WalkPerro",
   alternates: { canonical: "/" },
   robots: {
-    index: true,
-    follow: true,
-    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
+    index: !IS_DEMO,
+    follow: !IS_DEMO,
+    googleBot: { index: !IS_DEMO, follow: !IS_DEMO, "max-image-preview": "large", "max-snippet": -1 },
   },
   openGraph: {
     type: "website",
@@ -117,6 +122,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_LD) }}
         />
         <Providers>{children}</Providers>
+        {isDemoMode() && <DemoTourguide />}
       </body>
     </html>
   );

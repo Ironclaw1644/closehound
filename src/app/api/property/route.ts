@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { isMockMode } from "@/lib/env";
-import { getUser } from "@/lib/supabase/server";
+import { getSessionUser } from "@/lib/auth/getSessionUser";
 import { getPropertyRecord } from "@/lib/rentcast/client";
 
 export const runtime = "nodejs";
@@ -27,7 +27,7 @@ export async function GET(req: Request) {
   }
 
   if (!isMockMode()) {
-    const user = await getUser();
+    const user = await getSessionUser();
     if (!user) return NextResponse.json({ error: "Sign in to load property records." }, { status: 401 });
   }
 

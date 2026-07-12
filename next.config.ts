@@ -21,13 +21,27 @@ const SECURITY_HEADERS = [
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
 ];
 
+// DEMO_MODE deployments must never be indexed — the demo is a walkperro
+// portfolio piece on a throwaway domain, not the product site. (Checked at
+// build/config load; demo deployments set DEMO_MODE=1 in their env.)
+const IS_DEMO =
+  process.env.DEMO_MODE === "1" ||
+  process.env.DEMO_MODE?.toLowerCase() === "true" ||
+  process.env.NEXT_PUBLIC_DEMO_MODE === "1" ||
+  process.env.NEXT_PUBLIC_DEMO_MODE?.toLowerCase() === "true";
+
 const nextConfig: NextConfig = {
-  // Security headers — applied site-wide.
+  // Security headers — applied site-wide (+ noindex in demo mode).
   async headers() {
     return [
       {
         source: "/:path*",
-        headers: SECURITY_HEADERS,
+        headers: [
+          ...SECURITY_HEADERS,
+          ...(IS_DEMO
+            ? [{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" }]
+            : []),
+        ],
       },
     ];
   },

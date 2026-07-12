@@ -42,7 +42,7 @@ export function MarketControls({
   }
 
   return (
-    <Card>
+    <Card data-tour="controls">
       <CardHeader>
         <CardTitle>{t.title}</CardTitle>
         <span className="inline-flex items-center gap-1.5">

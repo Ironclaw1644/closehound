@@ -1,10 +1,16 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isDemoMode } from "@/lib/env";
 
 // Refresh the Supabase auth session on each request so server components and
 // route handlers see a current user.
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
+
+  // DEMO_MODE: every visitor already IS the synthetic demo user (see
+  // @/lib/auth/getSessionUser) — no Supabase Auth session to refresh, and
+  // nothing may ever bounce a visitor to /login.
+  if (isDemoMode()) return response;
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key =

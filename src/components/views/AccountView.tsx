@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getUser } from "@/lib/supabase/server";
+import { getSessionUser } from "@/lib/auth/getSessionUser";
 import { ensureProfile } from "@/lib/auth";
 import { getQuota } from "@/lib/quota";
 import { PLANS, type PlanId } from "@/lib/stripe/plans";
@@ -21,7 +21,7 @@ export async function AccountView({
   const nav = getDictionary(locale).app.nav;
   const lp = (p: string) => localizedPath(p, locale);
 
-  const user = await getUser();
+  const user = await getSessionUser();
   if (!user) redirect(`${lp("/login")}?next=${encodeURIComponent(lp("/account"))}`);
   await ensureProfile(user.id);
   const q = await getQuota(user.id);
@@ -51,7 +51,7 @@ export async function AccountView({
           </div>
         )}
 
-        <Card className="mt-6">
+        <Card className="mt-6" data-tour="account">
           <CardHeader>
             <CardTitle>{t.membership}</CardTitle>
             <span className="rounded-md border border-gold/30 bg-gold/10 px-2.5 py-1 text-sm font-semibold text-gold">{planName}</span>

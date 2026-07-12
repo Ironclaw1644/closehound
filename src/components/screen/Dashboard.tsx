@@ -411,7 +411,7 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
           )}
 
           {/* Stage 1 */}
-          <div ref={stage1Ref} className="scroll-mt-20">
+          <div ref={stage1Ref} data-tour="results" className="scroll-mt-20">
           <Card>
             <CardHeader>
               <CardTitle>{t.stage1.title}</CardTitle>
@@ -438,7 +438,7 @@ export function Dashboard({ locale = "en" }: { locale?: Locale }) {
           </div>
 
           {/* Stage 2 */}
-          <div ref={stage2Ref} className="scroll-mt-20">
+          <div ref={stage2Ref} data-tour="deals" className="scroll-mt-20">
           <Card>
             <CardHeader>
               <CardTitle>{t.stage2.title} {selectedZip ? `· ${selectedZip}` : ""}</CardTitle>

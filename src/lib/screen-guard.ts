@@ -1,7 +1,7 @@
 import "server-only";
 import { NextResponse } from "next/server";
 import { isMockMode } from "@/lib/env";
-import { getUser } from "@/lib/supabase/server";
+import { getSessionUser } from "@/lib/auth/getSessionUser";
 import { reserveScreens } from "@/lib/quota";
 import { ensureProfile } from "@/lib/auth";
 
@@ -16,9 +16,11 @@ import { ensureProfile } from "@/lib/auth";
  * Returns { userId } on success; the caller MUST refund on downstream failure.
  */
 export async function guardBillable(count: number): Promise<{ userId: string | null } | NextResponse> {
+  // DEMO_MODE implies mock mode (isMockMode() → true), so the demo never
+  // reaches the auth/quota path below — screening is open and unbillable.
   if (isMockMode()) return { userId: null };
 
-  const user = await getUser();
+  const user = await getSessionUser();
   if (!user) {
     return NextResponse.json({ error: "Sign in to screen live data." }, { status: 401 });
   }

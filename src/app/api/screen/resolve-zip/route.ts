@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { isMockMode } from "@/lib/env";
-import { getUser } from "@/lib/supabase/server";
+import { getSessionUser } from "@/lib/auth/getSessionUser";
 import { resolveZip } from "@/lib/hud/client";
 
 export const runtime = "nodejs";
@@ -16,7 +16,7 @@ export async function GET(req: Request) {
   }
 
   if (!isMockMode()) {
-    const user = await getUser();
+    const user = await getSessionUser();
     if (!user) return NextResponse.json({ error: "Sign in to search ZIPs." }, { status: 401 });
   }
 

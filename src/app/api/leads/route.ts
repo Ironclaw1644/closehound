@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { isDemoMode } from "@/lib/env";
 import { getClosehoundAdminSchema, hasSupabaseAdminEnv } from "@/lib/supabase";
-import { getResendClient, getOutboundSender } from "@/lib/resend";
+import { sendEmail, getOutboundSender } from "@/lib/resend";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,8 +36,10 @@ export async function POST(req: Request) {
   }
 
   // ignoreDuplicates → a row comes back only when it was newly inserted.
+  // In demo the env guard is skipped (sendEmail stubs to console.log anyway,
+  // and the demo deployment may not carry Resend env at all).
   const isNew = Array.isArray(data) && data.length > 0;
-  if (isNew && process.env.RESEND_API_KEY && process.env.RESEND_FROM) {
+  if (isNew && (isDemoMode() || (process.env.RESEND_API_KEY && process.env.RESEND_FROM))) {
     try {
       await sendWelcome(email);
     } catch {
@@ -49,7 +52,8 @@ export async function POST(req: Request) {
 
 async function sendWelcome(to: string) {
   // Keep the verified sending domain (RESEND_FROM) but brand it as CloseHound.
-  const raw = getOutboundSender();
+  // In demo, RESEND_FROM may be unset — the stub only logs, so any sender works.
+  const raw = isDemoMode() ? "demo@walkperro.com" : getOutboundSender();
   const addr = raw.match(/<([^>]+)>/)?.[1] ?? raw;
   const pdf = `${SITE}/section8-playbook.pdf`;
   const guide = `${SITE}/guide`;
@@ -76,7 +80,7 @@ async function sendWelcome(to: string) {
       verify specifics locally. You're getting this because you signed up at closehound.com.
     </p>
   </div>`;
-  await getResendClient().emails.send({
+  await sendEmail({
     from: `CloseHound <${addr}>`,
     to,
     subject: "Your Section 8 investing playbook",

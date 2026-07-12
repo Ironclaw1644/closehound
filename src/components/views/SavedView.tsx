@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getUser } from "@/lib/supabase/server";
+import { getSessionUser } from "@/lib/auth/getSessionUser";
 import { SavedList } from "@/components/saved/SavedList";
 import { Logo } from "@/components/site/Logo";
 import { Label } from "@/components/site/Label";
@@ -11,7 +11,7 @@ export async function SavedView({ locale }: { locale: Locale }) {
   const nav = getDictionary(locale).app.nav;
   const lp = (p: string) => localizedPath(p, locale);
 
-  const user = await getUser();
+  const user = await getSessionUser();
   if (!user) redirect(`${lp("/login")}?next=${encodeURIComponent(lp("/saved"))}`);
 
   return (
@@ -24,7 +24,7 @@ export async function SavedView({ locale }: { locale: Locale }) {
           </Link>
         </div>
       </header>
-      <main className="mx-auto max-w-3xl px-5 py-10 sm:px-6">
+      <main data-tour="saved" className="mx-auto max-w-3xl px-5 py-10 sm:px-6">
         <Label accent>{t.eyebrow}</Label>
         <h1 className="mt-3 font-display text-4xl">{t.title}</h1>
         <div className="mt-6">

@@ -52,7 +52,7 @@ export function HomeView({ locale }: { locale: Locale }) {
         <section className="relative">
           <div aria-hidden className="glow-radial pointer-events-none absolute inset-0" />
           <div aria-hidden className="grid-bg pointer-events-none absolute inset-0 opacity-70" />
-          <div className="relative mx-auto max-w-6xl px-5 pt-20 pb-10 text-center sm:px-8 sm:pt-28">
+          <div data-tour="hero" className="relative mx-auto max-w-6xl px-5 pt-20 pb-10 text-center sm:px-8 sm:pt-28">
             <div className="rise flex justify-center">
               <Label accent>{t.eyebrow}</Label>
             </div>
